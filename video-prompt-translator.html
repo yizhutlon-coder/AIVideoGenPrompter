@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Video Prompt Translator — Wan 2.2 · LTX 2.3 · MiniMax H3 · SCAIL-2</title>
+<style>
+  :root {
+    --bg: #0e1116; --panel: #171c24; --panel2: #1e2530; --border: #2c3542;
+    --text: #e6ebf2; --dim: #8b98a9; --accent: #5eb1ff; --accent2: #7ee0a3;
+    --warn: #ffb45e; --err: #ff7a7a; --mono: ui-monospace, 'Cascadia Code', Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.55 system-ui, 'Segoe UI', sans-serif; }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 24px 20px 80px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .sub { color: var(--dim); margin: 0 0 20px; font-size: 14px; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+  label { font-size: 13px; color: var(--dim); display: block; margin-bottom: 4px; }
+  textarea, input[type=text], select {
+    width: 100%; background: var(--panel2); color: var(--text); border: 1px solid var(--border);
+    border-radius: 7px; padding: 9px 11px; font-size: 14px; font-family: inherit;
+  }
+  textarea { min-height: 84px; resize: vertical; }
+  textarea:focus, input:focus, select:focus { outline: none; border-color: var(--accent); }
+  .row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .row > div { flex: 1; min-width: 160px; }
+  .modes { display: flex; gap: 8px; margin-bottom: 16px; }
+  .mode-btn {
+    flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--panel);
+    color: var(--dim); cursor: pointer; font-size: 14px; text-align: center;
+  }
+  .mode-btn.active { border-color: var(--accent); color: var(--text); background: #1a2536; }
+  .mode-btn b { display: block; color: inherit; }
+  .mode-btn span { font-size: 12px; }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip { display: flex; align-items: center; gap: 6px; background: var(--panel2); border: 1px solid var(--border);
+    border-radius: 20px; padding: 6px 14px; cursor: pointer; font-size: 13px; user-select: none; }
+  .chip input { accent-color: var(--accent); }
+  .chip.on { border-color: var(--accent); }
+  button.primary {
+    background: var(--accent); color: #08111d; border: none; border-radius: 8px; padding: 11px 26px;
+    font-size: 15px; font-weight: 600; cursor: pointer;
+  }
+  button.primary:disabled { opacity: .5; cursor: default; }
+  button.ghost { background: none; border: 1px solid var(--border); color: var(--dim); border-radius: 7px;
+    padding: 6px 12px; font-size: 12px; cursor: pointer; }
+  button.ghost:hover { color: var(--text); border-color: var(--accent); }
+  .status { font-size: 13px; margin-left: 12px; }
+  .ok { color: var(--accent2); } .bad { color: var(--err); } .warn { color: var(--warn); }
+  .results { display: grid; grid-template-columns: repeat(auto-fit, minmax(480px, 1fr)); gap: 16px; }
+  @media (max-width: 1000px) { .results { grid-template-columns: 1fr; } }
+  .out-card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .out-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px;
+    background: var(--panel2); border-bottom: 1px solid var(--border); }
+  .out-head h3 { margin: 0; font-size: 15px; }
+  .out-head .tag { font-size: 11px; color: var(--dim); }
+  .out-body pre { margin: 0; padding: 14px; white-space: pre-wrap; word-break: break-word;
+    font-family: var(--mono); font-size: 12.5px; line-height: 1.6; max-height: 420px; overflow: auto; }
+  details.why { border-top: 1px solid var(--border); }
+  details.why summary { padding: 9px 14px; cursor: pointer; font-size: 13px; color: var(--accent); list-style: none; }
+  details.why summary::before { content: '💡 '; }
+  details.why div { padding: 0 14px 14px; font-size: 13px; color: var(--dim); }
+  details.why b { color: var(--text); }
+  .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--border);
+    border-top-color: var(--accent); border-radius: 50%; animation: r .8s linear infinite; vertical-align: -2px; }
+  @keyframes r { to { transform: rotate(360deg); } }
+  .hint { font-size: 12.5px; color: var(--dim); margin-top: 8px; }
+  .hint code { font-family: var(--mono); background: var(--panel2); padding: 1px 5px; border-radius: 4px; }
+  #tmplFields { display: none; }
+  .footer-note { color: var(--dim); font-size: 12px; margin-top: 24px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🎬 Video Prompt Translator</h1>
+  <p class="sub">Describe the shot once — get it translated into each model's native prompt dialect, with an explanation of why each one differs.</p>
+
+  <div class="modes">
+    <div class="mode-btn active" id="modeLLM" onclick="setMode('llm')">
+      <b>Local LLM mode (Ollama)</b><span>Real rewriting via a small local model — best results</span>
+    </div>
+    <div class="mode-btn" id="modeTmpl" onclick="setMode('tmpl')">
+      <b>Template mode (no install)</b><span>Deterministic fill-in — works offline, shows the structure</span>
+    </div>
+  </div>
+
+  <div class="card" id="llmSettings">
+    <div class="row">
+      <div style="flex:2"><label>Ollama URL</label><input type="text" id="ollamaUrl" value="http://localhost:11434"></div>
+      <div style="flex:2"><label>Model (Qwen recommended — handles Wan's Chinese negatives)</label><input type="text" id="ollamaModel" value="qwen2.5:7b-instruct"></div>
+      <div style="flex:1; display:flex; align-items:flex-end;"><button class="ghost" style="width:100%; padding:9px" onclick="testOllama()">Test connection</button></div>
+    </div>
+    <div id="connStatus" class="hint"></div>
+    <div class="hint">If the browser can't reach Ollama, set <code>OLLAMA_ORIGINS=*</code> (Windows: <code>setx OLLAMA_ORIGINS "*"</code>, then restart Ollama). Pull the model with <code>ollama pull qwen2.5:7b-instruct</code>.</div>
+  </div>
+
+  <div class="card">
+    <label>What do you want to see? (plain language — one sentence is fine)</label>
+    <textarea id="intent" placeholder="e.g. An old fisherman repairs his net on a foggy dock at dawn while seagulls circle overhead. Melancholy, cinematic."></textarea>
+
+    <div id="tmplFields">
+      <div class="hint" style="margin:10px 0 6px">Template mode uses structured fields (this <i>is</i> the lesson — notice which models need which fields):</div>
+      <div class="row">
+        <div><label>Camera movement</label>
+          <select id="fCam"><option>static shot</option><option>slow push-in</option><option>slow pull-back</option><option>pan left</option><option>pan right</option><option>tilt up</option><option>orbit right</option><option>handheld follow</option><option>crane up</option><option>tracking shot</option></select></div>
+        <div><label>Shot size</label>
+          <select id="fShot"><option>medium shot</option><option>close-up</option><option>extreme close-up</option><option>wide shot</option><option>extreme wide shot</option><option>medium close-up</option></select></div>
+        <div><label>Lighting</label>
+          <select id="fLight"><option>soft daylight</option><option>golden hour sunlight</option><option>overcast diffuse light</option><option>hard noon sun</option><option>neon night lighting</option><option>firelight</option><option>moonlight</option><option>rim lighting</option><option>silhouette backlight</option></select></div>
+        <div><label>Style</label>
+          <select id="fStyle"><option>cinematic, filmic grain</option><option>documentary realism</option><option>anime style</option><option>3D animation style</option><option>vintage film, faded colors</option><option>high-contrast noir</option></select></div>
+      </div>
+    </div>
+
+    <div style="margin-top:14px">
+      <label>Target models</label>
+      <div class="chips" id="chips"></div>
+    </div>
+
+    <div style="margin-top:16px; display:flex; align-items:center;">
+      <button class="primary" id="goBtn" onclick="generate()">Translate prompt</button>
+      <span class="status" id="genStatus"></span>
+    </div>
+  </div>
+
+  <div class="results" id="results"></div>
+
+  <p class="footer-note">Teaching prototype. Prompt dialects sourced from each model's official guide (Aug 2026): Wan 2.2 README · LTX 2.3 prompt guide · MiniMax H3 HF docs · SCAIL-2 repo. Note: MiniMax H3's community license excludes local deployment in US/EU/UK/KR — check before classroom use.</p>
+</div>
+
+<script>
+'use strict';
+/* ---------------- model definitions ---------------- */
+const WAN_NEG = "色调艳丽，过曝，静态，细节模糊不清，字幕，风格，作品，画作，画面，静止，整体发灰，最差质量，低质量，JPEG压缩残留，丑陋的，残缺的，多余的手指，画得不好的手部，画得不好的脸部，畸形的，毁容的，形态畸形的肢体，手指融合，静止不动的画面，杂乱的背景，三条腿，背景人很多，倒着走";
+
+const MODELS = {
+  wan: {
+    name: 'Wan 2.2', tag: 'keyword formula',
+    why: `<b>Wan 2.2 wants stackable cinematography keywords</b>, not prose. Official structure: <b>Subject + Scene + Motion + Aesthetic Control + Stylization</b>. "Aesthetic control" is a fixed vocabulary — light source, lighting quality, shot size, camera angle, lens, camera movement. It also ships a long <b>Chinese negative prompt</b>; community consensus is to keep it in Chinese (the text encoder was trained bilingually and the default negatives were tuned that way). This mirrors what Wan's own <code>--use_prompt_extend</code> (Qwen) produces.`,
+    system: `You convert a user's plain-language video idea into an optimized prompt for the Wan 2.2 text-to-video model.
+
+Rules:
+- Output structure, in this order, as comma/period-separated descriptive phrases (NOT a labeled list): Subject description, Scene/setting, Motion (what moves and how), Aesthetic control keywords (light source, lighting quality, shot size, camera angle, lens type, camera movement), Stylization keywords.
+- 80-120 words. Dense keywords and short phrases, not flowing literary prose.
+- Use precise cinematography vocabulary: e.g. "soft diffused daylight", "medium close-up", "low angle", "35mm lens", "slow push-in", "shallow depth of field".
+- One clear main motion. No dialogue, no sound description (Wan is video-only).
+- Then a blank line, then exactly:
+Negative prompt: ${WAN_NEG}
+- Output ONLY the prompt and negative prompt. No explanations, no markdown.
+
+Example input: "a cat drinking coffee in a cafe, cozy vibes"
+Example output:
+A fluffy orange tabby cat sits at a small round wooden table in a cozy cafe, lifting a ceramic cup of coffee with both front paws and sipping slowly, steam rising from the cup. Warm interior, bookshelves and rain-streaked window in the background. Soft warm tungsten light, gentle rim lighting, medium close-up, eye-level angle, 50mm lens, shallow depth of field, slow push-in. Cozy cinematic style, warm color grade, film grain.
+
+Negative prompt: ${WAN_NEG}`
+  },
+  ltx: {
+    name: 'LTX 2.3', tag: 'cinematic prose',
+    why: `<b>LTX 2.3 wants the opposite of Wan: one flowing present-tense paragraph</b> — explicitly no tags, bullet lists, or labeled fields. Order inside the prose: subject → main motion → camera behavior → visual tone, "like a shot description handed to a cinematographer." Prompts pass through a <b>Gemma-3 text encoder</b>, which dilutes keyword lists but follows rich natural language well. Long and specific beats short and vague; keep <b>one dominant event</b> per clip.`,
+    system: `You convert a user's plain-language video idea into an optimized prompt for the LTX 2.3 video model.
+
+Rules:
+- Output ONE single flowing paragraph of cinematic prose in PRESENT tense. No lists, no tags, no labeled sections, no line breaks.
+- 100-180 words. Weave in this order: the subject and its appearance, the main motion/action as it unfolds, the camera's behavior (movement, framing, lens feel), then visual tone (light, palette, atmosphere, texture).
+- Exactly ONE dominant event/action in the clip.
+- Write like a shot description handed to a cinematographer. Concrete, sensory, specific. Since LTX generates audio too, you may weave in one brief sound cue naturally.
+- Output ONLY the paragraph. No explanations, no markdown.
+
+Example input: "a cat drinking coffee in a cafe, cozy vibes"
+Example output:
+A fluffy orange tabby cat sits upright at a small round table in a warmly lit cafe, wrapping both front paws around a white ceramic cup and tipping it gently toward its mouth, steam curling upward past its whiskers as it takes a slow, deliberate sip. The camera begins in a medium shot and pushes in slowly toward the cat's face, settling into a soft close-up as its eyes narrow with contentment. Rain streaks the window behind it, blurring passing umbrellas into bokeh, while shelves of worn paperbacks frame the scene. Warm tungsten light spills across the wooden tabletop, catching the steam in a golden haze, and the low murmur of the cafe mixes with a quiet jazz record playing somewhere behind the counter.`
+  },
+  minimax: {
+    name: 'MiniMax H3', tag: 'timeline template',
+    why: `<b>MiniMax H3 wants a screenplay-like structured template</b>: a style-contract paragraph, then bracketed <b>time slices</b> (<code>[0s-2s]</code>…) each with SUBJECT → ACTION → CAMERA, an <b>AUDIO block</b> (H3 generates stereo audio), speaker IDs <code>(S1)</code>, <code>(S2)</code> kept stable across shots for dialogue, and a negative list. MiniMax's hosted rewriter ("H3-Context-IR") that builds this automatically was <b>not open-sourced</b> — which is exactly why a tool like this is needed locally. ⚠️ License note: no local deployment in US/EU/UK/KR.`,
+    system: `You convert a user's plain-language video idea into an optimized prompt for the MiniMax H3 (Hailuo 3.0) video+audio model.
+
+Output this exact structure (plain text, no markdown):
+1. One opening style-contract paragraph: overall visual style, mood, palette, setting.
+2. Timeline blocks covering ~6 seconds total, format:
+[0s-2s] SUBJECT: ... ACTION: ... CAMERA: ...
+[2s-4s] ...
+[4s-6s] ...
+- Camera directions use H3 vocabulary: "slow push-in", "slow right orbit", "static", "tilt up", "tracking".
+- If there is dialogue or vocal sound, tag speakers (S1), (S2) and keep IDs stable across blocks.
+3. AUDIO: one line describing ambient sound, music, and any speech.
+4. NEGATIVE: comma-separated list of artifacts/qualities to avoid.
+
+Output ONLY the prompt. No explanations.
+
+Example input: "a cat drinking coffee in a cafe, cozy vibes"
+Example output:
+Cozy cinematic realism, warm tungsten palette, soft film grain. A rainy-evening cafe interior with wooden tables and shelves of books.
+
+[0s-2s] SUBJECT: a fluffy orange tabby cat at a round wooden table. ACTION: wraps both front paws around a steaming ceramic cup. CAMERA: static medium shot.
+[2s-4s] SUBJECT: the same tabby cat. ACTION: lifts the cup and takes a slow sip, steam curling past its whiskers. CAMERA: slow push-in toward the face.
+[4s-6s] SUBJECT: the cat. ACTION: lowers the cup, eyes narrowing contentedly, tail curling around the chair. CAMERA: settle into close-up.
+
+AUDIO: soft rain against glass, low cafe murmur, quiet jazz record, a faint feline purr.
+NEGATIVE: oversaturated colors, overexposure, static frozen frame, blurry details, deformed limbs, extra paws, watermark, subtitles.`
+  },
+  scail: {
+    name: 'SCAIL-2', tag: 'v2v · prompt is secondary',
+    why: `<b>SCAIL-2 is the trick question of the four</b> — it's not text-to-video. It's character animation / motion transfer: <b>reference image + driving video (+ mask)</b> → your character performs the driving motion. The text prompt only describes the intended <i>output</i> scene; motion comes entirely from the driving video, and <b>mask quality matters more than prompt wording</b>. Teaching point: the first skill of prompting is knowing what the prompt can and cannot control on a given model.`,
+    system: `You prepare inputs for the SCAIL-2 character animation model (video-to-video motion transfer, NOT text-to-video).
+
+Output this exact structure (plain text, no markdown):
+PROMPT: 1-3 sentences describing the intended OUTPUT video — the character's appearance and the scene/setting. Do NOT describe motion in detail; motion comes from the driving video.
+MODE: Animation (character performs the driving motion in the reference image's scene) or Replacement (character replaces the subject inside the driving video's scene) — pick the better fit and say why in 1 short clause.
+YOU STILL NEED: bullet-free single line listing the non-text inputs required: reference image of the character (clean, front-facing preferred), driving video with the desired motion, and a subject mask if using Replacement.
+
+Output ONLY these three labeled lines/blocks. No explanations.
+
+Example input: "a cat drinking coffee in a cafe, cozy vibes"
+Example output:
+PROMPT: A fluffy orange tabby cat sits at a wooden table in a warm, rain-streaked cafe filled with books and soft tungsten light, holding a steaming ceramic cup. Cozy cinematic style, warm palette.
+MODE: Animation — the cat is the reference character and the coffee-sipping motion should come from a driving video of that gesture.
+YOU STILL NEED: reference image of the cat character, driving video of someone sipping from a cup, no mask needed for Animation mode.`
+  }
+};
+
+/* ---------------- state & UI ---------------- */
+let mode = 'llm';
+const $ = id => document.getElementById(id);
+
+function setMode(m) {
+  mode = m;
+  $('modeLLM').classList.toggle('active', m === 'llm');
+  $('modeTmpl').classList.toggle('active', m === 'tmpl');
+  $('llmSettings').style.display = m === 'llm' ? '' : 'none';
+  $('tmplFields').style.display = m === 'tmpl' ? 'block' : 'none';
+}
+
+function initChips() {
+  const box = $('chips');
+  for (const key of Object.keys(MODELS)) {
+    const lab = document.createElement('label');
+    lab.className = 'chip on';
+    lab.innerHTML = `<input type="checkbox" checked data-key="${key}"> ${MODELS[key].name}`;
+    lab.querySelector('input').addEventListener('change', e => lab.classList.toggle('on', e.target.checked));
+    box.appendChild(lab);
+  }
+}
+initChips();
+
+function selectedModels() {
+  return [...document.querySelectorAll('#chips input:checked')].map(i => i.dataset.key);
+}
+
+/* ---------------- Ollama ---------------- */
+async function ollamaChat(system, user) {
+  const url = $('ollamaUrl').value.replace(/\/+$/, '') + '/api/chat';
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: $('ollamaModel').value.trim(),
+      stream: false,
+      options: { temperature: 0.7 },
+      messages: [
+        { role: 'system', content: system },
+        { role: 'user', content: user }
+      ]
+    })
+  });
+  if (!res.ok) throw new Error('Ollama HTTP ' + res.status + ' — ' + (await res.text()).slice(0, 200));
+  const data = await res.json();
+  let out = (data.message && data.message.content || '').trim();
+  // strip <think> blocks from reasoning models like qwen3
+  out = out.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+  return out;
+}
+
+async function testOllama() {
+  const s = $('connStatus');
+  s.innerHTML = '<span class="spin"></span> Checking…';
+  try {
+    const res = await fetch($('ollamaUrl').value.replace(/\/+$/, '') + '/api/tags');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    const names = (data.models || []).map(m => m.name);
+    const want = $('ollamaModel').value.trim();
+    const have = names.some(n => n === want || n.startsWith(want));
+    s.innerHTML = `<span class="ok">✓ Connected.</span> Models available: ${names.join(', ') || '(none)'}` +
+      (have ? '' : ` <span class="warn">— "${want}" not found; run <code>ollama pull ${want}</code> or pick one from the list.</span>`);
+  } catch (e) {
+    s.innerHTML = `<span class="bad">✗ Can't reach Ollama.</span> Is it running? Browser blocked? Set <code>OLLAMA_ORIGINS=*</code> and restart Ollama. (${e.message})`;
+  }
+}
+
+/* ---------------- template mode ---------------- */
+function buildTemplate(key, intent) {
+  const cam = $('fCam').value, shot = $('fShot').value, light = $('fLight').value, style = $('fStyle').value;
+  const idea = intent.trim().replace(/\.+$/, '');
+  if (key === 'wan') {
+    return `${idea}. ${light}, ${shot}, eye-level angle, ${cam}, shallow depth of field. ${style}.`
+      + `\n\nNegative prompt: ${WAN_NEG}`;
+  }
+  if (key === 'ltx') {
+    return `${idea[0].toUpperCase() + idea.slice(1)}. The camera holds a ${shot} and executes a ${cam} as the action unfolds in a single continuous take. ${light[0].toUpperCase() + light.slice(1)} shapes the scene, rendered in a ${style} look, with natural ambient sound matching the setting.`
+      + `\n\n⚠ Template mode note: LTX really wants richer hand-written prose than a template can produce — this is the model where the LLM mode earns its keep.`;
+  }
+  if (key === 'minimax') {
+    return `${style[0].toUpperCase() + style.slice(1)}, ${light}.\n\n`
+      + `[0s-2s] SUBJECT: ${idea}. ACTION: the action begins. CAMERA: ${shot}, static.\n`
+      + `[2s-4s] SUBJECT: same. ACTION: the main action unfolds. CAMERA: ${cam}.\n`
+      + `[4s-6s] SUBJECT: same. ACTION: the action settles/resolves. CAMERA: hold.\n\n`
+      + `AUDIO: ambient sound matching the setting.\n`
+      + `NEGATIVE: oversaturated colors, overexposure, static frozen frame, blurry details, deformed limbs, watermark, subtitles.\n\n`
+      + `⚠ Template mode note: split your idea into 3 real beats — an LLM does this split for you in LLM mode.`;
+  }
+  if (key === 'scail') {
+    return `PROMPT: ${idea}. ${style}.\n`
+      + `MODE: Animation (default) — switch to Replacement if you want the character inserted into the driving video's scene.\n`
+      + `YOU STILL NEED: reference image of the character, driving video with the desired motion, subject mask if using Replacement.`;
+  }
+  return '';
+}
+
+/* ---------------- generate ---------------- */
+function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+
+function renderCard(key, content, pending) {
+  const m = MODELS[key];
+  return `<div class="out-card" id="card-${key}">
+    <div class="out-head">
+      <h3>${m.name} <span class="tag">· ${m.tag}</span></h3>
+      <button class="ghost" onclick="copyOut('${key}')">Copy</button>
+    </div>
+    <div class="out-body"><pre id="out-${key}">${pending ? '<span class="spin"></span> translating…' : esc(content)}</pre></div>
+    <details class="why"><summary>Why this format?</summary><div>${m.why}</div></details>
+  </div>`;
+}
+
+function copyOut(key) {
+  const t = $('out-' + key).textContent;
+  navigator.clipboard.writeText(t).then(() => {
+    const btn = document.querySelector(`#card-${key} .ghost`);
+    const old = btn.textContent; btn.textContent = '✓ Copied';
+    setTimeout(() => btn.textContent = old, 1200);
+  });
+}
+
+async function generate() {
+  const intent = $('intent').value.trim();
+  const keys = selectedModels();
+  const st = $('genStatus');
+  if (!intent) { st.innerHTML = '<span class="warn">Describe the shot first.</span>'; return; }
+  if (!keys.length) { st.innerHTML = '<span class="warn">Pick at least one model.</span>'; return; }
+  $('goBtn').disabled = true;
+  const box = $('results');
+
+  if (mode === 'tmpl') {
+    box.innerHTML = keys.map(k => renderCard(k, buildTemplate(k, intent), false)).join('');
+    st.innerHTML = '<span class="ok">Done (template mode — deterministic).</span>';
+    $('goBtn').disabled = false;
+    return;
+  }
+
+  box.innerHTML = keys.map(k => renderCard(k, '', true)).join('');
+  st.innerHTML = '<span class="spin"></span> Running local LLM… (sequential; small models are quick)';
+  let failed = 0;
+  for (const k of keys) {
+    const pre = $('out-' + k);
+    try {
+      const out = await ollamaChat(MODELS[k].system, intent);
+      pre.textContent = out || '(empty response — try a different model)';
+    } catch (e) {
+      failed++;
+      pre.innerHTML = `<span class="bad">✗ ${esc(e.message)}</span>\n\nFalling back to template:\n\n` + esc(buildTemplate(k, intent));
+    }
+  }
+  st.innerHTML = failed
+    ? `<span class="warn">Done with ${failed} fallback(s) — check Ollama connection above.</span>`
+    : '<span class="ok">Done.</span>';
+  $('goBtn').disabled = false;
+}
+</script>
+</body>
+</html>

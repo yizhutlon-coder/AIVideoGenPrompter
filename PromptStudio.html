@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prompt Studio</title>
+<style>
+  :root {
+    --bg:#0c0f14; --panel:#151a22; --panel2:#1c2330; --border:#2a3342;
+    --text:#e9eef6; --dim:#8f9cb0; --accent:#5eb1ff; --green:#6fdf9c;
+    --warn:#ffb45e; --err:#ff7a7a; --mono:ui-monospace,'Cascadia Code',Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 system-ui,'Segoe UI',sans-serif;}
+  .app{max-width:1240px;margin:0 auto;padding:20px 20px 70px;}
+  header{display:flex;align-items:baseline;gap:12px;margin-bottom:16px;}
+  header h1{font-size:20px;margin:0;}
+  header .dot{width:9px;height:9px;border-radius:50%;background:var(--err);display:inline-block;margin-right:2px;transition:background .3s;}
+  header .dot.on{background:var(--green);}
+  header .state{font-size:12.5px;color:var(--dim);}
+  header .right{margin-left:auto;display:flex;gap:8px;}
+
+  /* ---- setup wizard ---- */
+  #setup{max-width:560px;margin:40px auto;}
+  .step{display:flex;gap:14px;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:12px;transition:opacity .3s;}
+  .step.done{opacity:.55;}
+  .step .n{width:30px;height:30px;border-radius:50%;background:var(--panel2);border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;font-weight:600;flex-shrink:0;font-size:14px;}
+  .step.done .n{background:var(--green);color:#0a1510;border-color:var(--green);}
+  .step.active .n{border-color:var(--accent);color:var(--accent);}
+  .step h3{margin:2px 0 6px;font-size:15px;}
+  .step p{margin:0;font-size:13.5px;color:var(--dim);}
+  .step a{color:var(--accent);}
+  .bigbtn{display:inline-block;margin-top:10px;background:var(--accent);color:#08111d;border:none;border-radius:8px;
+    padding:10px 20px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none;}
+  .bigbtn.alt{background:var(--panel2);color:var(--text);border:1px solid var(--border);}
+  .bigbtn:disabled{opacity:.5;cursor:default;}
+  .bar{height:8px;background:var(--panel2);border-radius:4px;margin-top:12px;overflow:hidden;display:none;}
+  .bar i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:4px;transition:width .3s;}
+  .pull-status{font-size:12.5px;color:var(--dim);margin-top:6px;font-family:var(--mono);}
+
+  /* ---- main tool ---- */
+  #tool{display:none;}
+  .input-zone{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:14px;}
+  textarea{width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:9px;
+    padding:12px 14px;font-size:15.5px;font-family:inherit;min-height:76px;resize:vertical;}
+  textarea:focus{outline:none;border-color:var(--accent);}
+  .examples{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+  .ex{font-size:12px;color:var(--dim);background:var(--panel2);border:1px solid var(--border);border-radius:14px;
+    padding:4px 11px;cursor:pointer;}
+  .ex:hover{color:var(--text);border-color:var(--accent);}
+  .controls{display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap;}
+  .chips{display:flex;gap:7px;flex-wrap:wrap;}
+  .chip{display:flex;align-items:center;gap:6px;background:var(--panel2);border:1px solid var(--border);
+    border-radius:18px;padding:5px 13px;cursor:pointer;font-size:13px;user-select:none;}
+  .chip input{accent-color:var(--accent);}
+  .chip.on{border-color:var(--accent);}
+  button.go{margin-left:auto;background:var(--accent);color:#08111d;border:none;border-radius:9px;
+    padding:11px 30px;font-size:15px;font-weight:700;cursor:pointer;}
+  button.go:disabled{opacity:.5;cursor:default;}
+  .kbd-hint{font-size:11.5px;color:var(--dim);}
+
+  .results{display:grid;grid-template-columns:repeat(auto-fit,minmax(470px,1fr));gap:14px;}
+  @media(max-width:990px){.results{grid-template-columns:1fr;}}
+  .out{background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;}
+  .out .head{display:flex;align-items:center;padding:10px 14px;background:var(--panel2);border-bottom:1px solid var(--border);gap:8px;}
+  .out .head h3{margin:0;font-size:14.5px;}
+  .out .head .fmt{font-size:11.5px;color:var(--dim);}
+  .out .head button{margin-left:auto;background:none;border:1px solid var(--border);color:var(--dim);
+    border-radius:7px;padding:5px 12px;font-size:12px;cursor:pointer;}
+  .out .head button:hover{color:var(--text);border-color:var(--accent);}
+  .out pre{margin:0;padding:14px;white-space:pre-wrap;word-break:break-word;font-family:var(--mono);
+    font-size:12.5px;line-height:1.6;flex:1;max-height:400px;overflow:auto;}
+  .cursor{display:inline-block;width:7px;height:14px;background:var(--accent);vertical-align:-2px;animation:blink 1s steps(1) infinite;}
+  @keyframes blink{50%{opacity:0}}
+  .chk{font-size:11.5px;display:flex;align-items:center;gap:6px;}
+  .chk .okb{color:var(--green);}
+  .chk .warnb{color:var(--warn);cursor:help;}
+  .chk .fixbtn{background:var(--warn);color:#1c1405;border:none;border-radius:6px;padding:4px 10px;font-size:11.5px;font-weight:700;cursor:pointer;}
+  .chk .fixbtn:hover{filter:brightness(1.1);}
+
+  /* ---- history ---- */
+  #histPanel{position:fixed;top:0;right:-340px;width:330px;height:100vh;background:var(--panel);
+    border-left:1px solid var(--border);transition:right .25s;z-index:10;display:flex;flex-direction:column;}
+  #histPanel.open{right:0;box-shadow:-20px 0 50px rgba(0,0,0,.5);}
+  #histPanel .hp-head{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;}
+  #histPanel .hp-head b{font-size:14px;}
+  #histPanel .hp-head button{margin-left:auto;background:none;border:none;color:var(--dim);font-size:18px;cursor:pointer;}
+  #histList{overflow-y:auto;flex:1;padding:8px;}
+  .hitem{padding:10px 12px;border-radius:8px;cursor:pointer;font-size:13px;border:1px solid transparent;}
+  .hitem:hover{background:var(--panel2);border-color:var(--border);}
+  .hitem .t{color:var(--dim);font-size:11px;}
+  .ghost{background:none;border:1px solid var(--border);color:var(--dim);border-radius:7px;padding:6px 13px;font-size:12.5px;cursor:pointer;}
+  .ghost:hover{color:var(--text);border-color:var(--accent);}
+  select{background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:7px;padding:6px 9px;font-size:12.5px;}
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--panel2);
+    border:1px solid var(--border);border-radius:9px;padding:10px 20px;font-size:13.5px;opacity:0;transition:opacity .3s;pointer-events:none;}
+  .toast.show{opacity:1;}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>🎬 Prompt Studio</h1>
+    <span class="state"><span class="dot" id="dot"></span><span id="stateTxt">connecting…</span></span>
+    <div class="right">
+      <select id="modelSel" title="Local LLM used for translation" style="display:none"></select>
+      <button class="ghost" id="histBtn" onclick="toggleHist()" style="display:none">History</button>
+    </div>
+  </header>
+
+  <!-- ============ SETUP WIZARD ============ -->
+  <div id="setup">
+    <div class="step" id="s1">
+      <div class="n">1</div>
+      <div>
+        <h3>Install Ollama</h3>
+        <p>Ollama runs the small AI model on your own machine — everything stays offline.</p>
+        <a class="bigbtn alt" href="https://ollama.com/download" target="_blank">Get Ollama</a>
+      </div>
+    </div>
+    <div class="step" id="s2">
+      <div class="n">2</div>
+      <div>
+        <h3>Start it with the launcher</h3>
+        <p>Double-click <b>Start-PromptStudio.bat</b> (Windows) or <b>start-promptstudio.sh</b> (Mac/Linux) in this folder. It starts Ollama with the right settings and opens this page. <span id="s2wait">Waiting for connection…</span></p>
+      </div>
+    </div>
+    <div class="step" id="s3">
+      <div class="n">3</div>
+      <div style="flex:1">
+        <h3>Download the Qwen model <span style="font-weight:400;color:var(--dim)">(one time)</span></h3>
+        <p>This is the local AI that translates your ideas. Pick one:</p>
+        <button class="bigbtn" id="pull7" onclick="pullModel('qwen2.5:7b-instruct', this)" disabled>Download Qwen 7B — best quality (4.7 GB)</button>
+        <button class="bigbtn alt" id="pull3" onclick="pullModel('qwen2.5:3b-instruct', this)" disabled style="margin-left:6px">Qwen 3B — for slower machines (1.9 GB)</button>
+        <div class="bar" id="pullBar"><i id="pullFill"></i></div>
+        <div class="pull-status" id="pullTxt"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MAIN TOOL ============ -->
+  <div id="tool">
+    <div class="input-zone">
+      <textarea id="intent" placeholder="Describe the shot you want to see… one or two plain sentences is perfect."></textarea>
+      <div class="examples" id="examples"></div>
+      <div class="controls">
+        <div class="chips" id="chips"></div>
+        <span class="kbd-hint">Ctrl+Enter ↵</span>
+        <button class="go" id="goBtn" onclick="generate()">Translate</button>
+      </div>
+    </div>
+    <div class="results" id="results"></div>
+  </div>
+</div>
+
+<div id="histPanel">
+  <div class="hp-head"><b>History</b><button onclick="toggleHist()">✕</button></div>
+  <div id="histList"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+const OLLAMA = 'http://localhost:11434';
+const $ = id => document.getElementById(id);
+
+/* ================= model dialects ================= */
+const WAN_NEG = "色调艳丽，过曝，静态，细节模糊不清，字幕，风格，作品，画作，画面，静止，整体发灰，最差质量，低质量，JPEG压缩残留，丑陋的，残缺的，多余的手指，画得不好的手部，画得不好的脸部，畸形的，毁容的，形态畸形的肢体，手指融合，静止不动的画面，杂乱的背景，三条腿，背景人很多，倒着走";
+
+const TARGETS = {
+  wan: {
+    name:'Wan 2.2', fmt:'keyword formula + Chinese negatives',
+    system:`You convert a user's plain-language video idea into an optimized prompt for the Wan 2.2 text-to-video model.
+
+Rules:
+- Output structure, in this order, as comma/period-separated descriptive phrases (NOT a labeled list): Subject description, Scene/setting, Motion (what moves and how), Aesthetic control keywords (light source, lighting quality, shot size, camera angle, lens type, camera movement), Stylization keywords.
+- 80-120 words. Dense keywords and short phrases, not flowing literary prose.
+- Use precise cinematography vocabulary: e.g. "soft diffused daylight", "medium close-up", "low angle", "35mm lens", "slow push-in", "shallow depth of field".
+- One clear main motion. No dialogue, no sound description (Wan is video-only).
+- Then a blank line, then exactly:
+Negative prompt: ${WAN_NEG}
+- Output ONLY the prompt and negative prompt. No explanations, no markdown.
+
+Example input: "a cat drinking coffee in a cafe, cozy vibes"
+Example output:
+A fluffy orange tabby cat sits at a small round wooden table in a cozy cafe, lifting a ceramic cup of coffee with both front paws and sipping slowly, steam rising from the cup. Warm interior, bookshelves and rain-streaked window in the background. Soft warm tungsten light, gentle rim lighting, medium close-up, eye-level angle, 50mm lens, shallow depth of field, slow push-in. Cozy cinematic style, warm color grade, film grain.
+
+Negative prompt: ${WAN_NEG}`
+  },
+  ltx: {
+    name:'LTX 2.3', fmt:'one cinematic prose paragraph',
+    system:`You convert a user's plain-language video idea into an optimized prompt for the LTX 2.3 video model.
+
+Rules:
+- Output ONE single flowing paragraph of cinematic prose in PRESENT tense. No lists, no tags, no labeled sections, no line breaks.
+- 100-180 words. Weave in this order: the subject and its appearance, the main motion/action as it unfolds, the camera's behavior (movement, framing, lens feel), then visual tone (light, palette, atmosphere, texture).
+- Exactly ONE dominant event/action in the clip.
+- Write like a shot description handed to a cinematographer. Concrete, sensory, specific. Since LTX generates audio too, you may weave in one brief sound cue naturally.
+- Output ONLY the paragraph. No explanations, no markdown.
+
+Example input: "a cat drinking coffee in a cafe, cozy vibes"
+Example output:
+A fluffy orange tabby cat sits upright at a small round table in a warmly lit cafe, wrapping both front paws around a white ceramic cup and tipping it gently toward its mouth, steam curling upward past its whiskers as it takes a slow, deliberate sip. The camera begins in a medium shot and pushes in slowly toward the cat's face, settling into a soft close-up as its eyes narrow with contentment. Rain streaks the window behind it, blurring passing umbrellas into bokeh, while shelves of worn paperbacks frame the scene. Warm tungsten light spills across the wooden tabletop, catching the steam in a golden haze, and the low murmur of the cafe mixes with a quiet jazz record playing somewhere behind the counter.`
+  },
+  minimax: {
+    name:'MiniMax H3', fmt:'timeline blocks + audio + speaker IDs',
+    system:`You convert a user's plain-language video idea into an optimized prompt for the MiniMax H3 (Hailuo 3.0) video+audio model.
+
+Output this exact structure (plain text, no markdown):
+1. One opening style-contract paragraph: overall visual style, mood, palette, setting.
+2. Timeline blocks covering ~6 seconds total, format:
+[0s-2s] SUBJECT: ... ACTION: ... CAMERA: ...
+[2s-4s] ...
+[4s-6s] ...
+- Camera directions use H3 vocabulary: "slow push-in", "slow right orbit", "static", "tilt up", "tracking".
+- If there is dialogue or vocal sound, tag speakers (S1), (S2) and keep IDs stable across blocks.
+3. AUDIO: one line describing ambient sound, music, and any speech.
+4. NEGATIVE: comma-separated list of artifacts/qualities to avoid.
+
+Output ONLY the prompt. No explanations.
+
+Example input: "a cat drinking coffee in a cafe, cozy vibes"
+Example output:
+Cozy cinematic realism, warm tungsten palette, soft film grain. A rainy-evening cafe interior with wooden tables and shelves of books.
+
+[0s-2s] SUBJECT: a fluffy orange tabby cat at a round wooden table. ACTION: wraps both front paws around a steaming ceramic cup. CAMERA: static medium shot.
+[2s-4s] SUBJECT: the same tabby cat. ACTION: lifts the cup and takes a slow sip, steam curling past its whiskers. CAMERA: slow push-in toward the face.
+[4s-6s] SUBJECT: the cat. ACTION: lowers the cup, eyes narrowing contentedly, tail curling around the chair. CAMERA: settle into close-up.
+
+AUDIO: soft rain against glass, low cafe murmur, quiet jazz record, a faint feline purr.
+NEGATIVE: oversaturated colors, overexposure, static frozen frame, blurry details, deformed limbs, extra paws, watermark, subtitles.`
+  },
+  scail: {
+    name:'SCAIL-2', fmt:'motion transfer — prompt describes output only',
+    system:`You prepare inputs for the SCAIL-2 character animation model (video-to-video motion transfer, NOT text-to-video).
+
+Output this exact structure (plain text, no markdown):
+PROMPT: 1-3 sentences describing the intended OUTPUT video — the character's appearance and the scene/setting. Do NOT describe motion in detail; motion comes from the driving video.
+MODE: Animation (character performs the driving motion in the reference image's scene) or Replacement (character replaces the subject inside the driving video's scene) — pick the better fit and say why in 1 short clause.
+YOU STILL NEED: bullet-free single line listing the non-text inputs required: reference image of the character (clean, front-facing preferred), driving video with the desired motion, and a subject mask if using Replacement.
+
+Output ONLY these three labeled lines/blocks. No explanations.
+
+Example input: "a cat drinking coffee in a cafe, cozy vibes"
+Example output:
+PROMPT: A fluffy orange tabby cat sits at a wooden table in a warm, rain-streaked cafe filled with books and soft tungsten light, holding a steaming ceramic cup. Cozy cinematic style, warm palette.
+MODE: Animation — the cat is the reference character and the coffee-sipping motion should come from a driving video of that gesture.
+YOU STILL NEED: reference image of the cat character, driving video of someone sipping from a cup, no mask needed for Animation mode.`
+  }
+};
+
+const EXAMPLES = [
+  "An old fisherman repairs his net on a foggy dock at dawn, seagulls circling. Melancholy.",
+  "A neon-lit street food vendor flips noodles in a wok, sparks flying, rainy Hong Kong night.",
+  "A paper boat sails down a rain gutter after a storm, golden afternoon light.",
+  "A ballerina rehearses alone in a dusty theater, single spotlight.",
+  "A husky puppy discovers snow for the first time, backyard, morning.",
+  "An astronaut plants a small flower in lunar soil inside a glass dome."
+];
+
+/* ================= app state ================= */
+let appState = 'checking';   // checking | no-server | no-model | ready
+let chatModel = null;
+let pulling = false;
+let history = [];
+try { history = JSON.parse(localStorage.getItem('ps_history') || '[]'); } catch(e) {}
+
+/* ================= setup / status loop ================= */
+function setSteps(server, model) {
+  $('s1').className = 'step' + (server ? ' done' : ' active');
+  $('s2').className = 'step' + (server ? ' done' : '');
+  $('s2wait').textContent = server ? '' : 'Waiting for connection…';
+  $('s3').className = 'step' + (server ? (model ? ' done' : ' active') : '');
+  $('pull7').disabled = $('pull3').disabled = !server || pulling;
+}
+
+async function checkStatus() {
+  if (pulling) return;
+  let server = false, models = [];
+  try {
+    const r = await fetch(OLLAMA + '/api/tags', { signal: AbortSignal.timeout(2500) });
+    if (r.ok) { server = true; models = ((await r.json()).models || []).map(m => m.name); }
+  } catch(e) {}
+
+  if (!server) {
+    appState = 'no-server';
+    $('dot').className = 'dot'; $('stateTxt').textContent = 'Ollama not running — run the launcher';
+    $('setup').style.display = ''; $('tool').style.display = 'none';
+    setSteps(false, false);
+    return;
+  }
+  // prefer qwen; else any installed model
+  const qwen = models.find(n => n.startsWith('qwen2.5:7b')) || models.find(n => n.startsWith('qwen')) || null;
+  const usable = qwen || models[0] || null;
+  if (!usable) {
+    appState = 'no-model';
+    $('dot').className = 'dot'; $('stateTxt').textContent = 'connected — model needed';
+    $('setup').style.display = ''; $('tool').style.display = 'none';
+    setSteps(true, false);
+    return;
+  }
+  // ready
+  const first = appState !== 'ready';
+  appState = 'ready'; chatModel = chatModel && models.includes(chatModel) ? chatModel : usable;
+  $('dot').className = 'dot on'; $('stateTxt').textContent = 'offline & ready · ' + chatModel;
+  $('setup').style.display = 'none'; $('tool').style.display = 'block';
+  $('histBtn').style.display = ''; $('modelSel').style.display = '';
+  const sel = $('modelSel');
+  sel.innerHTML = models.map(n => `<option ${n===chatModel?'selected':''}>${n}</option>`).join('');
+  if (first) $('intent').focus();
+}
+$('modelSel').addEventListener('change', e => { chatModel = e.target.value; $('stateTxt').textContent = 'offline & ready · ' + chatModel; });
+checkStatus();
+setInterval(checkStatus, 3000);
+
+/* ================= model download (in-app, with progress) ================= */
+async function pullModel(name, btn) {
+  pulling = true;
+  $('pull7').disabled = $('pull3').disabled = true;
+  btn.textContent = 'Downloading…';
+  $('pullBar').style.display = 'block';
+  const txt = $('pullTxt'), fill = $('pullFill');
+  try {
+    const res = await fetch(OLLAMA + '/api/pull', { method:'POST', body: JSON.stringify({ model:name, stream:true }) });
+    const reader = res.body.getReader(); const dec = new TextDecoder(); let buf = '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream:true });
+      let i;
+      while ((i = buf.indexOf('\n')) >= 0) {
+        const line = buf.slice(0, i).trim(); buf = buf.slice(i + 1);
+        if (!line) continue;
+        let j; try { j = JSON.parse(line); } catch(e) { continue; }
+        if (j.error) throw new Error(j.error);
+        if (j.total && j.completed != null) {
+          const pct = Math.round(j.completed / j.total * 100);
+          fill.style.width = pct + '%';
+          txt.textContent = `${j.status} — ${pct}%  (${(j.completed/1e9).toFixed(1)} / ${(j.total/1e9).toFixed(1)} GB)`;
+        } else {
+          txt.textContent = j.status || '';
+        }
+      }
+    }
+    fill.style.width = '100%';
+    txt.textContent = '✓ Done! Loading the studio…';
+    pulling = false;
+    await checkStatus();
+  } catch(e) {
+    pulling = false;
+    txt.textContent = '✗ ' + e.message + ' — check your connection and try again.';
+    btn.textContent = 'Retry download';
+    $('pull7').disabled = $('pull3').disabled = false;
+  }
+}
+
+/* ================= main tool UI ================= */
+(function init() {
+  const chips = $('chips');
+  for (const key of Object.keys(TARGETS)) {
+    const lab = document.createElement('label');
+    lab.className = 'chip on';
+    lab.innerHTML = `<input type="checkbox" checked data-key="${key}"> ${TARGETS[key].name}`;
+    lab.querySelector('input').addEventListener('change', e => lab.classList.toggle('on', e.target.checked));
+    chips.appendChild(lab);
+  }
+  const ex = $('examples');
+  const picks = EXAMPLES.sort(() => Math.random() - .5).slice(0, 3);
+  ex.innerHTML = '<span style="font-size:12px;color:var(--dim);padding:4px 0">Try:</span>' +
+    picks.map(p => `<span class="ex">${p}</span>`).join('');
+  ex.querySelectorAll('.ex').forEach(el => el.addEventListener('click', () => { $('intent').value = el.textContent; $('intent').focus(); }));
+  $('intent').addEventListener('keydown', e => { if (e.ctrlKey && e.key === 'Enter') generate(); });
+  renderHist();
+})();
+
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1400); }
+function copyOut(key){
+  navigator.clipboard.writeText($('out-'+key).textContent).then(()=>toast('Copied — paste it into ' + TARGETS[key].name));
+}
+
+/* ================= streaming generation ================= */
+async function streamChat(system, user, onDelta) {
+  const res = await fetch(OLLAMA + '/api/chat', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({
+      model: chatModel, stream: true, options: { temperature: 0.7 },
+      messages: [{ role:'system', content: system }, { role:'user', content: user }]
+    })
+  });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const reader = res.body.getReader(); const dec = new TextDecoder(); let buf = '', full = '';
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, { stream:true });
+    let i;
+    while ((i = buf.indexOf('\n')) >= 0) {
+      const line = buf.slice(0, i).trim(); buf = buf.slice(i + 1);
+      if (!line) continue;
+      let j; try { j = JSON.parse(line); } catch(e) { continue; }
+      if (j.error) throw new Error(j.error);
+      const d = j.message && j.message.content || '';
+      if (d) { full += d; onDelta(full); }
+    }
+  }
+  // strip <think> blocks from reasoning models
+  return full.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+}
+
+/* ================= format checker ================= */
+function validate(key, text) {
+  const issues = [];
+  const t = (text || '').trim();
+  if (!t) return ['empty output'];
+  if (/^(here('s| is)|sure|below is|certainly)/i.test(t)) issues.push('starts with chat filler instead of the prompt');
+  if (/(\*\*|##|```)/.test(t)) issues.push('contains markdown formatting');
+  if (key === 'wan') {
+    if (!t.includes('Negative prompt:')) issues.push('missing "Negative prompt:" block');
+    else if (!t.includes('色调艳丽')) issues.push('negative prompt is not the official Chinese list');
+    const pos = t.split('Negative prompt:')[0].trim();
+    const w = pos.split(/\s+/).length;
+    if (w < 40) issues.push('main prompt too short (' + w + ' words, want ~80-120)');
+    if (w > 170) issues.push('main prompt too long (' + w + ' words, want ~80-120)');
+    if (/^\s*[-•]/m.test(pos)) issues.push('uses bullet points — Wan wants comma-separated phrases');
+  }
+  if (key === 'ltx') {
+    if (/\n/.test(t)) issues.push('not a single paragraph (has line breaks)');
+    if (/\b[A-Z]{3,}:/.test(t) || /^\s*[-•]/m.test(t)) issues.push('contains labels or lists — LTX wants pure prose');
+    const w = t.split(/\s+/).length;
+    if (w < 60) issues.push('too short (' + w + ' words, want 100-180)');
+    if (w > 230) issues.push('too long (' + w + ' words, want 100-180)');
+  }
+  if (key === 'minimax') {
+    const blocks = (t.match(/\[\d+s-\d+s\]/g) || []).length;
+    if (blocks < 3) issues.push('only ' + blocks + ' timeline block(s) like [0s-2s] — want 3');
+    if (!/AUDIO:/.test(t)) issues.push('missing AUDIO: line');
+    if (!/NEGATIVE:/.test(t)) issues.push('missing NEGATIVE: line');
+    if (!/SUBJECT:/.test(t) || !/ACTION:/.test(t) || !/CAMERA:/.test(t)) issues.push('blocks missing SUBJECT/ACTION/CAMERA labels');
+  }
+  if (key === 'scail') {
+    if (!/PROMPT:/.test(t)) issues.push('missing PROMPT: field');
+    if (!/MODE:/.test(t)) issues.push('missing MODE: field');
+    if (!/YOU STILL NEED:/.test(t)) issues.push('missing YOU STILL NEED: field');
+  }
+  return issues;
+}
+
+function renderCheck(key, issues) {
+  const el = $('chk-' + key);
+  if (!el) return;
+  if (!issues.length) { el.innerHTML = '<span class="okb">✓ format OK</span>'; return; }
+  const tip = esc(issues.join(' • ')).replace(/"/g, '&quot;');
+  el.innerHTML = '<span class="warnb" title="' + tip + '">⚠ ' + issues.length + ' issue' + (issues.length > 1 ? 's' : '') + '</span>' +
+    '<button class="fixbtn" onclick="fixOutput(\'' + key + '\')">Fix</button>';
+}
+
+let lastRun = null;   // { intent, outputs, hist }
+async function fixOutput(key) {
+  if (busy || !lastRun || appState !== 'ready') return;
+  busy = true;
+  const pre = $('out-' + key);
+  const prev = lastRun.outputs[key] || pre.textContent;
+  const issues = validate(key, prev);
+  $('chk-' + key).innerHTML = '<span class="warnb">fixing…</span>';
+  const msg = 'Original request: "' + lastRun.intent + '"\n\n' +
+    'Your previous output broke these format rules:\n- ' + issues.join('\n- ') + '\n\n' +
+    'Your previous output was:\n' + prev + '\n\n' +
+    'Rewrite it so it fully complies with ALL formatting rules in your instructions. Output ONLY the corrected prompt, nothing else.';
+  try {
+    const fixed = await streamChat(TARGETS[key].system, msg, partial => {
+      const clean = partial.replace(/<think>[\s\S]*?(<\/think>|$)/g, '').trim();
+      pre.innerHTML = esc(clean) + '<span class="cursor"></span>';
+      pre.scrollTop = pre.scrollHeight;
+    });
+    pre.textContent = fixed || prev;
+    lastRun.outputs[key] = fixed || prev;
+    if (lastRun.hist) {
+      lastRun.hist.outputs[key] = fixed || prev;
+      try { localStorage.setItem('ps_history', JSON.stringify(history)); } catch(e) {}
+    }
+    renderCheck(key, validate(key, fixed || prev));
+  } catch(e) {
+    pre.textContent = prev;
+    renderCheck(key, issues);
+    toast('Fix failed: ' + e.message);
+  }
+  busy = false;
+}
+
+let busy = false;
+async function generate() {
+  if (busy || appState !== 'ready') return;
+  const intent = $('intent').value.trim();
+  const keys = [...document.querySelectorAll('#chips input:checked')].map(i => i.dataset.key);
+  if (!intent) { toast('Describe the shot first'); return; }
+  if (!keys.length) { toast('Pick at least one target model'); return; }
+  busy = true; $('goBtn').disabled = true; $('goBtn').textContent = 'Translating…';
+
+  $('results').innerHTML = keys.map(k => `
+    <div class="out">
+      <div class="head"><h3>${TARGETS[k].name}</h3><span class="fmt">${TARGETS[k].fmt}</span>
+        <span class="chk" id="chk-${k}"></span>
+        <button onclick="copyOut('${k}')">Copy</button></div>
+      <pre id="out-${k}"><span class="cursor"></span></pre>
+    </div>`).join('');
+
+  const outputs = {};
+  lastRun = { intent, outputs, hist: null };
+  for (const k of keys) {
+    const pre = $('out-' + k);
+    try {
+      const final = await streamChat(TARGETS[k].system, intent, partial => {
+        const clean = partial.replace(/<think>[\s\S]*?(<\/think>|$)/g, '').trim();
+        pre.innerHTML = esc(clean) + '<span class="cursor"></span>';
+        pre.scrollTop = pre.scrollHeight;
+      });
+      pre.textContent = final || '(empty — try again or switch models)';
+      outputs[k] = final;
+      renderCheck(k, validate(k, final));
+    } catch(e) {
+      pre.innerHTML = `<span style="color:var(--err)">✗ ${esc(e.message)} — is Ollama still running? Re-run the launcher.</span>`;
+    }
+  }
+
+  if (Object.keys(outputs).length) {
+    const entry = { intent, outputs, ts: Date.now() };
+    history.unshift(entry);
+    lastRun.hist = entry;
+    history = history.slice(0, 40);
+    try { localStorage.setItem('ps_history', JSON.stringify(history)); } catch(e) {}
+    renderHist();
+  }
+  busy = false; $('goBtn').disabled = false; $('goBtn').textContent = 'Translate';
+}
+
+/* ================= history ================= */
+function toggleHist(){ $('histPanel').classList.toggle('open'); }
+function renderHist() {
+  const box = $('histList');
+  if (!history.length) { box.innerHTML = '<div style="padding:16px;color:var(--dim);font-size:13px">Your past translations will appear here.</div>'; return; }
+  box.innerHTML = history.map((h, i) => `
+    <div class="hitem" onclick="loadHist(${i})">
+      ${esc(h.intent.length > 70 ? h.intent.slice(0, 70) + '…' : h.intent)}
+      <div class="t">${new Date(h.ts).toLocaleString()} · ${Object.keys(h.outputs).length} model(s)</div>
+    </div>`).join('');
+}
+function loadHist(i) {
+  const h = history[i];
+  $('intent').value = h.intent;
+  $('results').innerHTML = Object.keys(h.outputs).map(k => `
+    <div class="out">
+      <div class="head"><h3>${TARGETS[k].name}</h3><span class="fmt">${TARGETS[k].fmt}</span>
+        <span class="chk" id="chk-${k}"></span>
+        <button onclick="copyOut('${k}')">Copy</button></div>
+      <pre id="out-${k}">${esc(h.outputs[k])}</pre>
+    </div>`).join('');
+  lastRun = { intent: h.intent, outputs: h.outputs, hist: h };
+  Object.keys(h.outputs).forEach(k => renderCheck(k, validate(k, h.outputs[k])));
+  toggleHist();
+}
+</script>
+</body>
+</html>
