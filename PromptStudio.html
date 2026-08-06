@@ -78,6 +78,13 @@
   .chk .warnb{color:var(--warn);cursor:help;}
   .chk .fixbtn{background:var(--warn);color:#1c1405;border:none;border-radius:6px;padding:4px 10px;font-size:11.5px;font-weight:700;cursor:pointer;}
   .chk .fixbtn:hover{filter:brightness(1.1);}
+  .refine{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--border);background:var(--panel2);}
+  .refine input{flex:1;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:7px;
+    padding:8px 11px;font-size:13px;font-family:inherit;}
+  .refine input:focus{outline:none;border-color:var(--accent);}
+  .refine button{background:var(--accent);color:#08111d;border:none;border-radius:7px;padding:0 16px;
+    font-size:13px;font-weight:700;cursor:pointer;}
+  .refine button:disabled{opacity:.5;cursor:default;}
 
   /* ---- history ---- */
   #histPanel{position:fixed;top:0;right:-340px;width:330px;height:100vh;background:var(--panel);
@@ -489,6 +496,45 @@ async function fixOutput(key) {
   busy = false;
 }
 
+/* ================= per-output refinement ================= */
+async function refine(key) {
+  if (busy || !lastRun || appState !== 'ready') return;
+  const input = $('ref-' + key);
+  const change = input.value.trim();
+  if (!change) { toast('Type what you want changed first'); return; }
+  busy = true;
+  input.disabled = true;
+  const pre = $('out-' + key);
+  const prev = lastRun.outputs[key] || pre.textContent;
+  $('chk-' + key).innerHTML = '<span class="warnb">revising…</span>';
+  const msg = 'Original request: "' + lastRun.intent + '"\n\n' +
+    'Current prompt:\n' + prev + '\n\n' +
+    'Requested change: "' + change + '"\n\n' +
+    'Rewrite the prompt applying ONLY this change. Keep everything else intact and fully comply with ALL formatting rules in your instructions. Output ONLY the revised prompt, nothing else.';
+  try {
+    const revised = await streamChat(TARGETS[key].system, msg, partial => {
+      const clean = partial.replace(/<think>[\s\S]*?(<\/think>|$)/g, '').trim();
+      pre.innerHTML = esc(clean) + '<span class="cursor"></span>';
+      pre.scrollTop = pre.scrollHeight;
+    });
+    pre.textContent = revised || prev;
+    lastRun.outputs[key] = revised || prev;
+    if (lastRun.hist) {
+      lastRun.hist.outputs[key] = revised || prev;
+      try { localStorage.setItem('ps_history', JSON.stringify(history)); } catch(e) {}
+    }
+    renderCheck(key, validate(key, revised || prev));
+    input.value = '';
+    toast('Revised — tweak again or copy it');
+  } catch(e) {
+    pre.textContent = prev;
+    renderCheck(key, validate(key, prev));
+    toast('Revision failed: ' + e.message);
+  }
+  input.disabled = false;
+  busy = false;
+}
+
 let busy = false;
 async function generate() {
   if (busy || appState !== 'ready') return;
@@ -504,6 +550,11 @@ async function generate() {
         <span class="chk" id="chk-${k}"></span>
         <button onclick="copyOut('${k}')">Copy</button></div>
       <pre id="out-${k}"><span class="cursor"></span></pre>
+      <div class="refine">
+        <input id="ref-${k}" placeholder="Tweak it: e.g. make it night time, slower camera, add rain…"
+          onkeydown="if(event.key==='Enter')refine('${k}')">
+        <button onclick="refine('${k}')">Apply</button>
+      </div>
     </div>`).join('');
 
   const outputs = {};
@@ -555,6 +606,11 @@ function loadHist(i) {
         <span class="chk" id="chk-${k}"></span>
         <button onclick="copyOut('${k}')">Copy</button></div>
       <pre id="out-${k}">${esc(h.outputs[k])}</pre>
+      <div class="refine">
+        <input id="ref-${k}" placeholder="Tweak it: e.g. make it night time, slower camera, add rain…"
+          onkeydown="if(event.key==='Enter')refine('${k}')">
+        <button onclick="refine('${k}')">Apply</button>
+      </div>
     </div>`).join('');
   lastRun = { intent: h.intent, outputs: h.outputs, hist: h };
   Object.keys(h.outputs).forEach(k => renderCheck(k, validate(k, h.outputs[k])));
