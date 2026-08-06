@@ -162,7 +162,10 @@
 </div>
 
 <div id="histPanel">
-  <div class="hp-head"><b>History</b><button onclick="toggleHist()">✕</button></div>
+  <div class="hp-head"><b>History</b>
+    <button class="ghost" style="margin-left:auto;font-size:11.5px" onclick="clearHist()">Clear all</button>
+    <button onclick="toggleHist()" style="margin-left:8px;background:none;border:none;color:var(--dim);font-size:18px;cursor:pointer">✕</button>
+  </div>
   <div id="histList"></div>
 </div>
 <div class="toast" id="toast"></div>
@@ -588,6 +591,14 @@ async function generate() {
 
 /* ================= history ================= */
 function toggleHist(){ $('histPanel').classList.toggle('open'); }
+function clearHist() {
+  if (!history.length) return;
+  if (!confirm('Delete all ' + history.length + ' saved translations from this browser? This cannot be undone.')) return;
+  history = [];
+  try { localStorage.removeItem('ps_history'); } catch(e) {}
+  renderHist();
+  toast('History cleared');
+}
 function renderHist() {
   const box = $('histList');
   if (!history.length) { box.innerHTML = '<div style="padding:16px;color:var(--dim);font-size:13px">Your past translations will appear here.</div>'; return; }
