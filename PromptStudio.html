@@ -50,7 +50,10 @@
     padding:4px 11px;cursor:pointer;}
   .ex:hover{color:var(--text);border-color:var(--accent);}
   .controls{display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap;}
-  .chips{display:flex;gap:7px;flex-wrap:wrap;}
+  .chips{display:flex;flex-direction:column;gap:7px;}
+  .cgroup{display:flex;gap:7px;flex-wrap:wrap;align-items:center;}
+  .glabel{font-size:11px;color:var(--dim);cursor:pointer;min-width:44px;user-select:none;text-transform:uppercase;letter-spacing:.5px;}
+  .glabel:hover{color:var(--accent);}
   .chip{display:flex;align-items:center;gap:6px;background:var(--panel2);border:1px solid var(--border);
     border-radius:18px;padding:5px 13px;cursor:pointer;font-size:13px;user-select:none;}
   .chip input{accent-color:var(--accent);}
@@ -177,6 +180,8 @@ const $ = id => document.getElementById(id);
 
 /* ================= model dialects ================= */
 const WAN_NEG = "色调艳丽，过曝，静态，细节模糊不清，字幕，风格，作品，画作，画面，静止，整体发灰，最差质量，低质量，JPEG压缩残留，丑陋的，残缺的，多余的手指，画得不好的手部，画得不好的脸部，畸形的，毁容的，形态畸形的肢体，手指融合，静止不动的画面，杂乱的背景，三条腿，背景人很多，倒着走";
+const SDXL_NEG = "lowres, worst quality, low quality, jpeg artifacts, blurry, deformed, disfigured, watermark, text, signature, cropped, bad anatomy, extra limbs, mutated hands";
+const QWENIMG_NEG = "低分辨率，低画质，肢体畸形，手指畸形，画面过饱和，蜡像感，人脸无细节，过度光滑，画面具有AI感。构图混乱。文字模糊，扭曲。";
 
 const TARGETS = {
   wan: {
@@ -257,6 +262,76 @@ Example output:
 PROMPT: A fluffy orange tabby cat sits at a wooden table in a warm, rain-streaked cafe filled with books and soft tungsten light, holding a steaming ceramic cup. Cozy cinematic style, warm palette.
 MODE: Animation — the cat is the reference character and the coffee-sipping motion should come from a driving video of that gesture.
 YOU STILL NEED: reference image of the cat character, driving video of someone sipping from a cup, no mask needed for Animation mode.`
+  },
+  sdxl: {
+    name:'SDXL', group:'image', fmt:'keyword tags · weights · negatives matter',
+    system:`You convert a user's plain-language image idea into an optimized prompt for SDXL (Stable Diffusion XL) and its fine-tunes.
+
+Rules:
+- Output comma-separated keywords and short phrases, NOT sentences. Front-load the most important content: subject first, then setting, then lighting, then camera terms, then style/quality keywords.
+- Keep the positive prompt under ~60 words (CLIP reads 77 tokens; later tokens matter less).
+- You may use at most 1-2 emphasis weights like (steam rising:1.2) on genuinely critical elements.
+- Use photography vocabulary: lighting type, shot framing, lens (e.g. 50mm), depth of field, film/render style.
+- Then a blank line, then exactly:
+Negative prompt: ${SDXL_NEG}
+- Output ONLY the prompt and negative prompt. No explanations, no markdown.
+
+Example input: "a cat drinking coffee in a cafe, cozy vibes"
+Example output:
+photo of a fluffy orange tabby cat sitting at a round cafe table, holding a white ceramic coffee cup in both paws, (steam rising:1.2), cozy cafe interior, bookshelves, rain-streaked window, warm tungsten lighting, soft rim light, medium close-up, 50mm, shallow depth of field, film grain, warm color grade
+
+Negative prompt: ${SDXL_NEG}`
+  },
+  flux: {
+    name:'Flux', group:'image', fmt:'prose paragraph · NO negatives (CFG 1)',
+    system:`You convert a user's plain-language image idea into an optimized prompt for Flux (Black Forest Labs FLUX.1 dev/schnell, FLUX.2).
+
+Rules:
+- Output ONE flowing paragraph of natural, declarative prose. 40-120 words. Most important subject in the first sentence.
+- Full sentences that bind attributes to subjects ("the woman in the red coat standing left of the car") — NOT comma tag lists.
+- NEVER use weighting syntax like (word:1.3) — Flux does not parse it.
+- NEVER use quality meta-tags like "masterpiece", "best quality", "8k", "trending on artstation" — they add noise and can render as literal text.
+- NO negative prompt of any kind — Flux runs at CFG 1 and ignores them. Phrase exclusions positively ("an empty street" not "no people").
+- Include concrete photographic detail: light, lens, framing, texture, palette.
+- Output ONLY the paragraph. No explanations, no markdown.
+
+Example input: "a cat drinking coffee in a cafe, cozy vibes"
+Example output:
+A fluffy orange tabby cat sits at a small round table in a cozy cafe, wrapping both front paws around a white ceramic cup as steam curls upward past its whiskers. Rain streaks the window behind it, blurring the street into soft bokeh, and shelves of worn paperbacks line the wall. Warm tungsten light spills across the wooden tabletop, catching the steam in a golden haze. Photographed at eye level on an 85mm lens with shallow depth of field, the scene has the warm, softly grainy feel of a film photograph.`
+  },
+  zimage: {
+    name:'Z-Image', group:'image', fmt:'objective detailed prose · meta-tags banned',
+    system:`You convert a user's plain-language image idea into an optimized prompt for Z-Image / Z-Image-Turbo (Tongyi).
+
+Rules:
+- Output ONE detailed paragraph of objective, concrete prose. 80-250 words. Describe, in roughly this order: subject (appearance, pose, expression), composition and spatial layering (foreground/midground/background), lighting and atmosphere, materials and textures, color scheme.
+- STRICTLY BANNED: quality meta-tags ("8K", "masterpiece", "ultra HD", "best quality") and metaphors/poetic language. Only literal, visual, objective description.
+- If any text must appear in the image, transcribe it verbatim inside English double quotes "" and describe its position, size, and the material/surface carrying it.
+- NO negative prompt — Z-Image-Turbo does not use them.
+- Stay well under the 512-token limit (keep it under ~300 words).
+- Output ONLY the paragraph. No explanations, no markdown.
+
+Example input: "a cat drinking coffee in a cafe, cozy vibes"
+Example output:
+A fluffy orange tabby cat with amber eyes sits upright on a wooden chair at a small round cafe table, both front paws wrapped around a white ceramic cup, head tilted slightly down toward the rising steam. In the foreground, the table surface shows worn oak grain with a folded paper napkin beside the saucer. The midground holds the cat and chair, and the background shows floor-to-ceiling bookshelves with faded paperback spines and a large window streaked with rain, the street outside softly out of focus. Warm tungsten light from a hanging bulb falls from the upper left, creating soft shadows under the table and a warm highlight along the cat's fur. The color scheme is warm amber and brown tones with a cool blue-gray accent from the window light. The cup's glazed ceramic surface reflects a small point of light.`
+  },
+  qwenimg: {
+    name:'Qwen-Image', group:'image', fmt:'rich prose + magic suffix + Chinese negatives',
+    system:`You convert a user's plain-language image idea into an optimized prompt for Qwen-Image (Alibaba, incl. 2512).
+
+Rules:
+- Output ONE detailed paragraph of natural prose, ~100-200 words. For people: be specific about age range, facial features, skin, clothing fabric, pose, and gaze direction. For scenes: describe foreground/midground/background layering, light source, texture, and mood.
+- If any text must appear in the image, state each visible string verbatim inside double quotes "" with its font style, color, position, and presentation (printed, neon, embroidered, etc.). If there is no text, end the description with: The image contains no recognizable text.
+- End the positive prompt with exactly: , Ultra HD, 4K, cinematic composition.
+- Then a blank line, then exactly:
+Negative prompt: ${QWENIMG_NEG}
+- Output ONLY the prompt and negative prompt. No explanations, no markdown.
+
+Example input: "a cat drinking coffee in a cafe, cozy vibes"
+Example output:
+A fluffy orange tabby cat sits at a small round wooden table in a warmly lit cafe, both front paws wrapped around a white ceramic cup as steam rises past its whiskers. The foreground shows the worn oak tabletop with a saucer and folded napkin; the midground holds the cat seated upright on a bentwood chair; the background features shelves of well-thumbed paperbacks and a rain-streaked window with the evening street blurred beyond it. Warm tungsten light from a hanging filament bulb washes the scene in amber tones, catching the steam and the soft texture of the cat's fur, with a cool blue accent from the window. The mood is quiet and content. The image contains no recognizable text., Ultra HD, 4K, cinematic composition.
+
+Negative prompt: ${QWENIMG_NEG}`
   }
 };
 
@@ -368,12 +443,24 @@ async function pullModel(name, btn) {
 /* ================= main tool UI ================= */
 (function init() {
   const chips = $('chips');
-  for (const key of Object.keys(TARGETS)) {
-    const lab = document.createElement('label');
-    lab.className = 'chip on';
-    lab.innerHTML = `<input type="checkbox" checked data-key="${key}"> ${TARGETS[key].name}`;
-    lab.querySelector('input').addEventListener('change', e => lab.classList.toggle('on', e.target.checked));
-    chips.appendChild(lab);
+  const groups = { video: 'Video', image: 'Image' };
+  for (const g of Object.keys(groups)) {
+    const wrap = document.createElement('div');
+    wrap.className = 'cgroup';
+    const gl = document.createElement('span');
+    gl.className = 'glabel'; gl.textContent = groups[g]; gl.title = 'Click to toggle all ' + groups[g].toLowerCase() + ' models';
+    gl.addEventListener('click', () => toggleGroup(g));
+    wrap.appendChild(gl);
+    for (const key of Object.keys(TARGETS)) {
+      if ((TARGETS[key].group || 'video') !== g) continue;
+      const on = g === 'video';   // video checked by default, image opt-in
+      const lab = document.createElement('label');
+      lab.className = 'chip' + (on ? ' on' : '');
+      lab.innerHTML = `<input type="checkbox" ${on ? 'checked' : ''} data-key="${key}" data-group="${g}"> ${TARGETS[key].name}`;
+      lab.querySelector('input').addEventListener('change', e => lab.classList.toggle('on', e.target.checked));
+      wrap.appendChild(lab);
+    }
+    chips.appendChild(wrap);
   }
   const ex = $('examples');
   const picks = EXAMPLES.sort(() => Math.random() - .5).slice(0, 3);
@@ -383,6 +470,12 @@ async function pullModel(name, btn) {
   $('intent').addEventListener('keydown', e => { if (e.ctrlKey && e.key === 'Enter') generate(); });
   renderHist();
 })();
+
+function toggleGroup(g) {
+  const boxes = [...document.querySelectorAll(`#chips input[data-group="${g}"]`)];
+  const allOn = boxes.every(b => b.checked);
+  boxes.forEach(b => { b.checked = !allOn; b.parentElement.classList.toggle('on', !allOn); });
+}
 
 function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
 function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1400); }
@@ -453,6 +546,38 @@ function validate(key, text) {
     if (!/PROMPT:/.test(t)) issues.push('missing PROMPT: field');
     if (!/MODE:/.test(t)) issues.push('missing MODE: field');
     if (!/YOU STILL NEED:/.test(t)) issues.push('missing YOU STILL NEED: field');
+  }
+  if (key === 'sdxl') {
+    if (!t.includes('Negative prompt:')) issues.push('missing "Negative prompt:" block — SDXL relies on negatives');
+    const pos = t.split('Negative prompt:')[0].trim();
+    if ((pos.match(/,/g) || []).length < 4) issues.push('not comma-separated keywords — reads like prose');
+    const w = pos.split(/\s+/).length;
+    if (w > 90) issues.push('positive prompt too long (' + w + ' words) — CLIP only reads ~77 tokens');
+    if ((pos.match(/\(\s*[^)]+:\s*\d/g) || []).length > 3) issues.push('too many (word:1.x) weights — use 1-2 max');
+  }
+  if (key === 'flux') {
+    if (/negative prompt/i.test(t)) issues.push('contains a negative prompt — Flux runs CFG 1 and ignores them');
+    if (/\([^)]+:\d/.test(t)) issues.push('uses (word:1.x) weighting — Flux does not parse it');
+    if (/masterpiece|best quality|8k|ultra hd|trending on artstation/i.test(t)) issues.push('contains quality meta-tags — noise on Flux, may render as literal text');
+    if (/\n/.test(t)) issues.push('not a single paragraph');
+    const w = t.split(/\s+/).length;
+    if (w < 30) issues.push('too short (' + w + ' words, want 40-120)');
+    if (w > 160) issues.push('too long (' + w + ' words, want 40-120)');
+  }
+  if (key === 'zimage') {
+    if (/negative prompt/i.test(t)) issues.push('contains a negative prompt — Z-Image-Turbo does not use them');
+    if (/masterpiece|best quality|8k|ultra hd|4k/i.test(t)) issues.push('contains meta-tags — officially banned in Z-Image\'s prompt guide');
+    if (/\([^)]+:\d/.test(t)) issues.push('uses (word:1.x) weighting — not supported');
+    const w = t.split(/\s+/).length;
+    if (w < 60) issues.push('too short (' + w + ' words, want 80-250 of concrete detail)');
+    if (w > 320) issues.push('too long (' + w + ' words) — risks the 512-token cap truncating the tail');
+  }
+  if (key === 'qwenimg') {
+    if (!t.includes('Negative prompt:')) issues.push('missing "Negative prompt:" block');
+    else if (!t.includes('低分辨率')) issues.push('negative prompt is not the official Chinese list');
+    if (!/Ultra HD, 4K, cinematic composition/.test(t)) issues.push('missing the official magic suffix ", Ultra HD, 4K, cinematic composition."');
+    const pos = t.split('Negative prompt:')[0].trim();
+    if (!/contains no recognizable text|"[^"]+"/.test(pos)) issues.push('must either quote visible text in "" or state the image contains no recognizable text');
   }
   return issues;
 }

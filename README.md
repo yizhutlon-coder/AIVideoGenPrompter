@@ -1,13 +1,17 @@
 # AI Video Gen Prompter
 
-Describe a shot once in plain language — get it translated into the native prompt dialect of four local AI video models, side by side:
+Describe a shot once in plain language — get it translated into the native prompt dialect of eight local AI models (four video, four image), side by side:
 
 | Model | Prompt dialect |
 |---|---|
-| **Wan 2.2** | Keyword formula (Subject + Scene + Motion + cinematography vocab) + official Chinese negative prompt |
-| **LTX 2.3** | One flowing present-tense cinematic prose paragraph |
-| **MiniMax H3** | Timeline blocks `[0s-2s]`, SUBJECT/ACTION/CAMERA, audio block, speaker IDs |
-| **SCAIL-2** | Motion transfer — prompt describes the output only; motion comes from a driving video |
+| **Wan 2.2** (video) | Keyword formula (Subject + Scene + Motion + cinematography vocab) + official Chinese negative prompt |
+| **LTX 2.3** (video) | One flowing present-tense cinematic prose paragraph |
+| **MiniMax H3** (video) | Timeline blocks `[0s-2s]`, SUBJECT/ACTION/CAMERA, audio block, speaker IDs |
+| **SCAIL-2** (video) | Motion transfer — prompt describes the output only; motion comes from a driving video |
+| **SDXL** (image) | Comma-separated keyword tags, front-loaded, sparing `(word:1.2)` weights + standard negative list |
+| **Flux** (image) | Natural declarative prose; **no negatives** (CFG 1), no weights, no quality meta-tags |
+| **Z-Image** (image) | Long objective prose with spatial layering; meta-tags officially banned; text-in-image in `""` |
+| **Qwen-Image** (image) | Rich prose + official ", Ultra HD, 4K, cinematic composition." suffix + official Chinese negative list |
 
 Runs 100% offline on your own machine via a small local LLM (Qwen through [Ollama](https://ollama.com)). No accounts, no cloud, prompts never leave your computer.
 
