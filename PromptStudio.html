@@ -86,6 +86,21 @@
   .pin-t{font-size:11px;color:var(--dim);font-family:var(--mono);line-height:1.45;word-break:break-word;}
   .pin-x{background:none;border:none;color:var(--dim);cursor:pointer;font-size:13px;}
   .pin-x:hover{color:var(--err);}
+  /* ask panel */
+  #askPanel{position:fixed;top:0;right:-420px;width:408px;height:100vh;background:var(--panel);
+    border-left:1px solid var(--border);transition:right .25s;z-index:11;display:flex;flex-direction:column;}
+  #askPanel.open{right:0;box-shadow:-20px 0 50px rgba(0,0,0,.5);}
+  #askPanel .ap-head{padding:13px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+  #askPanel .ap-head b{font-size:14px;flex:1;}
+  #askMsgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;}
+  .msg{max-width:88%;padding:9px 12px;border-radius:11px;font-size:13px;line-height:1.55;white-space:pre-wrap;word-break:break-word;}
+  .msg.u{align-self:flex-end;background:#1a2536;border:1px solid var(--accent);border-radius:11px 11px 3px 11px;}
+  .msg.a{align-self:flex-start;background:var(--panel2);border:1px solid var(--border);border-radius:11px 11px 11px 3px;}
+  .ap-input{display:flex;gap:8px;padding:12px;border-top:1px solid var(--border);}
+  .ap-input textarea{flex:1;min-height:40px;max-height:120px;font-size:13px;padding:9px 11px;}
+  .ap-input button{background:var(--accent);color:#08111d;border:none;border-radius:8px;padding:0 16px;font-weight:700;cursor:pointer;}
+  .ap-input button:disabled{opacity:.5;cursor:default;}
+  .ap-hint{font-size:11px;color:var(--dim);padding:0 14px 10px;}
   /* split view */
   .split-wrap{display:flex;flex-direction:column;height:100vh;width:100vw;}
   .split-bar{padding:6px 14px;font-size:12px;color:var(--dim);background:var(--panel);
@@ -154,6 +169,7 @@ if (PS_SPLIT) {
     <span class="state"><span class="dot" id="dot"></span><span id="stateTxt">connecting…</span></span>
     <div class="right">
       <select id="modelSel" title="Local LLM used for translation" style="display:none"></select>
+      <button class="ghost" id="askBtn" onclick="toggleAsk()" title="Ask the tutor about these models">💬 Ask</button>
       <button class="ghost" id="pinCount" onclick="togglePins()" title="Pinned prompts">📌</button>
       <button class="ghost" id="splitBtn" onclick="location.href='PromptStudio.html?split=1'" title="Two workspaces side by side">⫲ Split</button>
       <button class="ghost" id="histBtn" onclick="toggleHist()" style="display:none">History</button>
@@ -202,6 +218,19 @@ if (PS_SPLIT) {
       </div>
     </div>
     <div class="results" id="results"></div>
+  </div>
+</div>
+
+<div id="askPanel">
+  <div class="ap-head"><b>💬 Model tutor</b>
+    <button class="ghost" onclick="askClear()" style="font-size:11px">New chat</button>
+    <button class="pin-x" onclick="toggleAsk()">✕</button>
+  </div>
+  <div id="askMsgs"></div>
+  <div class="ap-hint">Answers come from the local model, grounded in a built-in knowledge bank (verified Aug 2026) covering all 8 models, CFG/negatives, encoders, and ComfyUI safety.</div>
+  <div class="ap-input">
+    <textarea id="askInput" placeholder="e.g. Why doesn't my negative prompt work on Flux?"></textarea>
+    <button id="askSendBtn" onclick="askSend()">Ask</button>
   </div>
 </div>
 
@@ -384,6 +413,54 @@ Negative prompt: ${QWENIMG_NEG}`
   }
 };
 
+/* ================= knowledge bank (compiled from official guides & docs, Aug 2026) ================= */
+const KNOWLEDGE = `KNOWLEDGE BANK — local AI video & image generation models (verified August 2026)
+
+== VIDEO MODELS ==
+
+WAN 2.2 (Alibaba, Apache 2.0, fully local, no regional restrictions)
+Variants: T2V-A14B / I2V-A14B (MoE, ~24GB+ VRAM or quantized) and TI2V-5B (~8GB consumer GPUs). Prompt dialect: keyword formula — Subject + Scene + Motion + aesthetic-control keywords (light source, lighting quality, shot size, camera angle, lens, camera movement) + stylization. Works in English and Chinese. Ships a long official Chinese negative prompt; keep it in Chinese. Official LLM prompt extender: --use_prompt_extend using local Qwen2.5 (3B/7B/14B) or DashScope; officially improves quality. Video-only (no audio). Common mistakes: writing prose instead of keywords; dropping the negative prompt.
+
+LTX 2.3 (Lightricks, open weights, 22B, generates video + audio together)
+VRAM: distilled/FP8 runs 8-16GB at 540p; 24GB+ recommended for 720p. Prompt dialect: ONE flowing present-tense cinematic prose paragraph — subject, then motion, then camera behavior, then visual tone. No tags, lists, or labels; one dominant event per clip. Prompts pass through a Gemma-3 text encoder, which dilutes tag lists but follows rich prose. Built-in enhance_prompt (Llama-3.2-3B; Florence-2 captioner for image-to-video).
+
+MINIMAX H3 / HAILUO 3.0 (33B omni-transformer: video + stereo audio, up to 2K/24fps/15s)
+Open weights (Aug 2026) BUT the community license EXCLUDES local deployment in the US, EU, UK and South Korea — check before using locally. ~42.5GB download, 64GB system RAM recommended. Prompt dialect: rigid structured template — opening style paragraph; bracketed time slices like [0s-2s] each with SUBJECT / ACTION / CAMERA; an AUDIO line; a NEGATIVE list; speaker IDs (S1),(S2) kept stable across shots; supports up to 12 reference media files. MiniMax's own rewriter (H3-Context-IR) was NOT open-sourced.
+
+SCAIL-2 (Z.ai/Zhipu + Tsinghua, Apache 2.0, built on a Wan backbone)
+NOT text-to-video: it is character animation / motion transfer. Inputs: reference image of a character + driving video with the motion (+ subject mask for Replacement mode). Modes: Animation (character performs driving motion) or Replacement (character replaces the subject in the driving video). The text prompt is secondary — describe the intended OUTPUT scene; motion comes from the driving video; mask quality matters more than prompt wording. Runs on 16GB-class GPUs; GGUF quants go lower. Repo includes a Gemini-based prompt-generation helper.
+
+== IMAGE MODELS ==
+
+SDXL (Stability AI 2023, CreativeML Open RAIL++-M, ~8GB VRAM)
+CLIP text encoders read a bag of keywords, not sentences. Prompt dialect: comma-separated tags/short phrases, most important first (front-loading matters); 77-token window per chunk — UIs split long prompts into 75-token chunks, BREAK forces a chunk boundary. Weighting syntax (word:1.3), ((word)) is parsed by the UI (A1111/ComfyUI normalize differently). Negative prompts are core workflow, CFG 5-8; short negative lists beat old mega-lists. The de-facto standard is fine-tunes: Juggernaut XL / RealVisXL (photoreal), Pony / Illustrious (anime — these REQUIRE their trained quality/trigger tags like score_9 or masterpiece, best quality; always check the model card). Classic enhancer: Fooocus V2 (GPT-2 prompt expansion).
+
+FLUX (Black Forest Labs)
+Lineup: FLUX.1 schnell (12B, Apache 2.0, 1-4 steps), FLUX.1 dev (12B, non-commercial weights but OUTPUTS usable commercially), FLUX.1 Krea dev (tuned against the waxy AI look), Kontext dev (editing), FLUX.2 dev (32B, Nov 2025), FLUX.2 klein 9B / 4B (Jan 2026; the 4B is Apache 2.0). FLUX.1 encoders: CLIP + T5 (T5 reads up to 512 tokens on dev / 256 on schnell; CLIP only sees the first 77 — put the subject early). FLUX.2 replaced both with a Mistral-24B vision-language encoder; understands JSON-structured prompts and HEX color codes; official sweet spot 30-80 words. Prompt dialect: natural declarative prose sentences that bind attributes to subjects; weighting syntax is NOT parsed; quality meta-tags (masterpiece, 8k) are useless and can literally render as text in the image. dev/schnell are guidance-distilled: CFG stays at 1, so NEGATIVE PROMPTS DO NOT WORK — phrase exclusions positively (say "an empty street" instead of "no people"); control with the FluxGuidance value (~3.5 dev) instead of CFG.
+
+Z-IMAGE / Z-IMAGE-TURBO (Tongyi/Alibaba, Apache 2.0, 6B, Qwen3-4B text encoder)
+Turbo: 8 steps, guidance 0 — NO CFG, NO negative prompts at all; low seed-to-seed diversity (vary the prompt, not the seed); fits 16GB VRAM officially, community runs FP8 ~8GB, GGUF ~6GB, even 4GB via stable-diffusion.cpp. Base Z-Image (Jan 2026): 28-50 steps, CFG 3-5, negatives strongly recommended; cfg_normalization flag: False = stylized, True = realism. Prompt dialect: long, objective, concrete prose — subject, composition and spatial layering (foreground/mid/background), lighting/atmosphere, materials/textures, color scheme. The official prompt-enhancer template BANS meta-tags (8K, masterpiece) and metaphors. Text to render in the image goes in English double quotes with position/size/material. Default 512-token cap silently truncates long prompts (can be raised to 1024). Z-Image-Edit: not yet released.
+
+QWEN-IMAGE (Alibaba, Apache 2.0, 20B MMDiT; excels at text rendering)
+Latest open weights: Qwen-Image-2512 (T2I) and Qwen-Image-Edit-2511 (editing, multi-image). Qwen-Image-2.0 is cloud/API only. VRAM: BF16 ~40GB, FP8 ~16GB, GGUF Q4 ~12GB; 4GB possible with layer offload (DiffSynth). Prompt dialect: rich detailed prose; portraits want specifics (age range, facial features, skin, clothing fabric, pose, gaze); every visible text string goes verbatim in double quotes with font/color/position, otherwise end with "The image contains no recognizable text."; official magic suffix: ", Ultra HD, 4K, cinematic composition."; official Chinese negative list; true_cfg_scale 4.0 at 40-50 steps. With Lightning LoRAs (4/8-step) CFG drops to 1 and negatives become inert. Official rewriters: Qwen-Plus for T2I, Qwen-VL-Max for edits (strongly recommended for editing stability). Chinese prompts help when rendering Chinese glyphs. Note the contrast: Alibaba BANS meta-tags on Z-Image but REQUIRES the Ultra HD suffix on Qwen-Image — dialects are per-model, not per-company.
+
+== GENERAL CONCEPTS ==
+
+Why dialects differ: the text encoder decides what the model can "read". CLIP (SDXL) = bag of keywords, so tags win. LLM-based encoders (T5/Mistral in Flux, Gemma-3 in LTX, Qwen3 in Z-Image, Qwen2.5-VL in Qwen-Image) parse real sentences, so specific prose wins and tag soup loses the scene structure.
+CFG and negative prompts: negatives only exist when CFG > 1 (the model computes a second "avoid this" pass). Distilled/turbo models (Flux dev/schnell, Z-Image-Turbo, Qwen Lightning LoRAs) run CFG 1 — negative prompts are silently ignored there.
+Seeds: distilled models tend to have low seed diversity; change wording to get variation.
+Prompt rewriters: every major open model ships or recommends a small LLM rewriter (Wan: Qwen 3-7B; LTX: Llama-3.2-3B; Tencent PromptEnhancer-7B) — 3-8B local models are the industry-standard size for this job; this app does the same via Ollama.
+ComfyUI safety: default server binds 127.0.0.1:8188 (local only). Never launch with --listen on shared Wi-Fi — there is no authentication, anyone on the network gets effectively full control. Custom nodes are arbitrary code: install the minimum, reputable well-maintained packs only; real malware has shipped through custom nodes (LLMVISION 2024, Upscaler_4K 2025). The portable/git version has zero telemetry; the Desktop app has opt-in telemetry. Use --disable-api-nodes to keep everything local. Fully offline generation works once models are downloaded.
+This app (Prompt Studio): everything runs locally — the LLM is served by Ollama at 127.0.0.1; prompts, history and pins never leave the machine.`;
+
+const ASK_SYSTEM = `You are the built-in tutor inside Prompt Studio, a local offline tool that translates plain-language ideas into model-specific prompts. You help students learning local AI video and image generation.
+
+Use the KNOWLEDGE BANK below as your primary, authoritative source for anything model-specific — it is newer (August 2026) and more reliable than your training data. If the bank and your memory disagree, the bank wins. If the bank does not cover a question, say so briefly and answer from general knowledge with that caveat.
+
+Style: plain text only, no markdown. Keep answers short and clear — 2 to 6 sentences unless the student asks for depth. Be concrete and practical.
+
+${KNOWLEDGE}`;
+
 const EXAMPLES = [
   "An old fisherman repairs his net on a foggy dock at dawn, seagulls circling. Melancholy.",
   "A neon-lit street food vendor flips noodles in a wok, sparks flying, rainy Hong Kong night.",
@@ -518,6 +595,9 @@ async function pullModel(name, btn) {
     picks.map(p => `<span class="ex">${p}</span>`).join('');
   ex.querySelectorAll('.ex').forEach(el => el.addEventListener('click', () => { $('intent').value = el.textContent; $('intent').focus(); }));
   $('intent').addEventListener('keydown', e => { if (e.ctrlKey && e.key === 'Enter') generate(); });
+  $('askInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); askSend(); }
+  });
   renderHist();
   renderPins(true);
 })();
@@ -535,12 +615,14 @@ function copyOut(key){
 }
 
 /* ================= streaming generation ================= */
-async function streamChat(system, user, onDelta) {
+async function streamChat(system, user, onDelta, temp) {
   const res = await fetch(OLLAMA + '/api/chat', {
     method:'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({
-      model: chatModel, stream: true, options: { temperature: 0.7 },
-      messages: [{ role:'system', content: system }, { role:'user', content: user }]
+      model: chatModel, stream: true, options: { temperature: temp == null ? 0.7 : temp },
+      messages: Array.isArray(user)
+        ? [{ role:'system', content: system }].concat(user)
+        : [{ role:'system', content: system }, { role:'user', content: user }]
     })
   });
   if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -810,6 +892,52 @@ function clearPins() {
 // live-sync pins across split panes
 window.addEventListener('storage', () => renderPins());
 setInterval(() => renderPins(), 3000);
+
+/* ================= tutor chat (grounded in the knowledge bank) ================= */
+let askMsgs = [];       // {role, content} — session only
+let askBusy = false;
+function toggleAsk(){
+  const p = $('askPanel');
+  p.classList.toggle('open');
+  if (p.classList.contains('open')) {
+    if (!askMsgs.length) askGreet();
+    $('askInput').focus();
+  }
+}
+function askGreet(){
+  addMsg('a', 'Hi! Ask me anything about the 8 models in this app — prompt styles, negatives and CFG, VRAM, licenses, ComfyUI safety. My model facts come from an Aug 2026 knowledge bank, not just the LLM\'s memory.');
+}
+function askClear(){ askMsgs = []; $('askMsgs').innerHTML = ''; askGreet(); }
+function addMsg(cls, text){
+  const d = document.createElement('div');
+  d.className = 'msg ' + cls;
+  d.textContent = text;
+  $('askMsgs').appendChild(d);
+  $('askMsgs').scrollTop = $('askMsgs').scrollHeight;
+  return d;
+}
+async function askSend(){
+  if (askBusy || appState !== 'ready') { if (appState !== 'ready') toast('Waiting for Ollama connection'); return; }
+  const q = $('askInput').value.trim();
+  if (!q) return;
+  askBusy = true; $('askSendBtn').disabled = true; $('askInput').value = '';
+  addMsg('u', q);
+  askMsgs.push({ role:'user', content: q });
+  const bubble = addMsg('a', '…');
+  try {
+    const reply = await streamChat(ASK_SYSTEM, askMsgs.slice(-10), partial => {
+      bubble.textContent = partial.replace(/<think>[\s\S]*?(<\/think>|$)/g, '').trim();
+      $('askMsgs').scrollTop = $('askMsgs').scrollHeight;
+    }, 0.4);
+    bubble.textContent = reply || '(no answer — try rephrasing)';
+    askMsgs.push({ role:'assistant', content: reply });
+    if (askMsgs.length > 16) askMsgs = askMsgs.slice(-12);
+  } catch(e) {
+    bubble.textContent = '✗ ' + e.message + ' — is Ollama still running?';
+  }
+  askBusy = false; $('askSendBtn').disabled = false;
+  $('askMsgs').scrollTop = $('askMsgs').scrollHeight;
+}
 
 function toggleHist(){ $('histPanel').classList.toggle('open'); }
 function clearHist() {
