@@ -474,6 +474,12 @@ const EXAMPLES = [
 let appState = 'checking';   // checking | no-server | no-model | ready
 let chatModel = null;
 let pulling = false;
+let busy = false;
+let lastRun = null;          // { intent, outputs, hist }
+let pinOpen = null;          // null = auto (open when pins exist, except in pane mode)
+let lastPinJson = '';
+let askMsgs = [];            // tutor chat, session only
+let askBusy = false;
 let history = [];
 try { history = JSON.parse(localStorage.getItem('ps_history') || '[]'); } catch(e) {}
 
@@ -724,7 +730,6 @@ function renderCheck(key, issues) {
     '<button class="fixbtn" onclick="fixOutput(\'' + key + '\')">Fix</button>';
 }
 
-let lastRun = null;   // { intent, outputs, hist }
 async function fixOutput(key) {
   if (busy || !lastRun || appState !== 'ready') return;
   busy = true;
@@ -796,7 +801,6 @@ async function refine(key) {
   busy = false;
 }
 
-let busy = false;
 async function generate() {
   if (busy || appState !== 'ready') return;
   const intent = $('intent').value.trim();
@@ -851,10 +855,8 @@ async function generate() {
 /* ================= pinned board (shared across split panes via localStorage) ================= */
 function loadPins(){ try { return JSON.parse(localStorage.getItem('ps_pins') || '[]'); } catch(e) { return []; } }
 function savePins(p){ try { localStorage.setItem('ps_pins', JSON.stringify(p.slice(0, 60))); } catch(e) {} }
-let pinOpen = null;   // null = auto (open when pins exist, except in pane mode)
 function isPinOpen(){ return pinOpen !== null ? pinOpen : (!PS_PANE && loadPins().length > 0); }
 function togglePins(){ pinOpen = !isPinOpen(); renderPins(); }
-let lastPinJson = '';
 function renderPins(force) {
   const p = loadPins();
   const j = JSON.stringify(p) + '|' + isPinOpen();
@@ -894,8 +896,6 @@ window.addEventListener('storage', () => renderPins());
 setInterval(() => renderPins(), 3000);
 
 /* ================= tutor chat (grounded in the knowledge bank) ================= */
-let askMsgs = [];       // {role, content} — session only
-let askBusy = false;
 function toggleAsk(){
   const p = $('askPanel');
   p.classList.toggle('open');
