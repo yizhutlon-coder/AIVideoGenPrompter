@@ -24,6 +24,14 @@ Runs 100% offline on your own machine via a small local LLM (Qwen through [Ollam
 
 Every run after that: double-click the launcher and go. Works with Wi-Fi off once the model is downloaded.
 
+## Portable / USB-stick mode (zero install on other machines)
+
+1. On any machine that has the model already: run `Make-Portable.bat` once (needs internet the first time — bundles the official portable Ollama runtime and copies your downloaded models into this folder, ~6 GB total).
+2. Copy the whole folder to a USB stick or another machine.
+3. There: double-click `Start-Portable.bat`. No install, no admin, no downloads — the runtime and models travel with the folder.
+
+Tips: USB 3.0 (or copying the folder to the machine first) speeds up model loading a lot; on weak laptops pull the Qwen 3B model instead of 7B. The `runtime/` and `models/` folders are gitignored — they belong on the stick, not in the repo.
+
 ## Features
 
 - Streams output live from the local LLM
