@@ -13,17 +13,20 @@ set OLLAMA_ORIGINS=*
 
 rem -- prefer the bundled runtime; fall back to an installed ollama --
 set "OLLAMA_EXE=%ROOT%runtime\ollama.exe"
-if not exist "%OLLAMA_EXE%" (
-  where ollama >nul 2>nul
-  if errorlevel 1 (
-    echo  No bundled runtime found and Ollama is not installed on this machine.
-    echo  Run Make-Portable.bat once (needs internet) to bundle the runtime here.
-    pause
-    exit /b
-  )
-  set "OLLAMA_EXE=ollama"
-  echo  Using this machine's installed Ollama with the portable models folder.
-)
+if exist "%OLLAMA_EXE%" goto runtime_ok
+where ollama >nul 2>nul
+if errorlevel 1 goto no_runtime
+set "OLLAMA_EXE=ollama"
+echo  Using this machine's installed Ollama with the portable models folder.
+goto runtime_ok
+
+:no_runtime
+echo  No bundled runtime found and Ollama is not installed on this machine.
+echo  Run Make-Portable.bat once - needs internet - to bundle the runtime here.
+pause
+exit /b
+
+:runtime_ok
 
 rem -- stop any Ollama already running (it would use the wrong models folder) --
 taskkill /F /IM "ollama app.exe" >nul 2>nul
