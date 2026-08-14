@@ -297,32 +297,72 @@ Example output:
 A fluffy orange tabby cat sits upright at a small round table in a warmly lit cafe, wrapping both front paws around a white ceramic cup and tipping it gently toward its mouth, steam curling upward past its whiskers as it takes a slow, deliberate sip. The camera begins in a medium shot and pushes in slowly toward the cat's face, settling into a soft close-up as its eyes narrow with contentment. Rain streaks the window behind it, blurring passing umbrellas into bokeh, while shelves of worn paperbacks frame the scene. Warm tungsten light spills across the wooden tabletop, catching the steam in a golden haze, and the low murmur of the cafe mixes with a quiet jazz record playing somewhere behind the counter.`
   },
   minimax: {
-    name:'MiniMax H3', fmt:'timeline blocks + audio + speaker IDs',
-    system:`You convert a user's plain-language video idea into an optimized prompt for the MiniMax H3 (Hailuo 3.0) video+audio model.
+    name:'MiniMax H3', fmt:'official T2VA: [Shot N] + soundscape + music',
+    system:`You convert a user's plain-language video idea into an optimized prompt for the MiniMax H3 (Hailuo 3.0) video+audio model, using its official T2VA format.
 
-Output this exact structure (plain text, no markdown):
-1. One opening style-contract paragraph: overall visual style, mood, palette, setting.
-2. Timeline blocks covering ~6 seconds total, format:
-[0s-2s] SUBJECT: ... ACTION: ... CAMERA: ...
-[2s-4s] ...
-[4s-6s] ...
-- Camera directions use H3 vocabulary: "slow push-in", "slow right orbit", "static", "tilt up", "tracking".
-- If there is dialogue or vocal sound, tag speakers (S1), (S2) and keep IDs stable across blocks.
-3. AUDIO: one line describing ambient sound, music, and any speech.
-4. NEGATIVE: comma-separated list of artifacts/qualities to avoid.
+Output exactly three labeled fields (plain text, no markdown):
 
-Output ONLY the prompt. No explanations.
+integrated_multimodal_description: The timeline body. Start "[Shot 1]" (NO timestamp on the first shot) with a style keyword (Live-action, cinematic, 2D-animated, 3D CG, claymation, watercolor, vintage film) and the opening composition, then describe visuals, actions, camera and diegetic sound in order. Later shots start "[Shot N] At MM:SS.mmm, the camera cuts to ...". Write camera motion as a natural action combining motion type + amplitude + speed, e.g. "The camera pushes in with small amplitude at slow speed toward ...". Official motion types: Zoom In/Out, Push In/Pull Out, Pan Left/Right, Truck Left/Right, Tilt Up/Down, Pedestal Up/Down, Arc Shot, Tracking Shot, Static Shot, POV. Anyone who vocalizes gets a stable ID (S1), (S2); write dialogue as <d>[English] exact words.</d> with the speaker's identity and delivery described OUTSIDE the <d>. Any visible on-screen text goes in double quotes verbatim.
+
+overall_soundscape: 1-4 sentences summarizing ambient and physical sounds across the whole video (no dialogue or music here).
+
+non_diegetic_music: 1-3 sentences describing audience-only background music (instrumentation, tempo, dynamics — no mood words), or N/A.
+
+Target ~6 seconds with 2-3 shots unless the idea demands otherwise. Output ONLY the three fields. No explanations.
 
 Example input: "a cat drinking coffee in a cafe, cozy vibes"
 Example output:
-Cozy cinematic realism, warm tungsten palette, soft film grain. A rainy-evening cafe interior with wooden tables and shelves of books.
+integrated_multimodal_description: [Shot 1] Live-action, cinematic, a medium shot frames a fluffy orange tabby cat seated at a round wooden table in a warm, rain-streaked cafe, wrapping both front paws around a steaming white ceramic cup. The camera holds a static shot as the cat lifts the cup toward its mouth. [Shot 2] At 00:03.000, the shot cuts to a close-up of the cat's face as it takes a slow sip, steam curling past its whiskers. The camera pushes in with small amplitude at slow speed while the cat's eyes narrow contentedly and it lowers the cup with a soft ceramic clink.
 
-[0s-2s] SUBJECT: a fluffy orange tabby cat at a round wooden table. ACTION: wraps both front paws around a steaming ceramic cup. CAMERA: static medium shot.
-[2s-4s] SUBJECT: the same tabby cat. ACTION: lifts the cup and takes a slow sip, steam curling past its whiskers. CAMERA: slow push-in toward the face.
-[4s-6s] SUBJECT: the cat. ACTION: lowers the cup, eyes narrowing contentedly, tail curling around the chair. CAMERA: settle into close-up.
+overall_soundscape: Steady rain taps against the cafe window over low room ambience. A soft feline purr rises beneath the gentle clink of the cup on its saucer.
 
-AUDIO: soft rain against glass, low cafe murmur, quiet jazz record, a faint feline purr.
-NEGATIVE: oversaturated colors, overexposure, static frozen frame, blurry details, deformed limbs, extra paws, watermark, subtitles.`
+non_diegetic_music: A quiet jazz trio at a slow tempo, with brushed drums, upright bass, and sparse piano held at a steady low volume.`
+  },
+  minimaxref: {
+    name:'H3 multi-ref', def:false, fmt:'full-reference: 6 sections + <Subject/Picture/Video/Audio> labels',
+    system:`You prepare a full-reference mode prompt for MiniMax H3 (Hailuo 3.0), used when the user has reference images, videos, or audio files (H3 accepts up to 9 images + 3 videos + 3 audio). The user should list their assets in the request, e.g. "refs: picture 1 = photo of my character, video 1 = dance clip, audio 1 = song". If they listed none, infer sensible reference assets from their idea and define them plainly.
+
+Output exactly six labeled sections in this order (plain text, no markdown):
+
+subject_definitions: One line per referenced item. Labels: <Subject N> = reusable visible content (person, object, scene, style — describe its key features and name its source asset); <Picture N> = an image used as a concrete frame anchor (first/last/keyframe) or storyboard reference — only give it its own line in that case, otherwise cite it inside a Subject definition; <Video N> = a source video for editing, continuation, or temporal structure; <Audio N> = audio that is copied or referenced — if it maps to a speaker, write it as the voice reference for "<Subject N> (S1)".
+
+summary: One short paragraph beginning with a bracketed task type: [keyframe completion], [reference generation], [video editing], [video continuation], [audio reuse], [audio reference] — join several with + and repeat none. Use only already-defined labels.
+
+retention_analysis: One line per label. Visible content: "<Subject 1> (appears in [Shot 1], [Shot 2]): fully_preserved - ..." using fully_preserved | partially_preserved | attribute_transfer | weak_reference. Audio: fully_copy | partially_copy | reference | weak_reference.
+
+detailed_description: One or two style sentences, then the timeline: "[Shot 1] ..." (no timestamp) and "[Shot N] At MM:SS.mmm, the shot cuts to ...". 350-500 words for generation tasks. At each referenced item's first clear appearance, describe its referenced characteristics and insert its label; reuse labels without redefining. Camera motion as natural phrasing with motion type + amplitude + speed. Speakers keep stable (S1), (S2); when a referenced subject speaks write "<Subject N> (S1)"; dialogue as <d>[English] exact words.</d>
+
+overall_soundscape: Ambience and physical sounds for the full video; cite <Audio N> copy/reference relationships that belong to this layer.
+
+non_diegetic_music: Audience-only score (instrumentation, tempo, dynamics) or N/A; cite <Audio N> if it is reused as the score.
+
+Output ONLY the six sections. No explanations.
+
+Example input: "my cat character drinks coffee in the cafe from my reference photo. refs: picture 1 = cafe interior photo, picture 2 = my cartoon cat, audio 1 = jazz track"
+Example output:
+subject_definitions:
+<Subject 1> is the cafe interior in <Picture 1>, with a round wooden table, shelves of worn paperbacks, and a rain-streaked window.
+<Subject 2> is the cartoon orange tabby cat in <Picture 2>, with oversized amber eyes, a cream muzzle, and a red collar.
+<Audio 1> is a jazz track reused as the audience-only score.
+
+summary:
+[reference generation + audio reuse] The target video shows <Subject 2> drinking coffee at the table inside <Subject 1>, in a two-shot sequence scored by <Audio 1>.
+
+retention_analysis:
+<Subject 1> (appears in [Shot 1], [Shot 2]): fully_preserved - the table, bookshelves, and rain-streaked window are retained.
+<Subject 2> (appears in [Shot 1], [Shot 2]): fully_preserved - the cat's oversized amber eyes, cream muzzle, and red collar are retained.
+<Audio 1>: fully_copy - reused 1:1 as the complete audience-only score.
+
+detailed_description:
+The target video uses a warm cartoon-realism style with soft tungsten lighting.
+[Shot 1] A medium shot establishes <Subject 1>, the cafe with its round wooden table, bookshelves, and rain-streaked window. <Subject 2>, the cartoon orange tabby with oversized amber eyes and a red collar, sits at the table and wraps both front paws around a steaming white ceramic cup. The camera holds a static shot as the cat lifts the cup.
+[Shot 2] At 00:03.000, the shot cuts to a close-up of <Subject 2> taking a slow sip, steam curling past its whiskers. The camera pushes in with small amplitude at slow speed as its eyes narrow contentedly and the cup lowers with a soft clink.
+
+overall_soundscape:
+Steady rain taps the window over low cafe room tone, with a soft ceramic clink and a faint purr.
+
+non_diegetic_music:
+<Audio 1> is directly reused as the complete audience-only score: a slow jazz trio with brushed drums, upright bass, and sparse piano.`
   },
   scail: {
     name:'SCAIL-2', fmt:'motion transfer — prompt describes output only',
@@ -425,7 +465,7 @@ LTX 2.3 (Lightricks, open weights, 22B, generates video + audio together)
 VRAM: distilled/FP8 runs 8-16GB at 540p; 24GB+ recommended for 720p. Prompt dialect: ONE flowing present-tense cinematic prose paragraph — subject, then motion, then camera behavior, then visual tone. No tags, lists, or labels; one dominant event per clip. Prompts pass through a Gemma-3 text encoder, which dilutes tag lists but follows rich prose. Built-in enhance_prompt (Llama-3.2-3B; Florence-2 captioner for image-to-video).
 
 MINIMAX H3 / HAILUO 3.0 (33B omni-transformer: video + stereo audio, up to 2K/24fps/15s)
-Open weights (Aug 2026) BUT the community license EXCLUDES local deployment in the US, EU, UK and South Korea — check before using locally. ~42.5GB download, 64GB system RAM recommended. Prompt dialect: rigid structured template — opening style paragraph; bracketed time slices like [0s-2s] each with SUBJECT / ACTION / CAMERA; an AUDIO line; a NEGATIVE list; speaker IDs (S1),(S2) kept stable across shots; supports up to 12 reference media files. MiniMax's own rewriter (H3-Context-IR) was NOT open-sourced.
+Open weights (Aug 2026) BUT the community license EXCLUDES local deployment in the US, EU, UK and South Korea — check before using locally. ~42.5GB download, 64GB system RAM recommended. Official prompt format (T2VA/I2VA/FL2VA/L2VA): three fields — integrated_multimodal_description (timeline: "[Shot 1]" with style keyword and no timestamp, later shots "[Shot N] At MM:SS.mmm"; camera motion written as natural action with motion type + amplitude + speed from the official vocabulary: Push In/Pull Out, Pan, Truck, Tilt, Pedestal, Arc Shot, Tracking Shot, Static Shot, POV; speakers get stable (S1),(S2) IDs; dialogue as <d>[Language] exact words</d>; on-screen text in double quotes), overall_soundscape (ambience/physical sounds), non_diegetic_music (audience-only score or N/A). Image-anchored tasks add an alignment instruction line first (e.g. "<Picture 1> is fully referenced at 0.00 seconds"). MULTI-REFERENCE (full-reference mode, up to 9 images + 3 videos + 3 audio): a six-section format — subject_definitions (labels <Subject N> for reusable visible content, <Picture N> for frame anchors, <Video N> for source/structure videos, <Audio N> for copied/referenced audio), summary (bracketed task types like [reference generation], [video editing], [audio reuse], joined with +), retention_analysis (markers: fully_preserved / partially_preserved / attribute_transfer / weak_reference for visuals; fully_copy / partially_copy / reference for audio), detailed_description (350-500 words, labels inserted where they apply), overall_soundscape, non_diegetic_music. MiniMax's own rewriter (H3-Context-IR) was NOT open-sourced.
 
 SCAIL-2 (Z.ai/Zhipu + Tsinghua, Apache 2.0, built on a Wan backbone)
 NOT text-to-video: it is character animation / motion transfer. Inputs: reference image of a character + driving video with the motion (+ subject mask for Replacement mode). Modes: Animation (character performs driving motion) or Replacement (character replaces the subject in the driving video). The text prompt is secondary — describe the intended OUTPUT scene; motion comes from the driving video; mask quality matters more than prompt wording. Runs on 16GB-class GPUs; GGUF quants go lower. Repo includes a Gemini-based prompt-generation helper.
@@ -586,7 +626,7 @@ async function pullModel(name, btn) {
     wrap.appendChild(gl);
     for (const key of Object.keys(TARGETS)) {
       if ((TARGETS[key].group || 'video') !== g) continue;
-      const on = g === 'video';   // video checked by default, image opt-in
+      const on = TARGETS[key].def !== undefined ? TARGETS[key].def : g === 'video';   // video on by default, image + niche targets opt-in
       const lab = document.createElement('label');
       lab.className = 'chip' + (on ? ' on' : '');
       lab.innerHTML = `<input type="checkbox" ${on ? 'checked' : ''} data-key="${key}" data-group="${g}"> ${TARGETS[key].name}`;
@@ -675,11 +715,20 @@ function validate(key, text) {
     if (w > 230) issues.push('too long (' + w + ' words, want 100-180)');
   }
   if (key === 'minimax') {
-    const blocks = (t.match(/\[\d+s-\d+s\]/g) || []).length;
-    if (blocks < 3) issues.push('only ' + blocks + ' timeline block(s) like [0s-2s] — want 3');
-    if (!/AUDIO:/.test(t)) issues.push('missing AUDIO: line');
-    if (!/NEGATIVE:/.test(t)) issues.push('missing NEGATIVE: line');
-    if (!/SUBJECT:/.test(t) || !/ACTION:/.test(t) || !/CAMERA:/.test(t)) issues.push('blocks missing SUBJECT/ACTION/CAMERA labels');
+    if (!/integrated_multimodal_description:/.test(t)) issues.push('missing integrated_multimodal_description: field');
+    if (!/overall_soundscape:/.test(t)) issues.push('missing overall_soundscape: field');
+    if (!/non_diegetic_music:/.test(t)) issues.push('missing non_diegetic_music: field');
+    if (!/\[Shot 1\]/.test(t)) issues.push('missing [Shot 1] opening');
+    if (/\[Shot 2\]/.test(t) && !/At \d{2}:\d{2}\.\d{3}/.test(t)) issues.push('later shots need cut times like "At 00:03.000"');
+    if (/<d>/.test(t) && !/\(S\d/.test(t)) issues.push('dialogue present but no (S1)-style speaker ID');
+  }
+  if (key === 'minimaxref') {
+    for (const sec of ['subject_definitions:', 'summary:', 'retention_analysis:', 'detailed_description:', 'overall_soundscape:', 'non_diegetic_music:'])
+      if (!t.includes(sec)) issues.push('missing ' + sec + ' section');
+    if (!/\[Shot 1\]/.test(t)) issues.push('missing [Shot 1] in detailed_description');
+    if (!/<(Subject|Picture|Video|Audio) \d+>/.test(t)) issues.push('no reference labels like <Subject 1> / <Picture 1>');
+    if (!/(fully_preserved|partially_preserved|attribute_transfer|weak_reference|fully_copy|partially_copy)/.test(t)) issues.push('retention_analysis has no relationship markers');
+    if (!/\[(keyframe completion|reference generation|video editing|video continuation|audio reuse|audio reference)/.test(t)) issues.push('summary missing bracketed task type');
   }
   if (key === 'scail') {
     if (!/PROMPT:/.test(t)) issues.push('missing PROMPT: field');
