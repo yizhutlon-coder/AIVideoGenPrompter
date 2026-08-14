@@ -101,6 +101,13 @@
   .ap-input button{background:var(--accent);color:#08111d;border:none;border-radius:8px;padding:0 16px;font-weight:700;cursor:pointer;}
   .ap-input button:disabled{opacity:.5;cursor:default;}
   .ap-hint{font-size:11px;color:var(--dim);padding:0 14px 10px;}
+  /* clips panel */
+  #clipPanel{position:fixed;top:0;right:-680px;width:660px;max-width:96vw;height:100vh;background:var(--panel);
+    border-left:1px solid var(--border);transition:right .25s;z-index:12;display:flex;flex-direction:column;}
+  #clipPanel.open{right:0;box-shadow:-20px 0 50px rgba(0,0,0,.5);}
+  #clipPanel .cp-head{padding:13px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+  #clipPanel .cp-head b{font-size:14px;flex:1;}
+  #clipPanel iframe{flex:1;border:none;width:100%;background:var(--bg);}
   /* split view */
   .split-wrap{display:flex;flex-direction:column;height:100vh;width:100vw;}
   .split-bar{padding:6px 14px;font-size:12px;color:var(--dim);background:var(--panel);
@@ -169,6 +176,7 @@ if (PS_SPLIT) {
     <span class="state"><span class="dot" id="dot"></span><span id="stateTxt">connecting…</span></span>
     <div class="right">
       <select id="modelSel" title="Local LLM used for translation" style="display:none"></select>
+      <button class="ghost" id="clipBtn" onclick="toggleClips()" title="Cut reference clips to exact seconds (H3)">🎞 Clips</button>
       <button class="ghost" id="askBtn" onclick="toggleAsk()" title="Ask the tutor about these models">💬 Ask</button>
       <button class="ghost" id="pinCount" onclick="togglePins()" title="Pinned prompts">📌</button>
       <button class="ghost" id="splitBtn" onclick="location.href='PromptStudio.html?split=1'" title="Two workspaces side by side">⫲ Split</button>
@@ -219,6 +227,14 @@ if (PS_SPLIT) {
     </div>
     <div class="results" id="results"></div>
   </div>
+</div>
+
+<div id="clipPanel">
+  <div class="cp-head"><b>🎞 Clip Picker</b>
+    <span style="font-size:11.5px;color:var(--dim)">select an exact-second window for H3 references</span>
+    <button class="pin-x" onclick="toggleClips()">✕</button>
+  </div>
+  <iframe id="clipFrame" data-src="ClipPicker.html"></iframe>
 </div>
 
 <div id="askPanel">
@@ -987,6 +1003,12 @@ async function askSend(){
   }
   askBusy = false; $('askSendBtn').disabled = false;
   $('askMsgs').scrollTop = $('askMsgs').scrollHeight;
+}
+
+function toggleClips(){
+  const p = $('clipPanel'), f = $('clipFrame');
+  if (!f.src) f.src = f.dataset.src;   // lazy-load only when first opened
+  p.classList.toggle('open');
 }
 
 function toggleHist(){ $('histPanel').classList.toggle('open'); }
