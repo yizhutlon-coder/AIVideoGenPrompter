@@ -33,12 +33,17 @@ Structural digest [OFFICIAL]: classify first; preserve original intent; add only
 
 Composition: exact subject count and identity; pose/gaze/hand placement; object quantity/color/material/position and functional relation; specific setting; light direction/intensity/temperature; text carrier/layout. For multi-image edits, map every image index to exactly one role.
 
+- [OFFICIAL] Edit-2511's multi-image interface is the strongest documented pose route in this scoped version: dedicate one image to identity, one to garment/style if needed, and one to pose, then state each role explicitly by index.
+- [LORE: SINGLE REPORTS] Official-repository issues show that indexed image roles can still be swapped or ignored and that edited content can spill outside a requested mask despite explicit containment language. These are unresolved reliability reports, not controlled benchmarks; they prove the app must label multi-reference pose/edit fidelity as best effort. [image-order issue #169](https://github.com/QwenLM/Qwen-Image/issues/169) · [mask-containment issue #137](https://github.com/QwenLM/Qwen-Image/issues/137)
+- [TESTED/PAPER] MMGR includes Qwen-Image and finds broad gaps in spatial/global-state consistency among current image/video generators. Qwen's own Qwen-Image-Bench separately scores action/pose and spatial relations, which should be used for regression testing rather than aesthetic-only review. [MMGR](https://arxiv.org/abs/2512.14691) · [Qwen-Image-Bench](https://github.com/QwenLM/Qwen-Image-Bench)
+
 Failure fixes:
 
 - Face/pose ambiguity: replace young/old with age or range; name gaze, head tilt, arm/hand placement.
 - Text hallucination: supply every exact word, not placeholders; say “no other text.”
 - Multi-image drift: “subject from image 1, garment from image 2, pose from image 3”; keep the destination background explicit.
 - Overediting: direct imperative naming only changed property, followed by “preserve identity/composition/lighting” clauses.
+- Exact pose: use a dedicated pose reference and enumerate stance, limb, head and gaze features to match; sample multiple fixed-setting seeds because role binding is not guaranteed.
 
 ## Verbosity calibration
 
@@ -102,6 +107,7 @@ NOTES: One role per indexed image and explicit preservation.
 - Using placeholders (“a list of features”) instead of exact infographic copy.
 - Recaptioning the entire source image in an edit prompt and causing drift.
 - Mixing Lightning steps/settings across 2509, 2511 and 2512.
+- Assuming an online Qwen demo's behavior is reproducible by local 2512 weights without recording checkpoint, rewriter and settings.
 
 ## Validator suggestions
 
@@ -111,6 +117,8 @@ NOTES: One role per indexed image and explicit preservation.
 - Edit: require operation + target + result; multi-image tasks must reference every supplied image exactly once or explain unused inputs.
 - Preserve non-English quoted text byte-for-byte between intent and output.
 - Lightning workflow must name exact compatible model/version and 4/8-step profile.
+- Multi-image pose/edit requests must assign one explicit role to every image; require a best-effort warning and recommend several seeds because role binding can fail.
+- For strict pose/spatial requests, store the source references and evaluate limb/head/gaze/relative-position criteria separately from general aesthetics.
 
 ## Sources
 
@@ -120,4 +128,6 @@ NOTES: One role per indexed image and explicit preservation.
 - [Qwen-Image-Edit-2511 card](https://huggingface.co/Qwen/Qwen-Image-Edit-2511) — [OFFICIAL], 2025-11, accessed 2026-08-15.
 - [Qwen-Image launch blog](https://qwenlm.github.io/blog/qwen-image/) and [Chinese version](https://qwenlm.github.io/zh/blog/qwen-image/) — [OFFICIAL], 2025-08-04, accessed 2026-08-15.
 - [Alibaba Cloud Qwen-Image API](https://help.aliyun.com/zh/model-studio/qwen-image-api) — [OFFICIAL], accessed 2026-08-15.
-
+- [Qwen-Image-Bench](https://github.com/QwenLM/Qwen-Image-Bench) — [OFFICIAL/BENCHMARK], accessed 2026-08-15.
+- [MMGR](https://arxiv.org/abs/2512.14691) — [TESTED/PAPER], accessed 2026-08-15.
+- [Qwen issue #169](https://github.com/QwenLM/Qwen-Image/issues/169) and [issue #137](https://github.com/QwenLM/Qwen-Image/issues/137) — [LORE: SINGLE REPORTS], accessed 2026-08-15.

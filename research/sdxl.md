@@ -24,12 +24,16 @@ No official SDXL-base prompt rewriter system prompt was found. Juggernaut provid
 
 Image composition is controlled by front-loading subject/count/action, then viewpoint/shot, spatial relationships, environment, lighting, and style. SDXL still struggles with exact counting, left/right binding, hands and long text; ControlNet/Regional Prompting/pose references are settings/tools fixes, not solvable by adjective padding.
 
+- [OFFICIAL/MAINTAINER] Diffusers' SDXL ControlNet pipeline accepts spatial conditions including human pose, depth, edges and segmentation; multiple ControlNets can combine an OpenPose image with a layout/edge condition, with separate conditioning scales. This is the appropriate route for exact limb placement or pose—not increasingly ornate prose. [Diffusers SDXL ControlNet](https://huggingface.co/docs/diffusers/api/pipelines/controlnet_sdxl)
+- [TESTED/PAPER] GenSpace evaluates SDXL and FLUX.1-dev and finds clear weaknesses on camera/object orientation and complex frames of reference. Prompt-only spatial directions therefore remain best effort even when phrased well. [GenSpace](https://openreview.net/pdf?id=zyBG1j339A)
+
 Failure fixes:
 
 - Multiple-subject bleed: one clause per subject, strong position/clothing anchors, fewer shared adjectives; use regional conditioning when precision matters.
 - Cropped body: specify shot (`full-body`, `feet visible`, `wide shot`) early and choose matching aspect ratio.
 - Flat composition: add foreground/midground/background objects and one camera height/lens relation.
 - Text failure: short quoted text + placement + font; otherwise route to Qwen/Z.
+- Exact pose/layout: require OpenPose/ControlNet, depth, edge, or regional conditioning. Keep the text prompt semantic and let the control image carry geometry.
 
 ## Verbosity calibration
 
@@ -85,6 +89,7 @@ NOTES: Pony quality/source ladder plus canonical tags; for Illustrious replace s
 - Putting the most important subject after long quality/style prefixes.
 - Expecting prompt-only exact multi-subject layout or long typography.
 - Using contradictory negative and positive tokens.
+- Treating a pose tag such as `dynamic pose` as an exact skeleton specification.
 
 ## Validator suggestions
 
@@ -94,6 +99,7 @@ NOTES: Pony quality/source ladder plus canonical tags; for Illustrious replace s
 - Juggernaut: warn above ~75 CLIP tokens; require subject before style stack.
 - Text task: require quoted exact text + location; warn beyond ~12 words.
 - Warn on >4 generic quality aliases or negative prompt >positive prompt length.
+- If intent requests an exact pose/limb/contact/layout and no structural control is active, warn that output is best effort and offer OpenPose/ControlNet. When several controls are active, validate non-overlap and expose per-control strength.
 
 ## Sources
 
@@ -103,4 +109,5 @@ NOTES: Pony quality/source ladder plus canonical tags; for Illustrious replace s
 - [Juggernaut X creator guide](https://www.rundiffusion.com/prompting-guide-for-juggernaut-x) — [CREATOR], updated 2026-04-09, accessed 2026-08-15.
 - [RealVisXL V5 card](https://huggingface.co/SG161222/RealVisXL_V5.0) — [CREATOR], accessed 2026-08-15.
 - [Illustrious v1.1 card](https://huggingface.co/OnomaAIResearch/Illustrious-XL-v1.1) and [paper](https://arxiv.org/abs/2409.19946) — [CREATOR/PAPER], accessed 2026-08-15.
-
+- [Diffusers SDXL ControlNet documentation](https://huggingface.co/docs/diffusers/api/pipelines/controlnet_sdxl) — [OFFICIAL/MAINTAINER], accessed 2026-08-15.
+- [GenSpace benchmark](https://openreview.net/pdf?id=zyBG1j339A) — [TESTED/PAPER], accessed 2026-08-15.

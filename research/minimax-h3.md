@@ -40,6 +40,7 @@ Failure fixes:
 - Reference leakage: define each source's role narrowly; e.g. `<Video 1>` is camera rhythm only, not identity/style.
 - Morphing: use `fully_preserved` for identity/wardrobe and describe stable anchors every shot.
 - Speed mismatch: name type + amplitude + speed naturally within the shot.
+- Exact pose/path: use a reference video or picture with a narrowly declared role (`attribute_transfer` for motion/camera, `fully_preserved` for identity) and describe only the visible constraints the shot must retain. Text-only body geometry remains best effort; split complex choreography into separately timed shots.
 
 ## Verbosity calibration
 
@@ -114,6 +115,7 @@ NOTES: Six-section Ref2VA structure and narrow reference roles.
 - Repeating dialogue in `overall_soundscape`.
 - Translating or polishing user dialogue instead of preserving it.
 - Using soundscape `N/A` merely because there is no music.
+- Packing several pose transitions, dialogue beats and camera changes into one untimed shot instead of budgeting them across shots.
 
 ## Validator suggestions
 
@@ -123,6 +125,8 @@ NOTES: Six-section Ref2VA structure and narrow reference roles.
 - Each `[Shot N>1]` should have a timestamp; enforce monotonically increasing time.
 - Camera movement should match `(type)( optional amplitude)( optional speed)` in natural prose; flag detached multi-tag stacks.
 - Full-reference generation: warn below 300 or above 550 English words; target 350–500.
+- If intent requests an exact pose, motion path, or camera path without a corresponding reference asset, label it best effort and suggest Ref2VA/reference generation rather than expanding prose.
+- Warn when a shot contains more than one primary body action plus one camera action per 2–3 seconds of implied duration.
 
 ## Sources
 
@@ -130,4 +134,3 @@ NOTES: Six-section Ref2VA structure and narrow reference roles.
 - [MiniMax-H3 official repository/skill](https://github.com/MiniMax-AI/MiniMax-H3/tree/main/skills/h3-prompt-writing) — [OFFICIAL], accessed 2026-08-15.
 - [Official base guide](https://github.com/MiniMax-AI/MiniMax-H3/blob/main/skills/h3-prompt-writing/references/base-en.txt) and [reference guide](https://github.com/MiniMax-AI/MiniMax-H3/blob/main/skills/h3-prompt-writing/references/ref-en.txt) — [OFFICIAL], accessed 2026-08-15.
 - [Team AMA](https://www.reddit.com/r/StableDiffusion/comments/1vh9rtw/ama_minimax_h3_team_ask_us_anything_about_our/) — [STAFF], 2026-08, accessed 2026-08-15.
-

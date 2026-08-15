@@ -1,10 +1,10 @@
 # Z-Image family research brief
 
-Research baseline: 2026-08-15. Scope: Z-Image-Turbo, Z-Image base, Omni-Base, Edit.
+Research baseline: 2026-08-15. Scope: Z-Image-Turbo and Z-Image base. Omni-Base and Edit are documented family members but their official checkpoints remain unreleased.
 
 ## Official guidance
 
-- [OFFICIAL] Z-Image is a 6B bilingual image family. Turbo is distilled, photorealistic, strong at Chinese/English text and runs at 8 NFEs. Base is diverse, controllable and supports effective negatives. Omni-Base unifies generation/editing; Edit is the instruction-tuned editor. [Repository](https://github.com/Tongyi-MAI/Z-Image)
+- [OFFICIAL] Z-Image is a 6B bilingual image family. Turbo is distilled, photorealistic, strong at Chinese/English text and runs at 8 NFEs. Base is diverse, controllable and supports effective negatives. Omni-Base and Edit are described in the architecture/model-zoo table, but both download columns say “To be released.” [Repository](https://github.com/Tongyi-MAI/Z-Image)
 - [STAFF, 2025-11-27] Turbo works best with long detailed prompts. Its default maximum is 512 tokens; local users can set 1024. Prompts of 600–1000 words exceed the default and may truncate. [HF staff discussion](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo/discussions/8)
 - [OFFICIAL] Turbo recipe: 9 scheduler steps ≈8 DiT forwards, guidance 0. Base: 28–50 steps, CFG 3–5, negatives strongly recommended, CFG normalization off for general stylism and on for realism.
 - [OFFICIAL] Natural descriptive prose is the supported dialect; official examples precisely enumerate subject, clothing, objects, text, environment, light and photographic style.
@@ -30,6 +30,8 @@ Full third-party system text is not duplicated. Status: canonical location ident
 
 Composition control follows relational prose: subject/count → appearance/action → objects and exact positions → background → light/style. For text, provide exact quoted copy, carrier, layout, typeface, color and “no other text.” Base supports negatives for cleanup; Turbo does not.
 
+- [TESTED/PAPER] GenSpace includes Z-Image's peer local models and documents a broad limitation of current text-to-image systems: text alone is unreliable for exact camera/object orientation and difficult spatial frames of reference. No official Z-Image pose-control workflow was found in this pass. Treat prompt-only pose/layout as approximate unless the host app supplies a compatible structural adapter. [GenSpace](https://openreview.net/pdf?id=zyBG1j339A)
+
 Failure fixes:
 
 - Similar outputs: vary composition/lens/layout materially; seed alone may not diversify a highly detailed distilled prompt [STAFF discussion].
@@ -48,7 +50,7 @@ Failure fixes:
 - Turbo: no CFG and no negative prompts [OFFICIAL/STAFF]. Validator should reject a Turbo negative field and force guidance 0.
 - Base: negatives strongly recommended; guidance 3–5, 28–50 steps. Use targeted unwanted anatomy, artifacts, extra objects, unwanted text, or style rather than generic mega-lists.
 - CFG normalization: off for stylism; on for realism [OFFICIAL].
-- Edit release exists in the official family by research date. Use direct edit instructions and identify target/location; do not feed T2I scene descriptions as if they were edits.
+- [OFFICIAL, corrected 2026-08-15] Z-Image-Edit and Omni-Base are not downloadable official checkpoints: the current model zoo says “To be released,” and an open June 2026 issue reports that Edit had not shipped. Do not expose either as a locally runnable target. [Repository](https://github.com/Tongyi-MAI/Z-Image) · [release-status issue](https://github.com/Tongyi-MAI/Z-Image/issues/169)
 
 ## Few-shot gold
 
@@ -91,6 +93,7 @@ NOTES: Exact native glyphs and layout.
 - SD-style parenthesis/tag soup instead of natural relational prose.
 - Translating Chinese calligraphy/aesthetic terms into vague English.
 - Expecting seed changes to overcome distilled-mode composition lock.
+- Treating showcased Edit capability as proof that an official local Edit checkpoint is available.
 
 ## Validator suggestions
 
@@ -98,7 +101,8 @@ NOTES: Exact native glyphs and layout.
 - Count model tokens if tokenizer available; warn above 480 default tokens and offer 1024 local mode.
 - Require natural sentences and at least three concrete categories: subject, spatial relation, light/style.
 - Text tasks require quoted exact text, location and typeface; Chinese text should remain unchanged.
-- Edit tasks require imperative target + operation + resulting attribute/location.
+- Reject or disable official-local Edit/Omni-Base selection until a real checkpoint URL and license are verified. If a community adapter is selected, label its rules separately rather than inheriting unreleased official Edit claims.
+- If the user asks for an exact pose/layout and no structural adapter/reference input is active, warn that prompt-only output is best effort.
 
 ## Sources
 
@@ -106,4 +110,5 @@ NOTES: Exact native glyphs and layout.
 - [Z-Image-Turbo staff prompting discussion](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo/discussions/8) — [STAFF], 2025-11-27, accessed 2026-08-15.
 - [Archived official prompt enhancer](https://huggingface.co/spaces/Tongyi-MAI/Z-Image-Turbo/blob/main/pe.py) — [OFFICIAL], accessed 2026-08-15.
 - [Diffusers Z-Image training notes](https://github.com/huggingface/diffusers/blob/main/examples/dreambooth/README_z_image.md) — [MAINTAINER], accessed 2026-08-15.
-
+- [Official repository model-zoo status](https://github.com/Tongyi-MAI/Z-Image) and [Edit release-status issue #169](https://github.com/Tongyi-MAI/Z-Image/issues/169) — [OFFICIAL + LORE: SINGLE REPORT], accessed 2026-08-15.
+- [GenSpace benchmark](https://openreview.net/pdf?id=zyBG1j339A) — [TESTED/PAPER], accessed 2026-08-15.

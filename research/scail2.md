@@ -8,6 +8,7 @@ Research baseline: 2026-08-15. Scope: Animation and Replacement.
 - [OFFICIAL] Prompt semantics are descriptive: describe the final generated video, never an edit instruction. In replacement, describe the replacement character's visible appearance/clothes plus interacted/nearby objects. [Repository README](https://github.com/Ardynai/scail-2)
 - [OFFICIAL] Correct reference and driving masks are critical even for single-character animation. Wrong masks can collapse animation into replacement behavior, degrade complex motion, and weaken long-video anchoring. Prompt changes cannot repair mask semantics.
 - [OFFICIAL] End-to-end driving supports 512p/704p; pose-driven and replacement are reported better at 704p. Training mixes resolution and fps.
+- [OFFICIAL] The recommended animation preprocessor uses the end-to-end driving video plus SAM3-derived masks. Pose-driven NLF/DWPose remains available when an intermediate skeleton is the desired control. Multi-person replacement has `--matchnearest`. [Repository README](https://github.com/Ardynai/scail-2)
 
 ## Rewriter system prompts (verbatim)
 
@@ -34,6 +35,7 @@ Structural digest [OFFICIAL]: samples source frames; captions scene, action, tim
 - Morph/identity loss: clean reference mask, visible clothing description, and 704p for replacement/pose-driven mode.
 - Missing object interaction: name the object and relation in the prompt (“holds the violin under his chin,” “sits on the wooden chair”).
 - Camera drift: inherit source camera; describe it accurately rather than asking for a contradictory new move.
+- Exact pose/motion: choose or create a drive that already contains it. Use end-to-end mode for robust general motion; use pose-driven mode for challenging inputs where skeleton-level control is intentional. The prompt only names what the final video depicts.
 
 ## Verbosity calibration
 
@@ -88,6 +90,7 @@ NOTES: Position/clothing anchors disambiguate the movers.
 - Omitting interacted objects, causing hands/object relationships to degrade.
 - Contradicting the source motion/camera rather than choosing a better drive.
 - Assuming multilingual encoder means Chinese is the optimized official dialect.
+- Calling a bad drive/mask a prompt-adherence failure and repeatedly rewriting prose.
 
 ## Validator suggestions
 
@@ -96,6 +99,8 @@ NOTES: Position/clothing anchors disambiguate the movers.
 - Require at least one concrete action verb and, when objects are detected, a spatial/functional relation verb (`holds`, `sits on`, `beside`).
 - Input-side validation should outrank prompt lint: all four paths exist, masks nonempty, mode flag agrees with mask semantics.
 - Warn when requested camera move differs from source-camera description.
+- Block generation when an “exact motion/pose” intent has no valid drive/mask pair; do not claim text can substitute for those inputs.
+- For multi-person replacement, require target-selection/mask validation and recommend `--matchnearest` where the workflow exposes it.
 
 ## Sources
 
@@ -103,4 +108,3 @@ NOTES: Position/clothing anchors disambiguate the movers.
 - [Official prompt enhancer](https://github.com/Ardynai/scail-2/blob/wan-scail2/prompt_enhancer.py) — [OFFICIAL], accessed 2026-08-15.
 - [Official Hugging Face card](https://huggingface.co/zai-org/SCAIL-2) — [OFFICIAL], accessed 2026-08-15.
 - [SCAIL-2 paper](https://arxiv.org/abs/2606.10804) — [OFFICIAL/PAPER], 2026-06, accessed 2026-08-15.
-

@@ -19,6 +19,17 @@ Baseline: 2026-08-15. This is intentionally not a full settings guide.
 | Qwen Edit-2511 | 40 steps, true CFG 4, guidance 1 example | Direct edit instruction plus preservation clauses; blank negative is acceptable |
 | Qwen Lightning | Version-specific 4/8-step LoRA | Short acceleration can reduce adherence; never mix LoRA/model versions |
 
+## Structural controls that change prompt strategy
+
+| Model | Active control | Prompt implication |
+|---|---|---|
+| LTX 2.3 | Pose/Motion Track/Union Control or camera LoRA | Describe the same intended action/camera semantically; do not contradict the control path. |
+| SCAIL-2 | Drive + reference/driving masks | Prompt only describes final semantics; drive/masks own pose, timing and trajectory. |
+| MiniMax H3 | Ref2VA picture/video/audio | Assign one narrow retention/transfer role per asset and reference it in the relevant shot. |
+| SDXL | OpenPose/ControlNet/depth/edge | Keep identity/style in text; control image owns skeleton/geometry. |
+| FLUX.2 | Multi-reference pose/layout | Explicitly map identity source and pose/layout source; enumerate the structural features to match. |
+| Qwen Edit | Indexed pose/identity/style images | One role per image, direct preservation clauses, multiple fixed-setting seeds for reliability. |
+
 ## General rules
 
 - A prompt benchmark changes one variable at a time: prompt, seed, checkpoint, steps, guidance, scheduler, resolution, enhancer and reference strength must be logged.
@@ -26,8 +37,9 @@ Baseline: 2026-08-15. This is intentionally not a full settings guide.
 - Higher guidance is not a substitute for clear binding. It can increase saturation and artifacts [OFFICIAL Diffusers].
 - Aspect ratio is compositional conditioning: match portrait/full-body, landscape/wide establishing, and poster layouts before rewriting around crops.
 - When a prompt enhancer is on, validate the actual expanded prompt—not only the user's original.
+- Structural-control strength is part of the experiment. A prompt comparison is invalid if pose/mask/reference strength changes between samples.
+- Exact-pose requests without a supported control input should never be silently treated as ordinary prompting tasks.
 
 ## Sources
 
 See each model's `## Sources`; primary settings are from official model cards/repos accessed 2026-08-15.
-

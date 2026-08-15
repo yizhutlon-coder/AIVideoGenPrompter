@@ -8,9 +8,9 @@ LTX-2.5 supersedes 2.3 and is open-weight/local. Official docs say it uses a cus
 
 Prompt impact: describe the event needed rather than choosing duration independently; use enhancer for terse prompts and disable it to preserve exact wording.
 
-## Qwen-Image 2.0 / 2.0-RL / Flash [OFFICIAL/PAPER]
+## Qwen-Image 2.0 / 2.0-RL / Flash [OFFICIAL/PAPER; not verified local]
 
-Qwen-Image 2.0 unifies generation and editing and has superseded 2512/2511 in current Alibaba endpoints. The 2.0-RL report claims improved aesthetics, adherence and editing on Qwen-Image-Bench; Qwen-Image-Flash addresses few-step generation. These are significant model-family updates for local image curricula, although exact open-weight availability/license must be checked per checkpoint before classroom packaging. [2.0 report](https://arxiv.org/abs/2605.10730) · [2.0-RL report](https://arxiv.org/abs/2606.27608) · [Flash report](https://arxiv.org/abs/2606.03746), accessed 2026-08-15.
+Qwen-Image 2.0 unifies generation and editing and has superseded 2512/2511 in current Alibaba endpoints. The 2.0-RL report claims improved aesthetics, adherence and editing on Qwen-Image-Bench; its 57.84 overall score is reported as +2.61 over base, with higher T2I/edit arena Elo. Qwen-Image-Flash addresses few-step generation. However, the official Qwen Hugging Face model list does not expose a Qwen-Image-2.0 weight repository in this research pass, and the official GitHub announcement does not provide a local checkpoint link. Treat the family as API/paper-only, not locally runnable, until an official weight card and license appear. [Official repository](https://github.com/QwenLM/Qwen-Image) · [Qwen model list](https://huggingface.co/Qwen/models) · [2.0 report](https://arxiv.org/abs/2605.10730) · [2.0-RL report](https://arxiv.org/abs/2606.27608) · [Flash report](https://arxiv.org/abs/2606.03746), accessed 2026-08-15.
 
 ## Qwen-Image 3.0 API notice [OFFICIAL, not confirmed local]
 
@@ -22,5 +22,4 @@ BFL's current prompting index mentions FLUX 3 video prompting, but no verified o
 
 ## Recommendation
 
-Add LTX-2.5 immediately as a new local target. Track Qwen-Image 2.0 open checkpoints and licenses. Keep Qwen-Image 3.0 and FLUX 3 out of local selectors until official downloadable weights are confirmed.
-
+Add LTX-2.5 immediately as a new local target. Keep Qwen-Image 2.0/2.0-RL/Flash, Qwen-Image 3.0 and FLUX 3 out of local selectors until official downloadable weights and licenses are confirmed.

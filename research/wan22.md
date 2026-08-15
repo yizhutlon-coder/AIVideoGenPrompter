@@ -43,6 +43,8 @@ Structural digest [OFFICIAL]:
 | Chaos/morphing | One continuous action, one camera move, explicit start→middle→end; reduce simultaneous actors. | [OFFICIAL] warns against long complex action and rapid changes |
 | Orbit distortion | Keep orbit under 45 degrees or use a small-amplitude arc. | [OFFICIAL] |
 | I2V ignores action | Remove restatement of the still image; spend the prompt budget on temporal changes. | [OFFICIAL rewriter] |
+| Unwanted mouth motion | Positive stillness/closed-mouth wording may help, but an open official-repo report says mouth motion persisted across multiple prompt variants. Treat this as a model/workflow limit, not a guaranteed prompt fix. | [LORE: SINGLE REPORT] [issue #77](https://github.com/Wan-Video/Wan2.2/issues/77) |
+| Exact pose/spatial sequence fails | Split into shorter shots or provide a stronger first-frame/control workflow; prompt-only success is not guaranteed. MMGR reports broad spatial/global-state consistency gaps for Wan 2.2. | [TESTED/PAPER] [MMGR](https://arxiv.org/abs/2512.14691) |
 
 Vocabulary: fixed/static shot, push in/pull out, pan/move left-right, tilt up/down, tracking/follow-cam, low-angle, aerial/drone, orbit/arc; `固定机位`, `镜头推进/后拉`, `镜头左移/右移`, `镜头上摇/下摇`, `跟拍`, `环绕运镜`.
 
@@ -99,6 +101,7 @@ NOTES: Follows the official I2V motion-only style and stays far below 100 words.
 - Combining pan, orbit, zoom, handheld shake, and subject action in one short clip.
 - Treating the extender's chosen defaults as requirements.
 - Using `static` only in the negative prompt, although the positive prompt needs a named moving subject.
+- Treating “no mouth movement” or a detailed choreography as a hard constraint the model must honor; known reports show some such failures persist across wording changes.
 
 ## Validator suggestions
 
@@ -108,6 +111,7 @@ NOTES: Follows the official I2V motion-only style and stays far below 100 words.
 - Warn on >2 distinct camera moves or >4 sequential action connectors in a sub-10-second prompt.
 - If `only/仅` anchors one mover, encourage an explicit stillness clause for other subjects.
 - Do not require a style, negative prompt, or Chinese language.
+- For exact pose, limb contact, or multi-step spatial choreography, display “best effort from text alone” and recommend a reference/control or shot split. Never convert this warning into more adjective padding.
 
 ## Sources
 
@@ -115,4 +119,5 @@ NOTES: Follows the official I2V motion-only style and stays far below 100 words.
 - [Official system-prompt source](https://github.com/Wan-Video/Wan2.2/blob/main/wan/utils/system_prompt.py) — [OFFICIAL], accessed 2026-08-15.
 - [Alibaba Cloud Wan prompt guide](https://help.aliyun.com/en/model-studio/text-to-video-prompt) and [Chinese original](https://help.aliyun.com/zh/model-studio/text-to-video-prompt) — [OFFICIAL], accessed 2026-08-15.
 - [Wan2.2 ModelScope card](https://www.modelscope.cn/models/Wan-AI/Wan2.2-T2V-A14B-BF16) — [OFFICIAL], accessed 2026-08-15.
-
+- [Wan issue #77: persistent unwanted mouth movement](https://github.com/Wan-Video/Wan2.2/issues/77) — [LORE: SINGLE REPORT], accessed 2026-08-15.
+- [MMGR benchmark](https://arxiv.org/abs/2512.14691) — [TESTED/PAPER], accessed 2026-08-15.

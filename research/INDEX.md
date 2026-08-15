@@ -12,7 +12,7 @@ Research date: 2026-08-15. All external sources were checked on this date. Evide
 | [SCAIL-2](scail2.md) | ✅ | ✅ canonical source + digest | ✅ | ✅ | ✅ | ⚠️ no negative input documented | ✅ 4 | ✅ | Prompt describes the final video; mask and drive dominate motion, and replacement enhancer targets 90–140 English words. |
 | [SDXL families](sdxl.md) | ✅ | ⚠️ none public found | ✅ | ✅ | ✅ | ✅ | ✅ 5 | ✅ | Dialect must branch by fine-tune: photoreal natural prose, Pony score/source tags, and Illustrious Danbooru tags are not interchangeable. |
 | [FLUX](flux.md) | ✅ | ⚠️ internal upsampler prompt not public | ✅ | ✅ | ✅ | ✅ | ✅ 4 | ✅ | FLUX.2 front-loads subject/action, usually prefers 30–80 words, and officially does not support negative prompts. |
-| [Z-Image](z-image.md) | ✅ | ✅ canonical archive pointer; body unavailable | ✅ | ✅ | ✅ | ✅ | ✅ 4 | ✅ | Turbo is CFG-free/no-negative and detailed with a 512-token default; Base is CFG 3–5 with targeted negatives. |
+| [Z-Image](z-image.md) | ✅ | ✅ canonical archive pointer; body unavailable | ✅ | ✅ | ✅ | ✅ | ✅ 4 | ✅ | Turbo is CFG-free/no-negative, Base uses CFG/negatives, and official Edit/Omni-Base checkpoints remain unreleased. |
 | [Qwen-Image](qwen-image.md) | ✅ | ✅ canonical 2512 source + digest | ✅ | ✅ | ✅ | ✅ | ✅ 5 | ✅ | The official rewriter classifies portrait/text/general and aims for concise ~200-word relational prose; visible text is exact and never translated. |
 
 Legend: ✅ addressed; ⚠️ explicitly “nothing reliable/public found” or canonical body unavailable.
@@ -41,7 +41,7 @@ Every gold pair uses `INTENT`, `PROMPT-EN`, optional `PROMPT-ZH`, and `NOTES`. C
 - [_cross/verbosity.md](_cross/verbosity.md) — evidence-ranked length table, load-bearing hierarchy and small-rewriter anti-padding rules.
 - [_cross/rewriter-technique.md](_cross/rewriter-technique.md) — common official rewriter patterns and a 7B-friendly classify-then-write design.
 - [_cross/settings-context.md](_cross/settings-context.md) — only settings that change prompt strategy.
-- [new-models.md](new-models.md) — LTX-2.5 is the clear new local target; Qwen-Image 2.0 family is a tracked successor; unverified local models are excluded.
+- [new-models.md](new-models.md) — LTX-2.5 is the clear new local target; Qwen-Image 2.0 is a tracked but unverified-local successor; unverified local models are excluded.
 
 ## Source-reproduction note
 
@@ -49,10 +49,30 @@ The plan asked for complete third-party rewriter system prompts verbatim. This r
 
 ## High-priority application changes suggested
 
-1. Route by variant before rewriting; especially Wan T2V vs I2V, H3 base vs Ref2VA, Z Turbo vs Base, and SDXL checkpoint family.
-2. Make motion validation distinguish subject motion from camera motion and detect fixed-camera contradictions.
-3. Protect exact quoted text/dialogue byte-for-byte.
-4. Replace one global verbosity target with the evidence-backed bands above.
-5. Treat SCAIL drive/mask validation as higher priority than prompt rewriting.
-6. Do not generate negative prompts for FLUX.2 or Z-Image-Turbo.
+1. Route by control tier before rewriting: prompt-only for broad intent, structural input for exact pose/layout/path, and shot splitting for complex temporal sequences.
+2. Route by variant; especially Wan T2V vs I2V, H3 base vs Ref2VA, Z Turbo vs Base, and SDXL checkpoint family.
+3. Make motion validation distinguish subject motion from camera motion and detect fixed-camera contradictions.
+4. Protect exact quoted text/dialogue byte-for-byte.
+5. Replace one global verbosity target with the evidence-backed bands above.
+6. Treat SCAIL drive/mask validation as higher priority than prompt rewriting.
+7. Do not generate negative prompts for FLUX.2 or Z-Image-Turbo.
+8. Do not expose Z-Image-Edit or Omni-Base as official local checkpoints; the official model zoo still marks both “To be released” as of 2026-08-15.
 
+## Honest research-quality assessment
+
+This corpus is strong enough to implement a materially better model-aware rewriter and validator. It is not, by itself, strong enough to claim that Prompt Studio will reliably produce the user's intended pose, position or motion.
+
+What is strong:
+
+- Broad primary-source coverage of official dialects, variant differences, prompt lengths, camera vocabulary, negative/guidance behavior and rewriter architecture.
+- Clear separation between prompt-fixable failures and failures that require masks, references, drives, ControlNet/LoRAs, settings changes or shot splitting.
+- Programmatically usable validator suggestions and model-native few-shot formatting.
+
+What remains weak or unproven:
+
+- Most few-shot gold prompts are `[SYNTHESIS]`: they follow official rules but were not rendered against every local checkpoint in this research-only session.
+- Direct controlled community evidence is sparse. Issue reports identify real failure modes but do not estimate success rates.
+- Chinese-versus-English superiority is well supported for exact Chinese text and native cultural vocabulary, but not by broad fixed-seed A/B tests for pose or motion.
+- Online/API results may use hidden rewriters or different checkpoints and must not be assumed to reproduce locally.
+
+Comparison verdict [SYNTHESIS]: this is a competitive research foundation because it is source-marked, version-aware, and honest about control limits. A rival report that only supplies polished prompting advice is not necessarily more useful. A rival report with fixed-seed local renders, per-constraint scoring and failure rates would be stronger. The acceptance protocol in [`_cross/motion-quality.md`](_cross/motion-quality.md) is the required next stage before making accuracy claims.

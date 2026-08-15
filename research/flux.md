@@ -24,12 +24,17 @@ No public, official FLUX.1/2 local prompt-rewriter system prompt was found. FLUX
 
 Composition hierarchy: front-load subject/action; add viewpoint/lens; specify foreground/midground/background and left/right placement; associate every color with an object. JSON is useful when three or more objects need independent attributes.
 
+- [OFFICIAL] FLUX.2 supports structural pose/layout guidance through its multi-reference editing interface. A pose reference can bind body position, gaze direction, limb placement and stance while separate references supply identity/style. The official pattern is: “Match the exact pose from image 2—same arm position, same body angle, same gaze direction. Use the person and clothing from image 1.” Clear, unoccluded limbs work best. [BFL Pose & Layout Guidance](https://docs.bfl.ai/guides/usecases_editing_controlnets)
+- [TESTED/PAPER] GenSpace finds that even strong systems including FLUX.1-dev and SDXL have substantial camera/object-orientation weaknesses and often default toward common views. This is evidence against promising exact viewpoint or multi-object geometry from prose alone. [GenSpace](https://openreview.net/pdf?id=zyBG1j339A)
+- [SYNTHESIS] Route exact-pose requests to FLUX.2 reference guidance. Use prompt-only prose for approximate poses; do not make the prompt longer in an attempt to replace a structural reference.
+
 Failure fixes:
 
 - Attribute bleed: flatten to one explicit sentence per object or JSON fields; repeat each object's color/material locally.
 - Wrong text: quoted exact copy, carrier, position, typography, size, color; say “no other text.”
 - Generic photorealism: real camera/lens/light/film reference rather than quality adjectives.
 - Crowded scene: reduce secondary details, front-load the focal subject, and state negative space/compositional role positively.
+- Exact pose fails: ask for a pose image; assign one reference to identity and another to pose, then name the limb/stance/head/gaze features that must match.
 
 ## Verbosity calibration
 
@@ -82,6 +87,7 @@ NOTES: Exact text, role, hierarchy and object-bound hex colors.
 - Using hex codes without binding each to an object.
 - Overusing JSON for simple scenes or natural prose for complex multi-object binding.
 - Assuming API prompt upsampling exists in local klein.
+- Promising exact limb geometry or viewpoint from text alone when the selected workflow has no structural reference.
 
 ## Validator suggestions
 
@@ -90,6 +96,7 @@ NOTES: Exact text, role, hierarchy and object-bound hex colors.
 - Text tasks require quoted copy + placement + font/style; hex codes must be adjacent to a named object.
 - Warn on >3 unrelated style labels.
 - Klein strict mode: require at least subject, action, style/medium, context/light.
+- If intent contains `exact pose|same pose|match stance|precise limb|reference pose`, require a pose/layout reference or downgrade the result to best effort. For multiple references, require one explicit role per image.
 
 ## Sources
 
@@ -97,4 +104,5 @@ NOTES: Exact text, role, hierarchy and object-bound hex colors.
 - [FLUX.2 detailed guide](https://docs.bfl.ai/guides/prompting_guide_flux2) — [OFFICIAL], accessed 2026-08-15.
 - [FLUX.2 overview](https://docs.bfl.ai/flux_2/flux2_overview) — [OFFICIAL], accessed 2026-08-15.
 - [FLUX.2 text-to-image docs](https://docs.bfl.ai/flux_2/flux2_text_to_image) — [OFFICIAL], accessed 2026-08-15.
-
+- [BFL Pose & Layout Guidance](https://docs.bfl.ai/guides/usecases_editing_controlnets) — [OFFICIAL], accessed 2026-08-15.
+- [GenSpace benchmark](https://openreview.net/pdf?id=zyBG1j339A) — [TESTED/PAPER], accessed 2026-08-15.
