@@ -86,6 +86,18 @@
   .pin-t{font-size:11px;color:var(--dim);font-family:var(--mono);line-height:1.45;word-break:break-word;}
   .pin-x{background:none;border:none;color:var(--dim);cursor:pointer;font-size:13px;}
   .pin-x:hover{color:var(--err);}
+  /* gotchas panel */
+  #gotPanel{position:fixed;top:0;right:-460px;width:448px;height:100vh;background:var(--panel);
+    border-left:1px solid var(--border);transition:right .25s;z-index:11;display:flex;flex-direction:column;}
+  #gotPanel.open{right:0;box-shadow:-20px 0 50px rgba(0,0,0,.5);}
+  #gotList{flex:1;overflow-y:auto;padding:10px 14px;display:flex;flex-direction:column;gap:10px;}
+  .got{background:var(--panel2);border:1px solid var(--border);border-radius:9px;padding:10px 12px;}
+  .got-t{font-size:10.5px;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;}
+  .got-m{font-size:12.5px;color:var(--warn);margin-top:3px;}
+  .got-r{font-size:12.5px;color:var(--text);margin-top:4px;line-height:1.5;}
+  #gotSearch{margin:10px 14px 0;background:var(--panel2);color:var(--text);border:1px solid var(--border);
+    border-radius:7px;padding:8px 11px;font-size:13px;}
+  #langSel{background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:7px;padding:6px 8px;font-size:12px;}
   /* ask panel */
   #askPanel{position:fixed;top:0;right:-420px;width:408px;height:100vh;background:var(--panel);
     border-left:1px solid var(--border);transition:right .25s;z-index:11;display:flex;flex-direction:column;}
@@ -177,6 +189,7 @@ if (PS_SPLIT) {
     <div class="right">
       <select id="modelSel" title="Local LLM used for translation" style="display:none"></select>
       <button class="ghost" id="clipBtn" onclick="toggleClips()" title="Cut reference clips to exact seconds (H3)">🎞 Clips</button>
+      <button class="ghost" id="gotBtn" onclick="toggleGotchas()" title="Myths and gotchas that trip people up">🧠 Gotchas</button>
       <button class="ghost" id="askBtn" onclick="toggleAsk()" title="Ask the tutor about these models">💬 Ask</button>
       <button class="ghost" id="pinCount" onclick="togglePins()" title="Pinned prompts">📌</button>
       <button class="ghost" id="splitBtn" onclick="location.href='PromptStudio.html?split=1'" title="Two workspaces side by side">⫲ Split</button>
@@ -219,8 +232,10 @@ if (PS_SPLIT) {
     <div class="input-zone">
       <textarea id="intent" placeholder="Describe the shot you want to see… one or two plain sentences is perfect."></textarea>
       <div class="examples" id="examples"></div>
+      <div class="hint" id="tipLine"></div>
       <div class="controls">
         <div class="chips" id="chips"></div>
+        <label class="kbd-hint" title="Auto: each model picks EN or native Chinese by its own rules">Output <select id="langSel"><option value="auto">Auto</option><option value="en">EN</option><option value="zh">中文</option></select></label>
         <span class="kbd-hint">Ctrl+Enter ↵</span>
         <button class="go" id="goBtn" onclick="generate()">Translate</button>
       </div>
@@ -235,6 +250,14 @@ if (PS_SPLIT) {
     <button class="pin-x" onclick="toggleClips()">✕</button>
   </div>
   <iframe id="clipFrame" data-src="ClipPicker.html"></iframe>
+</div>
+
+<div id="gotPanel">
+  <div class="ap-head"><b>🧠 Gotchas — myths vs reality</b>
+    <button class="pin-x" onclick="toggleGotchas()">✕</button>
+  </div>
+  <input id="gotSearch" placeholder="Filter: e.g. flux, negative, chinese, seed…" oninput="renderGotchas()">
+  <div id="gotList"></div>
 </div>
 
 <div id="askPanel">
@@ -279,245 +302,362 @@ const QWENIMG_NEG = "低分辨率，低画质，肢体畸形，手指畸形，�
 
 const TARGETS = {
   wan: {
-    name:'Wan 2.2', fmt:'keyword formula + Chinese negatives',
-    system:`You convert a user's plain-language video idea into an optimized prompt for the Wan 2.2 text-to-video model.
+    name:'Wan 2.2 (T2V)', fmt:'keyword formula · ZH-aware · one action, one camera move',
+    system:`You convert a user's plain-language video idea into an optimized prompt for the Wan 2.2 text-to-video model (T2V-A14B / TI2V-5B).
+
+Silently decide first: output language, subject, the ONE main motion, the ONE camera behavior. Then write. Output ONLY the prompt and negative prompt — no explanations, no markdown.
+
+LANGUAGE: If the user wrote in Chinese, or the scene contains Chinese text or distinctly Chinese cultural content, write the prompt in native Chinese (60-200 characters). Otherwise write English (35-120 words). If the user message contains an explicit output-language preference, obey it.
 
 Rules:
-- Output structure, in this order, as comma/period-separated descriptive phrases (NOT a labeled list): Subject description, Scene/setting, Motion (what moves and how), Aesthetic control keywords (light source, lighting quality, shot size, camera angle, lens type, camera movement), Stylization keywords.
-- 80-120 words. Dense keywords and short phrases, not flowing literary prose.
-- Use precise cinematography vocabulary: e.g. "soft diffused daylight", "medium close-up", "low angle", "35mm lens", "slow push-in", "shallow depth of field".
-- One clear main motion. No dialogue, no sound description (Wan is video-only).
+- Comma/period-separated phrases in this order: Subject, Scene, Motion, Aesthetic keywords (light source, lighting quality, shot size, camera angle, lens, camera movement), Style.
+- Motion must name WHAT moves (body part or element), its amplitude and speed, and its visible effect. ONE continuous action only.
+- ONE camera behavior only. If the camera should stay still, write "fixed camera, no camera movement" / "固定机位，镜头不移动" and no other camera verbs. Wan follows scene content well but camera commands only weakly — keep them simple, never stack them. Keep orbits under 45 degrees.
+- Preserve every content word the user gave (subjects, colors, counts, actions) exactly; do not swap synonyms or drop any. Do NOT pad — over-expansion measurably harms motion and identity. No literary mood language, no quality-tag stacks, no invented style.
+- No dialogue or sound description (Wan is video-only).
 - Then a blank line, then exactly:
 Negative prompt: ${WAN_NEG}
-- Output ONLY the prompt and negative prompt. No explanations, no markdown.
 
-Example input: "a cat drinking coffee in a cafe, cozy vibes"
+Example input: "woman at a train window quietly looks up"
 Example output:
-A fluffy orange tabby cat sits at a small round wooden table in a cozy cafe, lifting a ceramic cup of coffee with both front paws and sipping slowly, steam rising from the cup. Warm interior, bookshelves and rain-streaked window in the background. Soft warm tungsten light, gentle rim lighting, medium close-up, eye-level angle, 50mm lens, shallow depth of field, slow push-in. Cozy cinematic style, warm color grade, film grain.
+Fixed medium close-up, no camera movement. A woman beside a rain-streaked train window keeps her body still, slowly lifts her gaze from a folded letter to the passing lights, blinks once, and exhales; only her reflection and the rain move. Cool side light, shallow depth of field.
+
+Negative prompt: ${WAN_NEG}
+
+Example input: "一个拳击手闪避后反击"
+Example output:
+拳台边低机位横向跟拍。红衣拳手先向左小幅快速闪过一记直拳，后脚转轴，随即用紧凑的右直拳击中对手护架，撞击瞬间汗珠飞散；对手只后退一步。硬质顶光，中景，浅景深。写实体育风格。
+
+Negative prompt: ${WAN_NEG}`
+  },
+  wanI2V: {
+    name:'Wan 2.2 (I2V)', def:false, fmt:'motion-only ≤100 words — the image carries everything else',
+    system:`You convert a user's plain-language idea into an optimized prompt for the Wan 2.2 image-to-video model (I2V-A14B). The user already has a still image; the prompt must describe ONLY what changes over time.
+
+Rules:
+- Output motion and camera content ONLY: what moves, in what order, at what amplitude and speed, and what the camera does. Hard cap 100 words; 15-70 words is usually right.
+- Do NOT restate what the image already shows (appearance, scene, style, lighting) — every static word wastes the budget the model spends on motion.
+- ONE continuous action. If the camera should stay still: "Static camera." / "固定机位。"
+- Do not change identity, wardrobe, layout, or lighting unless the user asked.
+- Preserve the user's content words exactly. No padding, no mood language.
+- LANGUAGE: match the user's language (Chinese in → Chinese out); obey any explicit preference.
+- Then a blank line, then exactly:
+Negative prompt: ${WAN_NEG}
+- Output ONLY the prompt and negative prompt.
+
+Example input: "animate my photo of a squirrel eating"
+Example output:
+The squirrel keeps eating with quick paw movements, pauses once to raise its head and look left, then resumes. Static camera; the branch remains still.
 
 Negative prompt: ${WAN_NEG}`
   },
   ltx: {
-    name:'LTX 2.3', fmt:'one cinematic prose paragraph',
-    system:`You convert a user's plain-language video idea into an optimized prompt for the LTX 2.3 video model.
+    name:'LTX 2.3/2.5', fmt:'action-first literal prose · audio must be explicit',
+    system:`You convert a user's plain-language video idea into an optimized prompt for the LTX video+audio models (LTX-2.3 and 2.5).
 
 Rules:
-- Output ONE single flowing paragraph of cinematic prose in PRESENT tense. No lists, no tags, no labeled sections, no line breaks.
-- 100-180 words. Weave in this order: the subject and its appearance, the main motion/action as it unfolds, the camera's behavior (movement, framing, lens feel), then visual tone (light, palette, atmosphere, texture).
-- Exactly ONE dominant event/action in the clip.
-- Write like a shot description handed to a cinematographer. Concrete, sensory, specific. Since LTX generates audio too, you may weave in one brief sound cue naturally.
-- Output ONLY the paragraph. No explanations, no markdown.
+- ONE flowing present-tense paragraph, chronological. START with the action — not scene-setting adjectives. Keep every sentence literal and precise; no mood padding.
+- Order within the paragraph: main action → movements/gestures → precise appearance → environment → camera behavior as its own clause (type, direction, speed) → lighting/color → any sudden event.
+- Cap at 150 words (official enhancer ceiling; LTX-2.5 style is 4-8 descriptive sentences). One main action per 2-3 seconds of clip.
+- AUDIO IS NOT AUTOMATIC on LTX: explicitly name the dialogue (exact quoted words, speaker identity, delivery), ambience, effects, and music — or state "no music" / "no dialogue". Place each sound next to the action that produces it.
+- Never invent characters, dialogue, or camera motion the user did not imply. Preserve the user's content words and any quoted speech verbatim (keep Chinese dialogue in Chinese).
+- No cuts or timestamps for 2.3; simple named cuts are allowed only if the user asked and is on 2.5.
+- Output ONLY the paragraph. No explanations, no markdown, no labels.
 
-Example input: "a cat drinking coffee in a cafe, cozy vibes"
+Example input: "two friends whisper during a blackout"
 Example output:
-A fluffy orange tabby cat sits upright at a small round table in a warmly lit cafe, wrapping both front paws around a white ceramic cup and tipping it gently toward its mouth, steam curling upward past its whiskers as it takes a slow, deliberate sip. The camera begins in a medium shot and pushes in slowly toward the cat's face, settling into a soft close-up as its eyes narrow with contentment. Rain streaks the window behind it, blurring passing umbrellas into bokeh, while shelves of worn paperbacks frame the scene. Warm tungsten light spills across the wooden tabletop, catching the steam in a golden haze, and the low murmur of the cafe mixes with a quiet jazz record playing somewhere behind the counter.`
+A woman holds a flashlight beneath her chin while her friend closes the apartment door behind them. In a static medium two-shot she whispers, "Did you hear that?" Her friend turns toward the dark hallway and answers quietly, "It came from upstairs." The flashlight trembles slightly. Rain taps the windows, the refrigerator hum has stopped, and floorboards creak above them; no background music.`
   },
   minimax: {
-    name:'MiniMax H3', fmt:'official T2VA: [Shot N] + soundscape + music',
-    system:`You convert a user's plain-language video idea into an optimized prompt for the MiniMax H3 (Hailuo 3.0) video+audio model, using its official T2VA format.
+    name:'MiniMax H3', fmt:'official T2VA fields · [Shot N] · beat budget',
+    system:`You convert a user's plain-language video idea into an optimized prompt for the MiniMax H3 (Hailuo 3.0) video+audio model, using its official T2VA format. English structure ALWAYS; Chinese belongs only inside <d>[Chinese] ...</d> dialogue and quoted on-screen text.
 
 Output exactly three labeled fields (plain text, no markdown):
 
-integrated_multimodal_description: The timeline body. Start "[Shot 1]" (NO timestamp on the first shot) with a style keyword (Live-action, cinematic, 2D-animated, 3D CG, claymation, watercolor, vintage film) and the opening composition, then describe visuals, actions, camera and diegetic sound in order. Later shots start "[Shot N] At MM:SS.mmm, the camera cuts to ...". Write camera motion as a natural action combining motion type + amplitude + speed, e.g. "The camera pushes in with small amplitude at slow speed toward ...". Official motion types: Zoom In/Out, Push In/Pull Out, Pan Left/Right, Truck Left/Right, Tilt Up/Down, Pedestal Up/Down, Arc Shot, Tracking Shot, Static Shot, POV. Anyone who vocalizes gets a stable ID (S1), (S2); write dialogue as <d>[English] exact words.</d> with the speaker's identity and delivery described OUTSIDE the <d>. Any visible on-screen text goes in double quotes verbatim.
+integrated_multimodal_description: The timeline body. Start "[Shot 1]" (NO timestamp on the first shot) with a style keyword (Live-action, cinematic, 2D-animated, 3D CG, claymation, watercolor, vintage film) and the opening composition, then describe visuals, actions, camera and diegetic sound in order. Later shots start "[Shot N] At MM:SS.mmm, the camera cuts to ...". Cut ONLY when the new shot adds new subject/space/state/viewpoint information; if only distance or angle changes, use camera motion instead. Camera motion is a natural action combining motion type + amplitude + speed ("The camera pushes in with small amplitude at slow speed toward ..."). Official types: Zoom In/Out, Push In/Pull Out, Pan Left/Right, Truck Left/Right, Tilt Up/Down, Pedestal Up/Down, Arc Shot, Tracking Shot, Static Shot, Shake Slightly/Strongly, POV, Roll. Anyone who vocalizes gets a stable ID (S1), (S2); dialogue as <d>[English] exact words.</d> with identity and delivery OUTSIDE the <d>. Visible on-screen text goes in double quotes verbatim.
 
-overall_soundscape: 1-4 sentences summarizing ambient and physical sounds across the whole video (no dialogue or music here).
+overall_soundscape: 1-4 sentences of ambient and physical sound for the whole video. No dialogue or music here. Use N/A only for explicitly total silence.
 
-non_diegetic_music: 1-3 sentences describing audience-only background music (instrumentation, tempo, dynamics — no mood words), or N/A.
+non_diegetic_music: 1-3 sentences on audience-only score (instrumentation, tempo, dynamics — no mood words), or N/A.
 
-Target ~6 seconds with 2-3 shots unless the idea demands otherwise. Output ONLY the three fields. No explanations.
+Beat budget (official): about 3-4 action beats for 5s, 5-7 for 10s, 6-9 for 15s — ONE primary action per beat. Default to ~6 seconds and 1-3 shots. NEVER use arrows (→), slashes, or plus signs as syntax — H3 may render them as on-screen text. There is no [CUT TO] syntax. Preserve the user's content words and any quoted dialogue verbatim; do not pad.
 
-Example input: "a cat drinking coffee in a cafe, cozy vibes"
+Output ONLY the three fields.
+
+Example input: "a baker opens before sunrise and speaks"
 Example output:
-integrated_multimodal_description: [Shot 1] Live-action, cinematic, a medium shot frames a fluffy orange tabby cat seated at a round wooden table in a warm, rain-streaked cafe, wrapping both front paws around a steaming white ceramic cup. The camera holds a static shot as the cat lifts the cup toward its mouth. [Shot 2] At 00:03.000, the shot cuts to a close-up of the cat's face as it takes a slow sip, steam curling past its whiskers. The camera pushes in with small amplitude at slow speed while the cat's eyes narrow contentedly and it lowers the cup with a soft ceramic clink.
+integrated_multimodal_description: [Shot 1] Live-action, medium-wide shot. A middle-aged baker opens the wooden shutters before sunrise, crosses to the counter, and places a warm loaf beneath the pendant light. The camera pushes in with small amplitude at slow speed. The baker (S1), speaking in a calm raspy voice, says: <d>[English] First batch of the morning.</d>
 
-overall_soundscape: Steady rain taps against the cafe window over low room ambience. A soft feline purr rises beneath the gentle clink of the cup on its saucer.
+overall_soundscape: Shutters scrape, trays clink, and a knife cuts the crust while the quiet street remains audible outside.
 
-non_diegetic_music: A quiet jazz trio at a slow tempo, with brushed drums, upright bass, and sparse piano held at a steady low volume.`
+non_diegetic_music: N/A`
   },
   minimaxref: {
-    name:'H3 multi-ref', def:false, fmt:'full-reference: 6 sections + <Subject/Picture/Video/Audio> labels',
-    system:`You prepare a full-reference mode prompt for MiniMax H3 (Hailuo 3.0), used when the user has reference images, videos, or audio files (H3 accepts up to 9 images + 3 videos + 3 audio). The user should list their assets in the request, e.g. "refs: picture 1 = photo of my character, video 1 = dance clip, audio 1 = song". If they listed none, infer sensible reference assets from their idea and define them plainly.
+    name:'H3 multi-ref', def:false, fmt:'full-reference: 6 sections · narrow roles per asset',
+    system:`You prepare a full-reference mode prompt for MiniMax H3 (Hailuo 3.0), used when the user has reference images, videos, or audio (up to 9 images + 3 videos 15s total + 3 audio 15s total, 12 files max). The user should list assets in the request ("refs: picture 1 = ..., video 1 = ..., audio 1 = ..."); if none are listed, infer sensible ones and define them plainly.
+
+Core doctrine: define each reference's role NARROWLY — e.g. "<Video 1> supplies only the camera movement", "<Audio 1> is the voice-timbre reference". Broad roles cause leakage. Never suggest grid/contact-sheet images as references (their layout leaks into the output). Treat reference audio as a steer, not an exact copy.
 
 Output exactly six labeled sections in this order (plain text, no markdown):
 
-subject_definitions: One line per referenced item. Labels: <Subject N> = reusable visible content (person, object, scene, style — describe its key features and name its source asset); <Picture N> = an image used as a concrete frame anchor (first/last/keyframe) or storyboard reference — only give it its own line in that case, otherwise cite it inside a Subject definition; <Video N> = a source video for editing, continuation, or temporal structure; <Audio N> = audio that is copied or referenced — if it maps to a speaker, write it as the voice reference for "<Subject N> (S1)".
+subject_definitions: One line per referenced item. <Subject N> = reusable visible content (person/object/scene/style — key features + source asset); <Picture N> = image used as a concrete frame anchor or storyboard (own line only in that case, otherwise cite inside a Subject); <Video N> = source video for editing/continuation/structure; <Audio N> = audio copied or referenced — if tied to a speaker, write it as the voice reference for "<Subject N> (S1)".
 
-summary: One short paragraph beginning with a bracketed task type: [keyframe completion], [reference generation], [video editing], [video continuation], [audio reuse], [audio reference] — join several with + and repeat none. Use only already-defined labels.
+summary: One short paragraph starting with bracketed task types: [keyframe completion], [reference generation], [video editing], [video continuation], [audio reuse], [audio reference] — join with +, repeat none. Only already-defined labels.
 
-retention_analysis: One line per label. Visible content: "<Subject 1> (appears in [Shot 1], [Shot 2]): fully_preserved - ..." using fully_preserved | partially_preserved | attribute_transfer | weak_reference. Audio: fully_copy | partially_copy | reference | weak_reference.
+retention_analysis: One line per label. Visible: fully_preserved | partially_preserved | attribute_transfer | weak_reference. Audio: fully_copy | partially_copy | reference | weak_reference. Format: "<Subject 1> (appears in [Shot 1]): fully_preserved - ...".
 
-detailed_description: One or two style sentences, then the timeline: "[Shot 1] ..." (no timestamp) and "[Shot N] At MM:SS.mmm, the shot cuts to ...". 350-500 words for generation tasks. At each referenced item's first clear appearance, describe its referenced characteristics and insert its label; reuse labels without redefining. Camera motion as natural phrasing with motion type + amplitude + speed. Speakers keep stable (S1), (S2); when a referenced subject speaks write "<Subject N> (S1)"; dialogue as <d>[English] exact words.</d>
+detailed_description: One or two style sentences, then "[Shot 1] ..." (no timestamp) and "[Shot N] At MM:SS.mmm, the shot cuts to ...". 350-500 words for generation tasks. Insert each label at its first clear appearance with its referenced characteristics; reuse labels without redefining. Camera motion = type + amplitude + speed in natural prose. Speakers (S1),(S2) stable; a speaking referenced subject is "<Subject N> (S1)"; dialogue as <d>[Language] exact words.</d> kept verbatim.
 
-overall_soundscape: Ambience and physical sounds for the full video; cite <Audio N> copy/reference relationships that belong to this layer.
+overall_soundscape: Ambience/physical sound; cite <Audio N> relationships belonging to this layer.
 
-non_diegetic_music: Audience-only score (instrumentation, tempo, dynamics) or N/A; cite <Audio N> if it is reused as the score.
+non_diegetic_music: Audience-only score or N/A; cite <Audio N> if reused as score.
 
-Output ONLY the six sections. No explanations.
+Output ONLY the six sections.
 
-Example input: "my cat character drinks coffee in the cafe from my reference photo. refs: picture 1 = cafe interior photo, picture 2 = my cartoon cat, audio 1 = jazz track"
+Example input: "the singer from my photo performs with the camera move from my clip, voice like my audio. refs: picture 1 = singer photo, video 1 = dolly zoom clip, audio 1 = voice sample"
 Example output:
 subject_definitions:
-<Subject 1> is the cafe interior in <Picture 1>, with a round wooden table, shelves of worn paperbacks, and a rain-streaked window.
-<Subject 2> is the cartoon orange tabby cat in <Picture 2>, with oversized amber eyes, a cream muzzle, and a red collar.
-<Audio 1> is a jazz track reused as the audience-only score.
+<Subject 1> is the singer from <Picture 1>; preserve identity, hairstyle, and clothing.
+<Video 1> supplies only the slow dolly-zoom camera movement.
+<Audio 1> is the voice-timbre reference for <Subject 1> (S1).
 
 summary:
-[reference generation + audio reuse] The target video shows <Subject 2> drinking coffee at the table inside <Subject 1>, in a two-shot sequence scored by <Audio 1>.
+[reference generation + audio reference] <Subject 1> sings on a concert stage while the camera movement follows <Video 1> and the vocal timbre references <Audio 1>.
 
 retention_analysis:
-<Subject 1> (appears in [Shot 1], [Shot 2]): fully_preserved - the table, bookshelves, and rain-streaked window are retained.
-<Subject 2> (appears in [Shot 1], [Shot 2]): fully_preserved - the cat's oversized amber eyes, cream muzzle, and red collar are retained.
-<Audio 1>: fully_copy - reused 1:1 as the complete audience-only score.
+<Subject 1> (appears in [Shot 1]): fully_preserved - identity, hair, and clothing remain unchanged.
+<Video 1> (applies in [Shot 1]): attribute_transfer - only the camera movement is transferred.
+<Audio 1>: reference - timbre guides the performance without copying the signal.
 
 detailed_description:
-The target video uses a warm cartoon-realism style with soft tungsten lighting.
-[Shot 1] A medium shot establishes <Subject 1>, the cafe with its round wooden table, bookshelves, and rain-streaked window. <Subject 2>, the cartoon orange tabby with oversized amber eyes and a red collar, sits at the table and wraps both front paws around a steaming white ceramic cup. The camera holds a static shot as the cat lifts the cup.
-[Shot 2] At 00:03.000, the shot cuts to a close-up of <Subject 2> taking a slow sip, steam curling past its whiskers. The camera pushes in with small amplitude at slow speed as its eyes narrow contentedly and the cup lowers with a soft clink.
+The target video uses realistic concert photography with cool stage light.
+[Shot 1] <Subject 1> (S1) stands center stage in a single spotlight and begins singing <d>[Chinese] 别让夜色带走你的名字。</d> in the clear vocal timbre referenced from <Audio 1>. The camera performs the slow dolly zoom from <Video 1> with small amplitude while the singer and the stage geometry remain stable; haze drifts slowly through the beam and the microphone cable sways once against the stand.
 
 overall_soundscape:
-Steady rain taps the window over low cafe room tone, with a soft ceramic clink and a faint purr.
+Low audience room tone and soft stage-monitor hum continue beneath the voice.
 
 non_diegetic_music:
-<Audio 1> is directly reused as the complete audience-only score: a slow jazz trio with brushed drums, upright bass, and sparse piano.`
+N/A`
   },
   scail: {
-    name:'SCAIL-2', fmt:'motion transfer — prompt describes output only',
-    system:`You prepare inputs for the SCAIL-2 character animation model (video-to-video motion transfer, NOT text-to-video).
+    name:'SCAIL-2', fmt:'describe the FINAL video · never an edit instruction',
+    system:`You prepare inputs for the SCAIL-2 character animation model (video-to-video motion transfer, NOT text-to-video). Motion comes from the driving video; identity from the reference image; placement from masks. The prompt only describes the FINAL generated video.
 
 Output this exact structure (plain text, no markdown):
-PROMPT: 1-3 sentences describing the intended OUTPUT video — the character's appearance and the scene/setting. Do NOT describe motion in detail; motion comes from the driving video.
-MODE: Animation (character performs the driving motion in the reference image's scene) or Replacement (character replaces the subject inside the driving video's scene) — pick the better fit and say why in 1 short clause.
-YOU STILL NEED: bullet-free single line listing the non-text inputs required: reference image of the character (clean, front-facing preferred), driving video with the desired motion, and a subject mask if using Replacement.
+PROMPT: ONE English paragraph describing the post-generation video: the character's visible appearance and clothing, the action (matching the driving video), every object the character interacts with and the hand/tool relationship ("holds the violin beneath his chin"), and a closing clause that the original environment, lighting, camera framing, and motion trajectory remain unchanged. Replacement: 90-140 words. Animation: 15-60 words is enough. ABSOLUTELY BANNED words: replace, swap, edit, mask, segmentation, process — this is a description, not an instruction. Always English (the official enhancer outputs English regardless of input language).
+MODE: Animation (character performs the driving motion) or Replacement (character replaces the subject inside the driving video) — pick the better fit with a 1-clause reason.
+YOU STILL NEED: single line listing the non-text inputs: reference image (clean, front-facing), driving video with the desired motion, subject masks for Replacement (white background = keep scene), 704p recommended for Replacement.
 
-Output ONLY these three labeled lines/blocks. No explanations.
+Preserve the user's content words. If motion looks wrong later, the fix is the drive/mask, not more prose. Output ONLY the three labeled parts.
 
-Example input: "a cat drinking coffee in a cafe, cozy vibes"
+Example input: "put my violinist character into the street performance video"
 Example output:
-PROMPT: A fluffy orange tabby cat sits at a wooden table in a warm, rain-streaked cafe filled with books and soft tungsten light, holding a steaming ceramic cup. Cozy cinematic style, warm palette.
-MODE: Animation — the cat is the reference character and the coffee-sipping motion should come from a driving video of that gesture.
-YOU STILL NEED: reference image of the cat character, driving video of someone sipping from a cup, no mask needed for Animation mode.`
+PROMPT: A blond man wearing a fitted black suit, black trousers, and leather shoes plays a brown violin on the street. He holds the violin beneath his chin and draws the bow across the strings while pedestrians pass behind him. The original street, daylight, camera framing, and motion trajectory remain unchanged.
+MODE: Replacement — the reference character takes the street performer's place inside the driving video's scene.
+YOU STILL NEED: reference image of the violinist character, the street-performance driving video, a subject mask for Replacement (white background = keep scene), 704p output recommended.`
   },
   sdxl: {
-    name:'SDXL', group:'image', fmt:'keyword tags · weights · negatives matter',
-    system:`You convert a user's plain-language image idea into an optimized prompt for SDXL (Stable Diffusion XL) and its fine-tunes.
+    name:'SDXL (photoreal)', group:'image', fmt:'front-loaded tags · ≤75 tokens · short negatives',
+    system:`You convert a user's plain-language image idea into an optimized prompt for photoreal SDXL checkpoints (base, Juggernaut XL, RealVisXL).
 
 Rules:
-- Output comma-separated keywords and short phrases, NOT sentences. Front-load the most important content: subject first, then setting, then lighting, then camera terms, then style/quality keywords.
-- Keep the positive prompt under ~60 words (CLIP reads 77 tokens; later tokens matter less).
-- You may use at most 1-2 emphasis weights like (steam rising:1.2) on genuinely critical elements.
-- Use photography vocabulary: lighting type, shot framing, lens (e.g. 50mm), depth of field, film/render style.
+- Comma-separated keywords and short phrases, MOST IMPORTANT FIRST: subject with count and action, then crop/shot size, setting, lighting direction and quality, lens/photography style. Trailing tokens fade — never open with style words.
+- Keep it under ~60 words (≈75 CLIP tokens). One clause per subject; give each subject its own position/clothing anchor to prevent attribute bleed.
+- At most 1-2 weights like (steam rising:1.2), only on critical elements — weights are a UI feature and behave differently across A1111/ComfyUI.
+- Camera/lens terms (50mm, f/2) set the LOOK but are not physical controls — do not rely on f-stops for exact blur.
+- At most 2 quality words total. Preserve the user's content words exactly.
 - Then a blank line, then exactly:
 Negative prompt: ${SDXL_NEG}
-- Output ONLY the prompt and negative prompt. No explanations, no markdown.
+- Output ONLY the prompt and negative prompt. English only.
 
-Example input: "a cat drinking coffee in a cafe, cozy vibes"
+Example input: "editorial portrait of a woman reading in a cafe"
 Example output:
-photo of a fluffy orange tabby cat sitting at a round cafe table, holding a white ceramic coffee cup in both paws, (steam rising:1.2), cozy cafe interior, bookshelves, rain-streaked window, warm tungsten lighting, soft rim light, medium close-up, 50mm, shallow depth of field, film grain, warm color grade
+Medium portrait of a 38-year-old woman with short auburn curls reading beside a cafe window, cream wool coat, left hand holding the book, gaze lowered, natural skin texture, warm window side-light, 50mm lens at f/2, muted brown and teal palette, candid editorial photography
 
 Negative prompt: ${SDXL_NEG}`
   },
-  flux: {
-    name:'Flux', group:'image', fmt:'prose paragraph · NO negatives (CFG 1)',
-    system:`You convert a user's plain-language image idea into an optimized prompt for Flux (Black Forest Labs FLUX.1 dev/schnell, FLUX.2).
+  sdxlAnime: {
+    name:'SDXL (anime tags)', group:'image', def:false, fmt:'Pony score ladder / Illustrious Danbooru tags',
+    system:`You convert a user's plain-language image idea into an optimized prompt for anime SDXL-family checkpoints (Pony Diffusion V6, Illustrious).
 
 Rules:
-- Output ONE flowing paragraph of natural, declarative prose. 40-120 words. Most important subject in the first sentence.
-- Full sentences that bind attributes to subjects ("the woman in the red coat standing left of the car") — NOT comma tag lists.
-- NEVER use weighting syntax like (word:1.3) — Flux does not parse it.
-- NEVER use quality meta-tags like "masterpiece", "best quality", "8k", "trending on artstation" — they add noise and can render as literal text.
-- NO negative prompt of any kind — Flux runs at CFG 1 and ignores them. Phrase exclusions positively ("an empty street" not "no people").
-- Include concrete photographic detail: light, lens, framing, texture, palette.
-- Output ONLY the paragraph. No explanations, no markdown.
+- Output canonical English Danbooru-style tags, comma-separated. NO prose sentences, NO translated tags.
+- Start with the quality prefix: for Pony: "score_9, score_8_up, score_7_up, source_anime" (use source_furry/source_pony/source_cartoon when the content demands). For Illustrious the user swaps that ladder for "masterpiece, best quality" — mention nothing about this in the output; default to the Pony ladder.
+- Then: count tags (1girl, 1boy, solo, 2girls...), character traits (hair, eyes), clothing, action/pose tags, setting, composition/view tags (low angle, from behind, full body), lighting.
+- 15-35 tags total. Preserve the user's content words as their canonical tag forms.
+- Then a blank line, then exactly:
+Negative prompt: lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, signature, watermark
+- Output ONLY the prompt and negative prompt.
 
-Example input: "a cat drinking coffee in a cafe, cozy vibes"
+Example input: "anime swordswoman on a rooftop at night"
 Example output:
-A fluffy orange tabby cat sits at a small round table in a cozy cafe, wrapping both front paws around a white ceramic cup as steam curls upward past its whiskers. Rain streaks the window behind it, blurring the street into soft bokeh, and shelves of worn paperbacks line the wall. Warm tungsten light spills across the wooden tabletop, catching the steam in a golden haze. Photographed at eye level on an 85mm lens with shallow depth of field, the scene has the warm, softly grainy feel of a film photograph.`
+score_9, score_8_up, score_7_up, source_anime, 1girl, solo, black hair, red eyes, rooftop, holding katana, wind, school uniform, full moon, night sky, low angle, dynamic pose, full body, detailed background, rim lighting
+
+Negative prompt: lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, signature, watermark`
+  },
+  flux: {
+    name:'Flux', group:'image', fmt:'subject first · 30-80 words · NO negatives',
+    system:`You convert a user's plain-language image idea into an optimized prompt for Flux (FLUX.1 dev/schnell/Krea, FLUX.2 dev/klein).
+
+Rules:
+- Natural declarative prose. Official order: Subject + Action first (within the first 20 words), then style, then context and secondary detail.
+- 30-80 words is the official ideal; go longer ONLY for genuinely complex multi-object scenes — extra length does not improve quality, it collapses seed diversity.
+- Sentences must bind attributes to subjects ("the woman in the red coat standing left of the car"). Repeat a color/material next to its object; bind any hex code to a named object (treat hex matching as approximate).
+- NEVER use weighting syntax like (word:1.3) — not parsed. NEVER use quality meta-tags (masterpiece, best quality, 8k) — pure noise.
+- NO negative prompt of any kind. Phrase exclusions positively: "an empty street", "a clean background". The exact phrase "no other text" is allowed for text layouts.
+- For photorealism name real capture vocabulary (film stock, lens) — it sets the look (not physical optics).
+- LANGUAGE: use the language matching the cultural context (native Chinese prose for Chinese scenes is officially encouraged); obey any explicit preference.
+- Preserve the user's content words exactly. Output ONLY the paragraph.
+
+Example input: "analog portrait of a florist"
+Example output:
+A florist in her early forties trims eucalyptus stems at a narrow workbench, candid three-quarter portrait, sage apron over a white linen shirt, buckets of wildflowers behind her, soft north-window light, shot on Kodak Portra 400 with a 50mm lens, natural grain and restrained color.
+
+Example input: "宋代山水画"
+Example output:
+宋代山水册页，绢本设色，留白构图，远山层叠，云气缭绕，江面一叶扁舟，矿物颜料的青绿设色，工笔细线勾勒，旧绢质感温润。`
   },
   zimage: {
-    name:'Z-Image', group:'image', fmt:'objective detailed prose · meta-tags banned',
+    name:'Z-Image', group:'image', fmt:'objective relational prose · meta-tags banned · 512-token cap',
     system:`You convert a user's plain-language image idea into an optimized prompt for Z-Image / Z-Image-Turbo (Tongyi).
 
 Rules:
-- Output ONE detailed paragraph of objective, concrete prose. 80-250 words. Describe, in roughly this order: subject (appearance, pose, expression), composition and spatial layering (foreground/midground/background), lighting and atmosphere, materials and textures, color scheme.
-- STRICTLY BANNED: quality meta-tags ("8K", "masterpiece", "ultra HD", "best quality") and metaphors/poetic language. Only literal, visual, objective description.
-- If any text must appear in the image, transcribe it verbatim inside English double quotes "" and describe its position, size, and the material/surface carrying it.
-- NO negative prompt — Z-Image-Turbo does not use them.
-- Stay well under the 512-token limit (keep it under ~300 words).
-- Output ONLY the paragraph. No explanations, no markdown.
+- ONE paragraph of objective, concrete, relational prose: subject and count → appearance/clothing/materials → action/pose → objects with exact positions → background → lighting → color scheme/photographic style.
+- Length: 80-300 English words or 120-500 Chinese characters. NEVER exceed ~350 words — the default 512-token cap silently truncates the tail.
+- STRICTLY BANNED: quality meta-tags ("8K", "masterpiece", "ultra HD", "best quality") and metaphors — only literal visual description. No weighting syntax.
+- NO negative prompt (Turbo has no CFG). To get variation between runs, vary composition/lens/layout wording — Turbo's seed diversity is officially low.
+- Text in the image: transcribe verbatim inside quotes with position, size, and carrier material; Chinese glyphs stay Chinese, with native typography vocabulary (宋体, 行书, 朱砂印).
+- LANGUAGE: If the user wrote Chinese or the content is distinctly Chinese (text, architecture, art styles — use native vocabulary like 绢本设色, 工笔, 留白), write native Chinese. Otherwise English. Obey any explicit preference.
+- Preserve the user's content words exactly. Output ONLY the paragraph.
 
-Example input: "a cat drinking coffee in a cafe, cozy vibes"
+Example input: "Chinese woman in Hanfu holding a fan, neon lightning above her palm"
 Example output:
-A fluffy orange tabby cat with amber eyes sits upright on a wooden chair at a small round cafe table, both front paws wrapped around a white ceramic cup, head tilted slightly down toward the rising steam. In the foreground, the table surface shows worn oak grain with a folded paper napkin beside the saucer. The midground holds the cat and chair, and the background shows floor-to-ceiling bookshelves with faded paperback spines and a large window streaked with rain, the street outside softly out of focus. Warm tungsten light from a hanging bulb falls from the upper left, creating soft shadows under the table and a warm highlight along the cat's fur. The color scheme is warm amber and brown tones with a cool blue-gray accent from the window light. The cup's glazed ceramic surface reflects a small point of light.`
+一名年轻中国女子身穿深红色汉服，金线刺绣细密，手持一把绘有仕女、树木与飞鸟的圆形团扇。高髻上佩戴金色凤凰头饰、红花与垂珠。她伸出的左手掌上方悬浮一盏明亮的黄色闪电形霓虹灯。夜间柔光，远处彩灯虚化，西安大雁塔在背景中呈剪影；面部与织物细节清晰。`
   },
   qwenimg: {
-    name:'Qwen-Image', group:'image', fmt:'rich prose + magic suffix + Chinese negatives',
-    system:`You convert a user's plain-language image idea into an optimized prompt for Qwen-Image (Alibaba, incl. 2512).
+    name:'Qwen-Image', group:'image', fmt:'~200-word prose · exact quoted text · official negatives',
+    system:`You convert a user's plain-language image idea into an optimized prompt for Qwen-Image (2512).
+
+Silently classify first: portrait, text-containing, or general scene. Then write. Output ONLY the prompt and negative prompt — no explanations, no markdown.
 
 Rules:
-- Output ONE detailed paragraph of natural prose, ~100-200 words. For people: be specific about age range, facial features, skin, clothing fabric, pose, and gaze direction. For scenes: describe foreground/midground/background layering, light source, texture, and mood.
-- If any text must appear in the image, state each visible string verbatim inside double quotes "" with its font style, color, position, and presentation (printed, neon, embroidered, etc.). If there is no text, end the description with: The image contains no recognizable text.
-- End the positive prompt with exactly: , Ultra HD, 4K, cinematic composition.
+- Aim for about 200 words of direct, specific prose — concise, not a minimum. Do not invent details beyond what coheres with the request.
+- Portraits, in this order: identity (specific age or range, ethnicity if given, build) → clothing/accessories with fabric → face/skin specifics → pose with gaze and hand placement → background and light.
+- General scenes: quantity, material, position and functional relationships of objects; foreground/midground/background; light direction and temperature.
+- Text-containing images: transcribe EVERY visible string verbatim in quotes with its carrier, position, font style, color, and size. Never translate quoted text; never use placeholders like "a list of features". If there is no text, end with: The image contains no recognizable text. (Chinese output: 无其他文字。)
+- Do NOT append "Ultra HD, 4K, cinematic composition" — that suffix is officially retired.
+- LANGUAGE: If the user wrote Chinese, or the image contains Chinese text or distinctly Chinese content, write native Chinese prose. Otherwise English. Obey any explicit preference.
+- Preserve the user's content words exactly; no quality-tag piles.
 - Then a blank line, then exactly:
 Negative prompt: ${QWENIMG_NEG}
-- Output ONLY the prompt and negative prompt. No explanations, no markdown.
 
-Example input: "a cat drinking coffee in a cafe, cozy vibes"
+Example input: "portrait of a ceramic artist"
 Example output:
-A fluffy orange tabby cat sits at a small round wooden table in a warmly lit cafe, both front paws wrapped around a white ceramic cup as steam rises past its whiskers. The foreground shows the worn oak tabletop with a saucer and folded napkin; the midground holds the cat seated upright on a bentwood chair; the background features shelves of well-thumbed paperbacks and a rain-streaked window with the evening street blurred beyond it. Warm tungsten light from a hanging filament bulb washes the scene in amber tones, catching the steam and the soft texture of the cat's fur, with a cool blue accent from the window. The mood is quiet and content. The image contains no recognizable text., Ultra HD, 4K, cinematic composition.
+A 34-year-old East Asian woman, ceramic artist, with an oval face, warm brown almond-shaped eyes, light freckles, and black hair in a loose low bun. She wears an indigo linen work shirt, a clay-stained beige apron, small silver studs, and no other jewelry. Seated upright at a pottery wheel, she looks down and cups a wet white bowl with both hands. North-window light from camera left reveals natural skin and damp clay texture; shelves of unfired vessels remain softly focused behind her.
+
+Negative prompt: ${QWENIMG_NEG}
+
+Example input: "寻猫启事海报"
+Example output:
+一张贴在浅蓝色风化木墙上的撕边寻猫海报。顶部中央以粗黑体写"寻猫启事"。灰色公猫照片居中，照片下方两行文字分别为"名字：灰仔"和"右耳缺角，走路微跛"。底部红字写"如有见到，请联系：138-0000-0000"。左下角手写日期"4月5日"。层级清晰，纸张纤维真实，无其他文字。
 
 Negative prompt: ${QWENIMG_NEG}`
   }
 };
 
-/* ================= knowledge bank (compiled from official guides & docs, Aug 2026) ================= */
-const KNOWLEDGE = `KNOWLEDGE BANK — local AI video & image generation models (verified August 2026)
+/* ================= knowledge bank (Expert Edition — compiled from official guides, staff posts, and tested evidence; verified Aug 2026) ================= */
+const KNOWLEDGE = `KNOWLEDGE BANK — local AI video & image generation (Expert Edition, verified August 2026). Evidence grades used below: OFFICIAL (docs/repo), STAFF, TESTED (measured with methodology), LORE (community consensus).
 
 == VIDEO MODELS ==
 
-WAN 2.2 (Alibaba, Apache 2.0, fully local, no regional restrictions)
-Variants: T2V-A14B / I2V-A14B (MoE, ~24GB+ VRAM or quantized) and TI2V-5B (~8GB consumer GPUs). Prompt dialect: keyword formula — Subject + Scene + Motion + aesthetic-control keywords (light source, lighting quality, shot size, camera angle, lens, camera movement) + stylization. Works in English and Chinese. Ships a long official Chinese negative prompt; keep it in Chinese. Official LLM prompt extender: --use_prompt_extend using local Qwen2.5 (3B/7B/14B) or DashScope; officially improves quality. Video-only (no audio). Common mistakes: writing prose instead of keywords; dropping the negative prompt.
+WAN 2.2 (Alibaba, Apache 2.0, fully local)
+Variants are different dialects: T2V-A14B/TI2V-5B want the keyword formula Subject+Scene+Motion+aesthetic keywords+style, 60-200 Chinese characters or ~35-120 English words; I2V-A14B officially wants ≤100 words of MOTION-ONLY content — restating what the image shows wastes the budget. Motion should name amplitude + speed + effect. Official extender (--use_prompt_extend, Qwen-based, separate native ZH and EN rewriters) bans literary mood padding. Ships a long official Chinese negative prompt — keep it Chinese. TESTED reality check (AnimationBench): Wan 2.2 is the weakest camera-instruction follower measured among open models (follows ~3/7 commanded camera motions; scene content 96%, actions ~55%) — camera wording helps (3x improvement over saying nothing) but the ceiling is low; keep one simple camera command, under-45-degree orbits, and treat exact choreography as best-effort. "Wan 3.0" does not exist (SEO fiction); the newest family member is Wan2.2-Animate-2-14B (Apache, Aug 2026): character animation with an OFFICIAL CHINESE two-field dialect — 人物外观描述： and 背景描述： — and explicitly NO action description (motion comes from the driving input).
 
-LTX 2.3 (Lightricks, open weights, 22B, generates video + audio together)
-VRAM: distilled/FP8 runs 8-16GB at 540p; 24GB+ recommended for 720p. Prompt dialect: ONE flowing present-tense cinematic prose paragraph — subject, then motion, then camera behavior, then visual tone. No tags, lists, or labels; one dominant event per clip. Prompts pass through a Gemma-3 text encoder, which dilutes tag lists but follows rich prose. Built-in enhance_prompt (Llama-3.2-3B; Florence-2 captioner for image-to-video).
+LTX 2.3 / 2.5 (Lightricks, open weights, video+audio, Gemma text encoder)
+Dialect: ONE chronological, literal, action-first paragraph; ≤150 words (official enhancer ceiling for 2.3); one main action per 2-3 seconds; camera as its own clause (type/direction/speed); never invent characters, dialogue, or camera motion (official encoder system-prompt rules). AUDIO IS NOT AUTOMATIC: dialogue (exact quoted words + speaker + delivery), ambience, effects, and music must be named, or "no music"/"no dialogue" stated. LTX-2.5 (Aug 11, 2026): gated open weights, Gemma 4 12B encoder, duration head, 8-step distilled CFG=1, NATIVE MULTI-SHOT with named cuts (breaking 2.3's no-cuts rule), and current docs drop the word cap in favor of "4-8 descriptive sentences". Most 2.3 LoRAs transfer. For exact pose/motion paths use the IC-LoRA controls (Pose Control, Motion Track Control) — not longer prose. No universal negative list is documented; dev vs distilled variants should not share settings conclusions. Notably absent from adherence benchmarks — treat adherence claims about LTX with caution.
 
-MINIMAX H3 / HAILUO 3.0 (33B omni-transformer: video + stereo audio, up to 2K/24fps/15s)
-Open weights (Aug 2026) BUT the community license EXCLUDES local deployment in the US, EU, UK and South Korea — check before using locally. ~42.5GB download, 64GB system RAM recommended. Official prompt format (T2VA/I2VA/FL2VA/L2VA): three fields — integrated_multimodal_description (timeline: "[Shot 1]" with style keyword and no timestamp, later shots "[Shot N] At MM:SS.mmm"; camera motion written as natural action with motion type + amplitude + speed from the official vocabulary: Push In/Pull Out, Pan, Truck, Tilt, Pedestal, Arc Shot, Tracking Shot, Static Shot, POV; speakers get stable (S1),(S2) IDs; dialogue as <d>[Language] exact words</d>; on-screen text in double quotes), overall_soundscape (ambience/physical sounds), non_diegetic_music (audience-only score or N/A). Image-anchored tasks add an alignment instruction line first (e.g. "<Picture 1> is fully referenced at 0.00 seconds"). MULTI-REFERENCE (full-reference mode, up to 9 images + 3 videos + 3 audio): a six-section format — subject_definitions (labels <Subject N> for reusable visible content, <Picture N> for frame anchors, <Video N> for source/structure videos, <Audio N> for copied/referenced audio), summary (bracketed task types like [reference generation], [video editing], [audio reuse], joined with +), retention_analysis (markers: fully_preserved / partially_preserved / attribute_transfer / weak_reference for visuals; fully_copy / partially_copy / reference for audio), detailed_description (350-500 words, labels inserted where they apply), overall_soundscape, non_diegetic_music. MiniMax's own rewriter (H3-Context-IR) was NOT open-sourced. DURATION & LIMITS: 4-15 seconds per generation (hard cap, same locally as cloud; durations snap up to a 17k+5 frame grid at 24fps, e.g. 15s = 362 frames). Local open weights top out at 768p — 2K comes only from a hosted regeneration module. Reference caps: up to 9 images, up to 3 videos (2-15s each, 15s TOTAL), up to 3 audio clips (15s total), 12 files max — so editing/subject-replacement of a longer source video requires chunked passes. No extend parameter: for >15s output, chain clips last-frame-to-first-frame (FL2VA anchoring), keep reference images in every chunk for identity, and hard-concat; the community ComfyUI-MiniMaxH3-Contex-Loop node automates this with genuine motion+audio continuity (~22 context frames), though audio gradually dulls over long chains and lip-sync across seams remains unsolved. Known editing artifacts: identity drift in complex scenes, face softening in lip-sync edits, VAE tile seams (256px banding).
+MINIMAX H3 / HAILUO 3.0 (33B omni: video + stereo audio; open weights Aug 3, 2026)
+License still excludes local deployment in US/EU/UK/KR (an Apache relicense was hinted in an AMA, not delivered). Local = 768p, 4-15s hard cap (durations snap UP to a 17k+5 frame grid at 24fps: "15s" = 362 frames); 2K only via the hosted Regenerate-2K module (not open-sourced); full attention only, so compute scales ~quadratically with length. CRITICAL prompt-layer distinction: most web "H3 prompt guides" document free-form prose for the HOSTED API, which the closed H3-Context-IR rewriter transforms — the LOCAL dialect is the official T2VA schema: integrated_multimodal_description ([Shot 1] no timestamp; [Shot N] At MM:SS.mmm; camera = motion type + amplitude + speed as natural action; (S1) speaker IDs; <d>[Language] exact words</d>; on-screen text in double quotes) + overall_soundscape + non_diegetic_music. There is NO [CUT TO] syntax. Cut only when a shot adds new information; distance/angle changes are camera motion. Official beat budget: 5s = 3-4 beats, 10s = 5-7, 15s = 6-9, one primary action per beat; MiniMax's own narrative pipeline renders ONE CLIP PER SHOT and assembles. Never use arrows/slashes/plus signs as syntax (may render on-screen). No official Chinese prompt guide: English structure, Chinese only inside <d> and quoted text; stray Chinese glyph injection into English signage is a known artifact worth negating. Reference caps: 9 images + 3 videos (2-15s each, 15s TOTAL) + 3 audio (15s total), 12 files max. Full-reference mode = six sections (subject_definitions with <Subject/Picture/Video/Audio N> labels, summary with bracketed task types, retention_analysis with markers, 350-500-word detailed_description, soundscape, music). Define reference roles NARROWLY. TESTED: audio fully_copy is approximate — measured envelope correlation ~0.25 vs the reference (a steer, not a music slot); identity fully_preserved held well in the same tests. Traps: grid/contact-sheet reference images leak their layout into output; native I2V stretches the first frame but CENTER-CROPS the last frame (mismatched aspect ratios silently recompose endings). Longer than 15s = chain shots manually (last frame to next first frame, references in every chunk); a community 4-step Turbo LoRA tested badly at 4 steps (needs 8-10). ComfyUI: v0.33.1 added Context-IR/Regenerate-2K partner nodes (cloud); EasyCache audio corruption fixed in v0.31.0, tiled-VAE crash in v0.32.0.
 
-SCAIL-2 (Z.ai/Zhipu + Tsinghua, Apache 2.0, built on a Wan backbone)
-NOT text-to-video: it is character animation / motion transfer. Inputs: reference image of a character + driving video with the motion (+ subject mask for Replacement mode). Modes: Animation (character performs driving motion) or Replacement (character replaces the subject in the driving video). The text prompt is secondary — describe the intended OUTPUT scene; motion comes from the driving video; mask quality matters more than prompt wording. Runs on 16GB-class GPUs; GGUF quants 7-18GB reach 8-12GB cards. Repo includes a Gemini-based prompt-generation helper. LENGTH: no hard total cap — video is processed in 81-frame chunks with a 5-frame overlap (76 effective frames per step); the official ComfyUI template ships an Extend subgraph for chaining, and the community scail2-infinity node automates unlimited chunking; caveat: identity/color drift slowly accumulates across many windows. REPLACEMENT MODE: needs two masks — a per-frame driving-video mask and a reference-image foreground mask (SAM auto-tracks both in ComfyUI; white background = replacement/keep scene). Works best at 704p (dims divisible by 32). Prompt should describe the post-replacement video including the new character's clothing and interactions. Output is silent video — but since motion is preserved, the original source audio stays in sync when muxed back. CHOOSING FOR SUBJECT SWAP: to swap a character in an existing video while keeping the motion, SCAIL-2 Replacement is the right tool (deterministic motion, untouched background pixels, unlimited length via chunks, 8-16GB hardware, Apache 2.0); use MiniMax H3 video-editing instead when the edit involves audio/dialogue, adding characters, or scene-level changes on a clip that fits in 15 seconds.
+SCAIL-2 (Z.ai/Zhipu + Tsinghua, Apache 2.0, Wan backbone; official repo: zai-org/SCAIL-2)
+Character animation / motion transfer, NOT T2V. Conditioning hierarchy: driving video (motion, frame-by-frame) > reference image (identity) > masks (placement; white background = replacement/keep scene) > text. The prompt DESCRIBES THE FINAL VIDEO — never an edit instruction; official enhancer bans replace/swap/edit/mask wording and targets one 90-140-word ENGLISH paragraph for Replacement (Animation can be 15-60 words: "The girl is dancing" is an official minimal example). Name interacted objects and hand/tool relations; close with "environment, lighting, camera framing, and motion trajectory remain unchanged". English is the official final-prompt language even for Chinese input. Identity/motion failures route to masks and drive quality, not prose (paper ablation: binding slots/masks move appearance consistency, prompts untested). Length: no total cap — 81-frame chunks, 5-frame overlap, official Extend workflow; per-segment prompts are officially templated (each Extend subgraph has its own prompt field; effect unmeasured); slow identity/color drift accumulates across many windows. 704p recommended for Replacement; multi-person needs --matchnearest and per-person masks. Output is silent video; original audio stays in sync when muxed back.
 
 == IMAGE MODELS ==
 
-SDXL (Stability AI 2023, CreativeML Open RAIL++-M, ~8GB VRAM)
-CLIP text encoders read a bag of keywords, not sentences. Prompt dialect: comma-separated tags/short phrases, most important first (front-loading matters); 77-token window per chunk — UIs split long prompts into 75-token chunks, BREAK forces a chunk boundary. Weighting syntax (word:1.3), ((word)) is parsed by the UI (A1111/ComfyUI normalize differently). Negative prompts are core workflow, CFG 5-8; short negative lists beat old mega-lists. The de-facto standard is fine-tunes: Juggernaut XL / RealVisXL (photoreal), Pony / Illustrious (anime — these REQUIRE their trained quality/trigger tags like score_9 or masterpiece, best quality; always check the model card). Classic enhancer: Fooocus V2 (GPT-2 prompt expansion).
+SDXL FAMILY (Stability AI 2023 + fine-tunes — route by checkpoint, they are different dialects)
+Photoreal (base/Juggernaut/RealVisXL): front-loaded comma tags, subject/count/action first, ≤~75 CLIP tokens (Juggernaut creator guidance), one clause per subject against attribute bleed, SHORT targeted negatives (RealVis ships a small anatomy list; mega-lists hurt), CFG 5-8. Weighting (word:1.3) is a UI feature, NOT portable: A1111 scales from the zero vector and restores the chunk mean; ComfyUI lerps from the empty-prompt embedding — same prompt renders differently. A1111 docs: negatives do NOT share the positive's 75-token budget. Anime: Pony V6 needs its score ladder (score_9, score_8_up...) + source_* tags; Illustrious wants masterpiece/best-quality + canonical Danbooru tags; machine-translating tags destroys them. Pony V7 moved OFF SDXL (AuraFlow) and its own card hedges on score tags; Illustrious org has been static since Apr 2025. Exact pose/layout → ControlNet/OpenPose, not prose (TESTED: prompt-only spatial/orientation control is weak across SDXL and Flux).
 
 FLUX (Black Forest Labs)
-Lineup: FLUX.1 schnell (12B, Apache 2.0, 1-4 steps), FLUX.1 dev (12B, non-commercial weights but OUTPUTS usable commercially), FLUX.1 Krea dev (tuned against the waxy AI look), Kontext dev (editing), FLUX.2 dev (32B, Nov 2025), FLUX.2 klein 9B / 4B (Jan 2026; the 4B is Apache 2.0). FLUX.1 encoders: CLIP + T5 (T5 reads up to 512 tokens on dev / 256 on schnell; CLIP only sees the first 77 — put the subject early). FLUX.2 replaced both with a Mistral-24B vision-language encoder; understands JSON-structured prompts and HEX color codes; official sweet spot 30-80 words. Prompt dialect: natural declarative prose sentences that bind attributes to subjects; weighting syntax is NOT parsed; quality meta-tags (masterpiece, 8k) are useless and can literally render as text in the image. dev/schnell are guidance-distilled: CFG stays at 1, so NEGATIVE PROMPTS DO NOT WORK — phrase exclusions positively (say "an empty street" instead of "no people"); control with the FluxGuidance value (~3.5 dev) instead of CFG.
+FLUX.1 dev/schnell/Krea (12B; schnell Apache); FLUX.2 dev 32B + klein (FIVE checkpoints — the non-distilled klein Base variants are the only FLUX.2 weights where a real negative prompt is coherent; distilled dev/klein run CFG-free, no negatives, phrase positively). FLUX 3 (Aug 4, 2026) is closed weights, video+audio — not a local target. Official FLUX.2 order: Subject + Action first, then style, then context; 30-80 words "usually ideal" (OFFICIAL guidance, no published methodology). TESTED: long prompts don't degrade quality — they collapse SEED DIVERSITY (PromptMoG; independently confirmed by Z-Image staff as a trade-off). Cloud accepts 32K tokens; LOCAL weights hard-truncate at 512 silently. Weighting syntax not parsed. Quality meta-tags are noise — but the claim that "masterpiece" renders as literal text has NO documented case (retired myth). Hex colors: bind to named objects and treat as approximate (FLUX.1-era adherence measured at 5-14%). JSON prompts help 3+ object scenes on FLUX.2. Multilingual: officially recommends the native language of the cultural context. klein has no upsampler — supply the detail yourself.
 
-Z-IMAGE / Z-IMAGE-TURBO (Tongyi/Alibaba, Apache 2.0, 6B, Qwen3-4B text encoder)
-Turbo: 8 steps, guidance 0 — NO CFG, NO negative prompts at all; low seed-to-seed diversity (vary the prompt, not the seed); fits 16GB VRAM officially, community runs FP8 ~8GB, GGUF ~6GB, even 4GB via stable-diffusion.cpp. Base Z-Image (Jan 2026): 28-50 steps, CFG 3-5, negatives strongly recommended; cfg_normalization flag: False = stylized, True = realism. Prompt dialect: long, objective, concrete prose — subject, composition and spatial layering (foreground/mid/background), lighting/atmosphere, materials/textures, color scheme. The official prompt-enhancer template BANS meta-tags (8K, masterpiece) and metaphors. Text to render in the image goes in English double quotes with position/size/material. Default 512-token cap silently truncates long prompts (can be raised to 1024). Z-Image-Edit: not yet released.
+Z-IMAGE / Z-IMAGE-TURBO (Tongyi, Apache 2.0, 6B, Qwen3-4B encoder)
+Turbo: 8 steps, guidance 0, NO negatives, low seed diversity (STAFF: vary wording/composition, not seeds; long prompts lock composition further). Base (Jan 27, 2026, released): 28-50 steps, CFG 3-5, negatives strongly recommended, cfg_normalization off=stylized/on=realism. Z-Image-Edit and Omni-Base remain "To be released" — the official blog's claim that Edit is available is FALSE as of Aug 2026 (9 months, no maintainer replies). Dialect: long objective relational prose (subject→appearance→action→objects with positions→background→light→color), 512-token default cap SILENTLY truncates (~350+ English words is the danger zone; can raise to 1024 locally); official PE template bans meta-tags and metaphors. Bilingual first-class; native Chinese art vocabulary (绢本设色, 工笔, 留白, 宋体) outperforms translations. TESTED: Z-Image beats Qwen-Image on English multi-region text (CVTG-2K 0.867 vs 0.829); Chinese glyph success follows character RARITY, not prompt length (~97% common → 41% rare → 6% very rare).
 
-QWEN-IMAGE (Alibaba, Apache 2.0, 20B MMDiT; excels at text rendering)
-Latest open weights: Qwen-Image-2512 (T2I) and Qwen-Image-Edit-2511 (editing, multi-image). Qwen-Image-2.0 is cloud/API only. VRAM: BF16 ~40GB, FP8 ~16GB, GGUF Q4 ~12GB; 4GB possible with layer offload (DiffSynth). Prompt dialect: rich detailed prose; portraits want specifics (age range, facial features, skin, clothing fabric, pose, gaze); every visible text string goes verbatim in double quotes with font/color/position, otherwise end with "The image contains no recognizable text."; official magic suffix: ", Ultra HD, 4K, cinematic composition."; official Chinese negative list; true_cfg_scale 4.0 at 40-50 steps. With Lightning LoRAs (4/8-step) CFG drops to 1 and negatives become inert. Official rewriters: Qwen-Plus for T2I, Qwen-VL-Max for edits (strongly recommended for editing stability). Chinese prompts help when rendering Chinese glyphs. Note the contrast: Alibaba BANS meta-tags on Z-Image but REQUIRES the Ultra HD suffix on Qwen-Image — dialects are per-model, not per-company.
+QWEN-IMAGE (Alibaba, Apache 2.0, 20B; open line = 2512 + Edit-2511; 2.0/3.0 are API-only)
+Official 2512 rewriter: classify portrait/text/general first; portraits ordered identity→clothing→face/skin→pose→background with specific age, gaze, hand placement; ~200 words, concise and direct; text images transcribe EVERY string verbatim (never translate, no placeholders) with carrier/position/font/color; else state "no recognizable text". THE MAGIC SUFFIX IS RETIRED: ", Ultra HD, 4K, cinematic composition." is dead code in the current rewriter — the 2512 README replaced it with the anti-AI-look Chinese NEGATIVE list (低分辨率…画面具有AI感…). true_cfg 4.0, 40-50 steps; Lightning LoRAs run CFG 1 → negatives inert; match Lightning version to checkpoint. Edit-2511: one explicit role per indexed image ("subject from image 1, pose from image 3"), direct imperatives + preserve-clauses; role binding can still swap/fail (open issues) — sample several seeds, treat as best effort. Chinese first-class; Chinese glyph rendering is the headline strength.
+
+OTHER LOCAL IMAGE MODELS (brief): LongCat-Image (6B, Apache) — quoted text is MANDATORY syntax, character-level encoding; GLM-Image (MIT, ~23GB); FireRed-Image-Edit-1.1 — current open editing SOTA.
 
 == GENERAL CONCEPTS ==
 
-Why dialects differ: the text encoder decides what the model can "read". CLIP (SDXL) = bag of keywords, so tags win. LLM-based encoders (T5/Mistral in Flux, Gemma-3 in LTX, Qwen3 in Z-Image, Qwen2.5-VL in Qwen-Image) parse real sentences, so specific prose wins and tag soup loses the scene structure.
-CFG and negative prompts: negatives only exist when CFG > 1 (the model computes a second "avoid this" pass). Distilled/turbo models (Flux dev/schnell, Z-Image-Turbo, Qwen Lightning LoRAs) run CFG 1 — negative prompts are silently ignored there.
-Seeds: distilled models tend to have low seed diversity; change wording to get variation.
-Prompt as script vs prompt as spec: for timeline-driven models (MiniMax H3) the prompt IS the script — it narrates events shot by shot with timestamps, so it must describe everything that happens and cannot cover more content than fits in the clip (part of why H3 caps at 15s). For conditioning-driven models (SCAIL-2) the prompt is a SPEC — motion comes frame-by-frame from the driving video, identity from the reference image, placement from the mask; the text only steers rendering (character appearance, scene, lighting, style). A spec does not get diluted by length: each 81-frame window receives the full prompt fresh, so a 3-minute video applies the same spec ~45 times at full strength. The catch: the spec must stay TRUE for the whole video — describe the invariants, including things the reference image does not show (back of an outfit, held objects), and if the footage changes scene/lighting/costume midway, a static prompt mismatches later chunks and feeds seam drift. Community practice (not official pipeline): cut at scene boundaries and give each segment its own prompt.
-Compute scaling with video length: models that generate the whole clip in one pass with global attention (MiniMax H3) scale roughly QUADRATICALLY — doubling the frames about quadruples attention compute and raises VRAM, so 15s costs on the order of 9x a 5s clip; that is why H3 is capped at 15 seconds (sparse-attention inference is promised but unreleased). Models that process fixed windows (SCAIL-2: 81-frame chunks, 5-frame overlap) scale LINEARLY — every chunk costs the same and VRAM stays flat, so a 60s driving video is just ~12 chunks. Same architectural choice explains the quality trade-off: global attention buys whole-clip coherence and synced audio; fixed windows buy unlimited length but accumulate slow identity/color drift at chunk seams.
-Prompt rewriters: every major open model ships or recommends a small LLM rewriter (Wan: Qwen 3-7B; LTX: Llama-3.2-3B; Tencent PromptEnhancer-7B) — 3-8B local models are the industry-standard size for this job; this app does the same via Ollama.
-ComfyUI safety: default server binds 127.0.0.1:8188 (local only). Never launch with --listen on shared Wi-Fi — there is no authentication, anyone on the network gets effectively full control. Custom nodes are arbitrary code: install the minimum, reputable well-maintained packs only; real malware has shipped through custom nodes (LLMVISION 2024, Upscaler_4K 2025). The portable/git version has zero telemetry; the Desktop app has opt-in telemetry. Use --disable-api-nodes to keep everything local. Fully offline generation works once models are downloaded.
-This app (Prompt Studio): everything runs locally — the LLM is served by Ollama at 127.0.0.1; prompts, history and pins never leave the machine.`;
+Encoder decides dialect: CLIP (SDXL) reads keyword bags → tags win. LLM encoders (T5/Mistral in Flux, Gemma in LTX, Qwen3 in Z-Image, Qwen2.5-VL in Qwen-Image) parse sentences → specific relational prose wins and tag soup loses structure.
+Negatives only exist at CFG>1. CFG-free/distilled: Flux dev/schnell + FLUX.2 dev/klein-distilled, Z-Image-Turbo, Qwen Lightning, LTX-2.5 distilled → negatives silently ignored; phrase positively. Negatives active: SDXL (CFG 5-8), Wan (official ZH list), Qwen-Image (official ZH list), Z-Image Base, FLUX.2 klein Base.
+Prompt inflation is measurably harmful (TESTED, video): LLM expansion dropped dynamic attributes -34% and human identity -20% on Wan; four generic LLM rewriters all scored below raw prompts on VBench; aesthetics-tuned rewriters delete user words and contradict user intent. Doctrine: preserve every user content word, add only what the format requires, shorter and more literal wins. Expansion's benefit also vanishes at high step counts and under distillation.
+Seeds vs prompts: seed variance can dwarf prompt tweaks (Wan σ0.218 across seeds vs +0.022 from prompt expansion) — test a wording change across several seeds before crediting it. Distilled models inversely have LOW seed diversity (Z-Turbo) — vary wording there.
+Camera/lens vocabulary in image prompts is style flavor, not physical control (TESTED: f-stop blur at chance level; focal length changes objects, not field of view). In video, camera adherence varies wildly by model (H3 strong schema, Wan weak).
+Prompt as script vs spec: timeline models (H3) need the prompt to narrate every event — content can outgrow it; conditioning models (SCAIL-2, Wan-Animate) need a spec of invariants applied fresh to every chunk — length doesn't dilute it, but the spec must stay true across the whole video (cut at scene boundaries, per-segment prompts).
+Compute scaling: global-attention one-pass models scale ~quadratically with frames (H3's 15s cap); fixed-window models scale linearly forever with drift at seams (SCAIL-2 81-frame chunks).
+Chinese prompting: proven wins = exact Han glyphs, native art/culture vocabulary, Chinese dialogue; the only positive-prompt ZH-vs-EN A/B found showed language did NOT matter for general motion/aesthetics (Wan 2.1) — keep official negatives in Chinese, keep structural field names in their canonical language, never duplicate sentences bilingually, never machine-translate tags/glyphs/proper nouns.
+ComfyUI safety: default binds 127.0.0.1:8188; never --listen on shared Wi-Fi (no auth); custom nodes are arbitrary code (real malware shipped: LLMVISION 2024, Upscaler_4K 2025) — minimal, reputable packs; portable/git build has zero telemetry, Desktop is opt-in; --disable-api-nodes keeps everything local; fully offline once models are downloaded.
+This app: everything runs locally via Ollama at 127.0.0.1; prompts, history and pins never leave the machine.`;
+
+/* ================= misconceptions / gotchas bank ================= */
+const GOTCHAS = [
+  {t:'Negatives', m:'Negative prompts work everywhere.', r:'They only exist when CFG>1. Flux dev/schnell, FLUX.2 distilled, Z-Image-Turbo, Qwen Lightning and LTX distilled run CFG-free — negatives are silently ignored. Phrase exclusions positively ("an empty street").'},
+  {t:'Negatives', m:'The longer the negative list, the cleaner the image.', r:'Short targeted lists beat mega-lists on SDXL; RealVis ships a tiny official one. And in A1111, negatives do NOT eat the positive prompt\'s 75-token budget — that\'s a myth too.'},
+  {t:'Quality tags', m:'"masterpiece, best quality, 8k" always helps.', r:'Only anime SDXL checkpoints were trained on them (Pony score ladder, Illustrious tags). On Flux they are noise; Z-Image officially BANS them; Qwen-Image retired its own "Ultra HD, 4K" suffix in favor of a negative list.'},
+  {t:'Qwen-Image', m:'Always append ", Ultra HD, 4K, cinematic composition."', r:'Officially retired — it\'s dead code in the current rewriter. The 2512 README replaced it with an anti-AI-look Chinese negative prompt.'},
+  {t:'Weights', m:'(word:1.3) emphasis is a model feature that works everywhere.', r:'It\'s a UI feature. A1111 and ComfyUI compute it differently (same prompt, different image), and Flux, Qwen-Image and Z-Image don\'t parse it at all.'},
+  {t:'Camera vocab', m:'"85mm f/1.8" physically controls blur and framing.', r:'Measured at chance level: f-stops don\'t control blur, and 24mm vs 70mm changes the rocks, not the field of view. Lens vocabulary sets a LOOK — treat it as style, not optics.'},
+  {t:'Length', m:'Longer prompts are always better.', r:'In images, long prompts don\'t raise quality — they collapse seed diversity. In video it\'s worse: LLM expansion measurably damaged motion (-34%) and identity (-20%) on Wan. Every model has a band; stay in it.'},
+  {t:'Rewriters', m:'Running your prompt through an LLM enhancer always helps.', r:'Four generic LLM rewriters all scored BELOW the raw prompt on video benchmarks, and naive image rewriting scored below no-rewriter. Enhancers help only when they follow the model\'s official schema and preserve your words — which is what this app tries to do.'},
+  {t:'Wan', m:'Wan 2.2 reliably obeys camera instructions.', r:'It\'s the weakest camera-follower measured among open models (~3/7 commanded motions). Saying something beats nothing (3x), but keep ONE simple command and expect best-effort.'},
+  {t:'Wan', m:'Wan 3.0 is out.', r:'SEO fiction. The official repos\' newest T2V is the Wan 2.2 family. The actual new member is Wan2.2-Animate-2 — with a Chinese two-field dialect that forbids describing actions.'},
+  {t:'Wan', m:'Wan I2V prompts should describe the whole scene.', r:'Officially the opposite: I2V wants ≤100 words of MOTION-ONLY content. The image already carries appearance and scene; every static word wastes budget.'},
+  {t:'H3', m:'H3 prompts use [0s-2s] time slices and AUDIO:/NEGATIVE: blocks.', r:'That\'s prose for the HOSTED API, which a closed rewriter transforms. The local dialect is [Shot N] + At MM:SS.mmm inside integrated_multimodal_description, plus soundscape and music fields.'},
+  {t:'H3', m:'[CUT TO] creates cuts in H3.', r:'That syntax doesn\'t exist. Cuts are "[Shot N] At MM:SS.mmm, the camera cuts to..." — and officially you only cut when the shot adds new information; otherwise use camera motion.'},
+  {t:'H3', m:'You can pack unlimited action into 15 seconds.', r:'Official beat budget: 3-4 beats at 5s, 5-7 at 10s, 6-9 at 15s — one primary action per beat. MiniMax\'s own pipeline renders one clip per shot and assembles.'},
+  {t:'H3', m:'Reference audio with fully_copy gives you that exact soundtrack.', r:'Measured envelope correlation ~0.25. Reference audio steers the mix; it is not a music slot. (Identity fully_preserved, by contrast, held up well.)'},
+  {t:'H3', m:'Any reference image works fine.', r:'Grid/contact-sheet images leak their LAYOUT into the output. And I2V stretches first frames but center-crops last frames — mismatched aspect ratios silently recompose your ending.'},
+  {t:'H3', m:'Arrows and slashes are safe formatting.', r:'H3 may render →, / and + as literal on-screen text. Official examples avoid them entirely.'},
+  {t:'H3', m:'Self-hosting unlocks 2K and longer clips.', r:'Local weights are 768p and the same 15s cap. 2K lives in a hosted module that was never open-sourced; sparse attention is promised, not shipped.'},
+  {t:'Z-Image', m:'"Long detailed prompts" means 600-1000 words.', r:'The default cap is 512 TOKENS and it truncates silently. Past ~350 English words your ending is probably being thrown away.'},
+  {t:'Z-Image', m:'Change the seed to get variation on Turbo.', r:'Turbo\'s diversity is officially "Low". Vary the wording — composition, lens, layout — not the seed.'},
+  {t:'Z-Image', m:'Z-Image-Edit is available.', r:'The blog claims it; the model zoo says "To be released" — for 9 months, with no maintainer replies. Don\'t plan a workflow around it.'},
+  {t:'SCAIL-2', m:'Write "replace the dancer with my character".', r:'The classic error. SCAIL prompts DESCRIBE the final video; edit verbs (replace/swap/mask) are officially banned. Say what the finished clip shows.'},
+  {t:'SCAIL-2', m:'Identity errors mean the prompt needs work.', r:'Identity is a mask/reference lever, not a prose lever. Fix the masks and drive quality first; the paper never even ablates prompts.'},
+  {t:'SDXL', m:'One prompt style fits all SDXL checkpoints.', r:'Photoreal wants front-loaded natural tags; Pony needs its score_9 ladder; Illustrious wants Danbooru tags. They are three dialects. (And Pony V7 isn\'t even SDXL anymore.)'},
+  {t:'LTX', m:'Audio happens automatically on audio-video models.', r:'On LTX, audio must be prompted explicitly — dialogue with exact words, ambience, effects, music, or "no music". Silence is not the default; unspecified audio is a dice roll.'},
+  {t:'LTX', m:'LTX never cuts and caps at 150 words.', r:'True for 2.3. LTX-2.5 has native multi-shot with named cuts, and its current docs replaced the cap with "4-8 descriptive sentences". Know your version.'},
+  {t:'Flux', m:'"masterpiece" will literally render as text in the image.', r:'A popular claim with zero documented cases. The real reason to skip meta-tags: they\'re noise that steals attention from content words.'},
+  {t:'Flux', m:'Hex colors give exact color matching.', r:'FLUX.1-era adherence measured at 5-14%. Bind colors to named objects and treat hex as a strong hint, not a spec.'},
+  {t:'Seeds', m:'My wording change improved the video.', r:'Maybe. Seed variance can dwarf prompt effects (σ0.218 across seeds vs +0.022 from expansion on Wan). Test any wording claim across several seeds before believing it.'},
+  {t:'Chinese', m:'Chinese prompts are always better on Chinese models.', r:'Proven wins: exact Han glyphs, native art/culture vocabulary, Chinese dialogue. The only A/B found showed positive-prompt language did NOT matter for general motion. Keep official negatives Chinese; never machine-translate tags or quoted text.'},
+  {t:'Text-in-image', m:'Short text always renders; long text always fails.', r:'Rarity beats length: common Chinese characters render ~97%, rare ones 41%, very rare 6%. And Z-Image actually beats Qwen-Image on English multi-region text.'},
+  {t:'Privacy', m:'Local AI still phones home somehow.', r:'Ollama and this app talk only to 127.0.0.1. After the one-time model download, everything works with Wi-Fi off — the cleanest demo is to try it.'}
+];
 
 const ASK_SYSTEM = `You are the built-in tutor inside Prompt Studio, a local offline tool that translates plain-language ideas into model-specific prompts. You help students learning local AI video and image generation.
 
-Use the KNOWLEDGE BANK below as your primary, authoritative source for anything model-specific — it is newer (August 2026) and more reliable than your training data. If the bank and your memory disagree, the bank wins. If the bank does not cover a question, say so briefly and answer from general knowledge with that caveat.
+Use the KNOWLEDGE BANK below as your primary, authoritative source for anything model-specific — it is newer (August 2026) and more reliable than your training data. If the bank and your memory disagree, the bank wins. If the bank does not cover a question, say so briefly and answer from general knowledge with that caveat. When a claim is marked TESTED or OFFICIAL in the bank, you may state it confidently; treat LORE as community consensus.
 
 Style: plain text only, no markdown. Keep answers short and clear — 2 to 6 sentences unless the student asks for depth. Be concrete and practical.
 
-${KNOWLEDGE}`;
+${KNOWLEDGE}
+
+== COMMON MISCONCEPTIONS (myth vs reality — students often arrive believing the myth) ==
+${GOTCHAS.map(g => '- [' + g.t + '] MYTH: ' + g.m + ' REALITY: ' + g.r).join('\n')}`;
+
 
 const EXAMPLES = [
   "An old fisherman repairs his net on a foggy dock at dawn, seagulls circling. Melancholy.",
@@ -658,6 +798,9 @@ async function pullModel(name, btn) {
   ex.innerHTML = '<span style="font-size:12px;color:var(--dim);padding:4px 0">Try:</span>' +
     picks.map(p => `<span class="ex">${p}</span>`).join('');
   ex.querySelectorAll('.ex').forEach(el => el.addEventListener('click', () => { $('intent').value = el.textContent; $('intent').focus(); }));
+  const tip = GOTCHAS[Math.floor(Math.random() * GOTCHAS.length)];
+  $('tipLine').innerHTML = '💡 <b>Myth:</b> ' + esc(tip.m) + ' <b>Reality:</b> ' + esc(tip.r.length > 150 ? tip.r.slice(0, 150) + '…' : tip.r) +
+    ' <a href="#" onclick="toggleGotchas();return false" style="color:var(--accent)">all gotchas →</a>';
   $('intent').addEventListener('keydown', e => { if (e.ctrlKey && e.key === 'Enter') generate(); });
   $('askInput').addEventListener('keydown', e => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); askSend(); }
@@ -710,27 +853,52 @@ async function streamChat(system, user, onDelta, temp) {
 }
 
 /* ================= format checker ================= */
+function hanCount(t){ return (t.match(/[一-鿿]/g) || []).length; }
+function enWords(t){ return t.trim() ? t.trim().split(/\s+/).length : 0; }
+function isHanDominant(t){ return hanCount(t) > enWords(t) * 2 && hanCount(t) > 40; }
+const CAM_FIXED = /(fixed camera|static shot|static camera|no camera movement|固定机位|镜头不移动)/i;
+const CAM_MOVE  = /\b(pan(s|ning)?|tilt(s|ing)?|push(es)? in|pull(s)? (out|back)|orbit|truck|dolly|crane|zoom)\b|镜头(推进|后拉|左移|右移|上摇|下摇)|环绕运镜/i;
+
 function validate(key, text) {
   const issues = [];
   const t = (text || '').trim();
   if (!t) return ['empty output'];
   if (/^(here('s| is)|sure|below is|certainly)/i.test(t)) issues.push('starts with chat filler instead of the prompt');
   if (/(\*\*|##|```)/.test(t)) issues.push('contains markdown formatting');
-  if (key === 'wan') {
+
+  if (key === 'wan' || key === 'wanI2V') {
     if (!t.includes('Negative prompt:')) issues.push('missing "Negative prompt:" block');
     else if (!t.includes('色调艳丽')) issues.push('negative prompt is not the official Chinese list');
     const pos = t.split('Negative prompt:')[0].trim();
-    const w = pos.split(/\s+/).length;
-    if (w < 40) issues.push('main prompt too short (' + w + ' words, want ~80-120)');
-    if (w > 170) issues.push('main prompt too long (' + w + ' words, want ~80-120)');
+    if (CAM_FIXED.test(pos) && CAM_MOVE.test(pos)) issues.push('contradiction: fixed camera + camera-movement verbs in the same prompt');
     if (/^\s*[-•]/m.test(pos)) issues.push('uses bullet points — Wan wants comma-separated phrases');
+    if (key === 'wan') {
+      if (isHanDominant(pos)) {
+        const h = hanCount(pos);
+        if (h < 50) issues.push('too short (' + h + ' Han chars, official band 60-200)');
+        if (h > 260) issues.push('too long (' + h + ' Han chars, official band 60-200)');
+      } else {
+        const w = enWords(pos);
+        if (w < 30) issues.push('too short (' + w + ' words, want ~35-120)');
+        if (w > 140) issues.push('too long (' + w + ' words, want ~35-120)');
+      }
+      const camMoves = (pos.match(CAM_MOVE) || []).length;
+      if (camMoves > 2) issues.push('multiple camera moves — Wan follows one simple command at best');
+    } else {
+      const w = enWords(pos);
+      if (!isHanDominant(pos) && w > 100) issues.push('over the official 100-word I2V cap (' + w + ' words) — motion content only');
+      if (/(wearing|dressed in|背景是|风格|style of|in the style)/i.test(pos)) issues.push('restates static content (appearance/scene/style) — the image already carries it');
+    }
   }
   if (key === 'ltx') {
     if (/\n/.test(t)) issues.push('not a single paragraph (has line breaks)');
-    if (/\b[A-Z]{3,}:/.test(t) || /^\s*[-•]/m.test(t)) issues.push('contains labels or lists — LTX wants pure prose');
-    const w = t.split(/\s+/).length;
-    if (w < 60) issues.push('too short (' + w + ' words, want 100-180)');
-    if (w > 230) issues.push('too long (' + w + ' words, want 100-180)');
+    if (/negative prompt/i.test(t)) issues.push('contains a negative prompt — no universal negative list is documented for LTX');
+    const w = enWords(t);
+    if (w < 35) issues.push('too short (' + w + ' words, want ~60-150)');
+    if (w > 150 && w <= 200) issues.push('over the 150-word enhancer ceiling (' + w + ' words) — OK for 2.5, trim for 2.3');
+    if (w > 200) issues.push('too long (' + w + ' words) for any LTX version');
+    if (!/("|“)[^"”]+("|”)|no dialogue|no music|sound|audio|ambien|music|hum|rain|footstep|creak|clink|roar|wind|silence/i.test(t))
+      issues.push('no explicit audio content — LTX audio is not automatic (name sounds, dialogue, or "no music")');
   }
   if (key === 'minimax') {
     if (!/integrated_multimodal_description:/.test(t)) issues.push('missing integrated_multimodal_description: field');
@@ -739,54 +907,91 @@ function validate(key, text) {
     if (!/\[Shot 1\]/.test(t)) issues.push('missing [Shot 1] opening');
     if (/\[Shot 2\]/.test(t) && !/At \d{2}:\d{2}\.\d{3}/.test(t)) issues.push('later shots need cut times like "At 00:03.000"');
     if (/<d>/.test(t) && !/\(S\d/.test(t)) issues.push('dialogue present but no (S1)-style speaker ID');
+    if (/(→|->|\w\+\w)/.test(t)) issues.push('contains arrows/plus signs — H3 may render them as on-screen text');
+    if (/\[CUT TO/i.test(t)) issues.push('[CUT TO] is not H3 syntax — use [Shot N] At MM:SS.mmm');
+    const shots = (t.match(/\[Shot \d+\]/g) || []).length;
+    if (shots > 4) issues.push(shots + ' shots — official doctrine prefers fewer, fuller shots (render per shot and assemble)');
   }
   if (key === 'minimaxref') {
     for (const sec of ['subject_definitions:', 'summary:', 'retention_analysis:', 'detailed_description:', 'overall_soundscape:', 'non_diegetic_music:'])
       if (!t.includes(sec)) issues.push('missing ' + sec + ' section');
     if (!/\[Shot 1\]/.test(t)) issues.push('missing [Shot 1] in detailed_description');
-    if (!/<(Subject|Picture|Video|Audio) \d+>/.test(t)) issues.push('no reference labels like <Subject 1> / <Picture 1>');
+    if (!/<(Subject|Picture|Video|Audio) \d+>/.test(t)) issues.push('no reference labels like <Subject 1>');
     if (!/(fully_preserved|partially_preserved|attribute_transfer|weak_reference|fully_copy|partially_copy)/.test(t)) issues.push('retention_analysis has no relationship markers');
     if (!/\[(keyframe completion|reference generation|video editing|video continuation|audio reuse|audio reference)/.test(t)) issues.push('summary missing bracketed task type');
+    const dd = t.split('detailed_description:')[1];
+    if (dd) {
+      const w = enWords(dd.split('overall_soundscape:')[0] || '');
+      if (w < 120) issues.push('detailed_description thin (' + w + ' words; official generation target 350-500)');
+      if (w > 560) issues.push('detailed_description too long (' + w + ' words; target 350-500)');
+    }
   }
   if (key === 'scail') {
     if (!/PROMPT:/.test(t)) issues.push('missing PROMPT: field');
     if (!/MODE:/.test(t)) issues.push('missing MODE: field');
     if (!/YOU STILL NEED:/.test(t)) issues.push('missing YOU STILL NEED: field');
+    const p = (t.split('PROMPT:')[1] || '').split('MODE:')[0];
+    if (/\b(replace|swap|edit|mask|segment)\b|替换|蒙版/i.test(p)) issues.push('uses edit-instruction words (replace/swap/edit/mask) — describe the FINAL video instead');
+    const w = enWords(p);
+    if (w > 160) issues.push('PROMPT too long (' + w + ' words; Replacement target 90-140, Animation less)');
+    if (hanCount(p) > 20) issues.push('PROMPT should be English — the official enhancer outputs English');
   }
   if (key === 'sdxl') {
     if (!t.includes('Negative prompt:')) issues.push('missing "Negative prompt:" block — SDXL relies on negatives');
     const pos = t.split('Negative prompt:')[0].trim();
     if ((pos.match(/,/g) || []).length < 4) issues.push('not comma-separated keywords — reads like prose');
-    const w = pos.split(/\s+/).length;
-    if (w > 90) issues.push('positive prompt too long (' + w + ' words) — CLIP only reads ~77 tokens');
-    if ((pos.match(/\(\s*[^)]+:\s*\d/g) || []).length > 3) issues.push('too many (word:1.x) weights — use 1-2 max');
+    const w = enWords(pos);
+    if (w > 70) issues.push('too long (' + w + ' words) — CLIP reads ~75 tokens, trailing content fades');
+    if ((pos.match(/\(\s*[^)]+:\s*\d/g) || []).length > 2) issues.push('too many (word:1.x) weights — 1-2 max, and they differ across UIs');
+    if ((pos.match(/masterpiece|best quality|8k|ultra.?hd|highly detailed/gi) || []).length > 2) issues.push('quality-tag pile — 2 max on photoreal SDXL');
+  }
+  if (key === 'sdxlAnime') {
+    if (!/score_9/.test(t)) issues.push('missing Pony score ladder (score_9, score_8_up...)');
+    if (!/source_(anime|furry|pony|cartoon)/.test(t)) issues.push('missing source_* tag');
+    if (!t.includes('Negative prompt:')) issues.push('missing "Negative prompt:" block');
+    const pos = t.split('Negative prompt:')[0].trim();
+    if ((pos.match(/,/g) || []).length < 8) issues.push('too few tags — this dialect wants 15-35 canonical Danbooru tags');
+    if (/\b\w+\s+\w+\s+\w+\s+\w+\s+\w+\s+\w+\b[^,]*[.!]/.test(pos)) issues.push('contains prose sentences — tags only');
   }
   if (key === 'flux') {
-    if (/negative prompt/i.test(t)) issues.push('contains a negative prompt — Flux runs CFG 1 and ignores them');
+    if (/negative prompt/i.test(t)) issues.push('contains a negative prompt — distilled Flux runs CFG-free and ignores them (only klein Base supports negatives)');
     if (/\([^)]+:\d/.test(t)) issues.push('uses (word:1.x) weighting — Flux does not parse it');
-    if (/masterpiece|best quality|8k|ultra hd|trending on artstation/i.test(t)) issues.push('contains quality meta-tags — noise on Flux, may render as literal text');
-    if (/\n/.test(t)) issues.push('not a single paragraph');
-    const w = t.split(/\s+/).length;
-    if (w < 30) issues.push('too short (' + w + ' words, want 40-120)');
-    if (w > 160) issues.push('too long (' + w + ' words, want 40-120)');
+    if (/masterpiece|best quality|8k|trending on artstation/i.test(t)) issues.push('quality meta-tags — noise on Flux (and long prompts collapse seed diversity)');
+    if (/\n\n/.test(t)) issues.push('multiple blocks — one flowing paragraph');
+    const w = enWords(t), h = hanCount(t);
+    if (h < 40) {
+      if (w < 25) issues.push('too short (' + w + ' words, official ideal 30-80)');
+      if (w > 160) issues.push('too long (' + w + ' words) — length collapses seed diversity; local weights truncate at 512 tokens');
+    }
+    if (/\b(no|without|avoid)\b(?! other text)/i.test(t)) issues.push('negative phrasing ("no/without") — phrase positively (exception: "no other text")');
   }
   if (key === 'zimage') {
-    if (/negative prompt/i.test(t)) issues.push('contains a negative prompt — Z-Image-Turbo does not use them');
-    if (/masterpiece|best quality|8k|ultra hd|4k/i.test(t)) issues.push('contains meta-tags — officially banned in Z-Image\'s prompt guide');
+    if (/negative prompt/i.test(t)) issues.push('contains a negative prompt — Z-Image-Turbo has no CFG (Base variant supports them)');
+    if (/masterpiece|best quality|8k|ultra.?hd|4k/i.test(t)) issues.push('meta-tags — officially banned in Z-Image\'s prompt guide');
     if (/\([^)]+:\d/.test(t)) issues.push('uses (word:1.x) weighting — not supported');
-    const w = t.split(/\s+/).length;
-    if (w < 60) issues.push('too short (' + w + ' words, want 80-250 of concrete detail)');
-    if (w > 320) issues.push('too long (' + w + ' words) — risks the 512-token cap truncating the tail');
+    const w = enWords(t), h = hanCount(t);
+    if (isHanDominant(t)) {
+      if (h < 90) issues.push('thin for Z-Image (' + h + ' Han chars; aim 120-500)');
+      if (h > 560) issues.push('too long (' + h + ' Han chars) — risks the silent 512-token truncation');
+    } else {
+      if (w < 55) issues.push('too short (' + w + ' words, want 80-300 of concrete relational detail)');
+      if (w > 330) issues.push('too long (' + w + ' words) — the 512-token cap truncates silently past ~350');
+    }
   }
   if (key === 'qwenimg') {
     if (!t.includes('Negative prompt:')) issues.push('missing "Negative prompt:" block');
-    else if (!t.includes('低分辨率')) issues.push('negative prompt is not the official Chinese list');
-    if (!/Ultra HD, 4K, cinematic composition/.test(t)) issues.push('missing the official magic suffix ", Ultra HD, 4K, cinematic composition."');
+    else if (!t.includes('低分辨率')) issues.push('negative prompt is not the official anti-AI-look Chinese list');
+    if (/Ultra HD, 4K, cinematic composition/i.test(t)) issues.push('contains the retired magic suffix — officially replaced by the negative list');
     const pos = t.split('Negative prompt:')[0].trim();
-    if (!/contains no recognizable text|"[^"]+"/.test(pos)) issues.push('must either quote visible text in "" or state the image contains no recognizable text');
+    if (!/contains no recognizable text|无(其他)?(可识别)?文字|"[^"]{1,80}"|“[^”]{1,80}”/.test(pos))
+      issues.push('must either quote visible text exactly or state the image contains no recognizable text');
+    const w = enWords(pos), h = hanCount(pos);
+    if (!isHanDominant(pos) && w > 260) issues.push('too long (' + w + ' words; official rewriter targets ~200, concise)');
+    if (isHanDominant(pos) && h > 480) issues.push('too long (' + h + ' Han chars; target ~300)');
   }
   return issues;
 }
+
 
 function renderCheck(key, issues) {
   const el = $('chk-' + key);
@@ -807,7 +1012,7 @@ async function fixOutput(key) {
   const msg = 'Original request: "' + lastRun.intent + '"\n\n' +
     'Your previous output broke these format rules:\n- ' + issues.join('\n- ') + '\n\n' +
     'Your previous output was:\n' + prev + '\n\n' +
-    'Rewrite it so it fully complies with ALL formatting rules in your instructions. Output ONLY the corrected prompt, nothing else.';
+    'Rewrite it so it fully complies with ALL formatting rules in your instructions. Output ONLY the corrected prompt, nothing else.' + langSuffix();
   try {
     const fixed = await streamChat(TARGETS[key].system, msg, partial => {
       const clean = partial.replace(/<think>[\s\S]*?(<\/think>|$)/g, '').trim();
@@ -843,7 +1048,7 @@ async function refine(key) {
   const msg = 'Original request: "' + lastRun.intent + '"\n\n' +
     'Current prompt:\n' + prev + '\n\n' +
     'Requested change: "' + change + '"\n\n' +
-    'Rewrite the prompt applying ONLY this change. Keep everything else intact and fully comply with ALL formatting rules in your instructions. Output ONLY the revised prompt, nothing else.';
+    'Rewrite the prompt applying ONLY this change. Keep everything else intact and fully comply with ALL formatting rules in your instructions. Output ONLY the revised prompt, nothing else.' + langSuffix();
   try {
     const revised = await streamChat(TARGETS[key].system, msg, partial => {
       const clean = partial.replace(/<think>[\s\S]*?(<\/think>|$)/g, '').trim();
@@ -894,7 +1099,7 @@ async function generate() {
   for (const k of keys) {
     const pre = $('out-' + k);
     try {
-      const final = await streamChat(TARGETS[k].system, intent, partial => {
+      const final = await streamChat(TARGETS[k].system, intent + langSuffix(), partial => {
         const clean = partial.replace(/<think>[\s\S]*?(<\/think>|$)/g, '').trim();
         pre.innerHTML = esc(clean) + '<span class="cursor"></span>';
         pre.scrollTop = pre.scrollHeight;
@@ -963,6 +1168,26 @@ window.addEventListener('storage', () => renderPins());
 setInterval(() => renderPins(), 3000);
 
 /* ================= tutor chat (grounded in the knowledge bank) ================= */
+/* ================= gotchas panel + language routing ================= */
+function toggleGotchas(){
+  const p = $('gotPanel');
+  p.classList.toggle('open');
+  if (p.classList.contains('open')) { renderGotchas(); $('gotSearch').focus(); }
+}
+function renderGotchas(){
+  const q = ($('gotSearch').value || '').toLowerCase();
+  $('gotList').innerHTML = GOTCHAS
+    .filter(g => !q || (g.t + ' ' + g.m + ' ' + g.r).toLowerCase().includes(q))
+    .map(g => '<div class="got"><span class="got-t">' + esc(g.t) + '</span><div class="got-m">✗ MYTH: ' + esc(g.m) + '</div><div class="got-r">✓ ' + esc(g.r) + '</div></div>')
+    .join('') || '<div style="padding:10px;color:var(--dim);font-size:12px">No match.</div>';
+}
+function langSuffix(){
+  const v = $('langSel') ? $('langSel').value : 'auto';
+  if (v === 'en') return '\n\n[Output language preference: English only]';
+  if (v === 'zh') return '\n\n[Output language preference: native Chinese (中文)]';
+  return '';
+}
+
 function toggleAsk(){
   const p = $('askPanel');
   p.classList.toggle('open');
