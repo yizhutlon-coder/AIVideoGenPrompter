@@ -86,6 +86,7 @@
   .pin-t{font-size:11px;color:var(--dim);font-family:var(--mono);line-height:1.45;word-break:break-word;}
   .pin-x{background:none;border:none;color:var(--dim);cursor:pointer;font-size:13px;}
   .pin-x:hover{color:var(--err);}
+  #tipLine{margin-top:22px;font-size:11.5px;color:var(--dim);text-align:center;opacity:.75;line-height:1.6;}
   /* gotchas panel */
   #gotPanel{position:fixed;top:0;right:-460px;width:448px;height:100vh;background:var(--panel);
     border-left:1px solid var(--border);transition:right .25s;z-index:11;display:flex;flex-direction:column;}
@@ -232,7 +233,6 @@ if (PS_SPLIT) {
     <div class="input-zone">
       <textarea id="intent" placeholder="Describe the shot you want to see… one or two plain sentences is perfect."></textarea>
       <div class="examples" id="examples"></div>
-      <div class="hint" id="tipLine"></div>
       <div class="controls">
         <div class="chips" id="chips"></div>
         <label class="kbd-hint" title="Auto: each model picks EN or native Chinese by its own rules">Output <select id="langSel"><option value="auto">Auto</option><option value="en">EN</option><option value="zh">中文</option></select></label>
@@ -241,6 +241,7 @@ if (PS_SPLIT) {
       </div>
     </div>
     <div class="results" id="results"></div>
+    <div id="tipLine"></div>
   </div>
 </div>
 
