@@ -562,6 +562,22 @@ Example output:
 一张贴在浅蓝色风化木墙上的撕边寻猫海报。顶部中央以粗黑体写"寻猫启事"。灰色公猫照片居中，照片下方两行文字分别为"名字：灰仔"和"右耳缺角，走路微跛"。底部红字写"如有见到，请联系：138-0000-0000"。左下角手写日期"4月5日"。层级清晰，纸张纤维真实，无其他文字。
 
 Negative prompt: ${QWENIMG_NEG}`
+  },
+  krea2: {
+    name:'Krea 2', group:'image', def:false, fmt:'painterly prose · medium first · character-art tuned',
+    system:`You convert a user's plain-language image idea into an optimized prompt for Krea 2 (K2 Turbo, local weights), specialized in stylized 2D art that avoids the polished "AI look" — especially game character art.
+
+Rules:
+- ONE prose paragraph, 80-140 words. LEAD WITH THE MEDIUM: "A stylized digital painting with visible brushstrokes of ...", "A minimalist flat-color illustration of ...", "A gouache character study of ...".
+- Kill AI gloss with POSITIVE matte facts: "matte surface, no specular highlights, dry pigment finish, subtle paper texture, visible brushstrokes". Never bare exclusions like "not digital".
+- Character art (when the request is a character): full body with both feet fully visible in frame; describe the pose in longhand ("standing upright, arms relaxed slightly away from the body, feet shoulder-width apart") — never jargon like "A-pose"; readable silhouette; solid flat background named by exact color: "solid flat magenta background, flat graphic design; the figure floats with no cast shadow and no ground plane".
+- Palette lock for consistency: choose 3-5 precise color words (forest-green, oxblood, bone-white) and reuse them exactly; restate the most critical color once in different words. NEVER use (word:1.2) emphasis — it is broken on Krea 2.
+- NO negative prompt (Turbo is CFG-free). No quality meta-tags. Rendered text goes in quotes; otherwise mention no text elements at all.
+- Preserve the user's content words exactly. Output ONLY the paragraph.
+
+Example input: "female knight character for my game, painterly, magenta background"
+Example output:
+A stylized digital painting with visible brushstrokes and a matte, dry pigment finish. A young woman with cropped black hair stands upright in a relaxed neutral pose, arms slightly away from her body, feet shoulder-width apart, both boots fully visible in frame. She wears a forest-green belted tunic over olive-brown trousers, tall oxblood leather boots, bone-white cloth wrappings on both forearms, and a longsword slung across her back on a brown leather strap. Soft even studio light and a muted earthy palette of forest green, oxblood, and olive — the deep red of the boots reads as aged leather. Solid flat magenta background, flat graphic design; the figure floats with no cast shadow and no ground plane. Subtle paper texture.`
   }
 };
 
@@ -596,6 +612,7 @@ Turbo: 8 steps, guidance 0, NO negatives, low seed diversity (STAFF: vary wordin
 QWEN-IMAGE (Alibaba, Apache 2.0, 20B; open line = 2512 + Edit-2511; 2.0/3.0 are API-only)
 Official 2512 rewriter: classify portrait/text/general first; portraits ordered identity→clothing→face/skin→pose→background with specific age, gaze, hand placement; ~200 words, concise and direct; text images transcribe EVERY string verbatim (never translate, no placeholders) with carrier/position/font/color; else state "no recognizable text". THE MAGIC SUFFIX IS RETIRED: ", Ultra HD, 4K, cinematic composition." is dead code in the current rewriter — the 2512 README replaced it with the anti-AI-look Chinese NEGATIVE list (低分辨率…画面具有AI感…). true_cfg 4.0, 40-50 steps; Lightning LoRAs run CFG 1 → negatives inert; match Lightning version to checkpoint. Edit-2511: one explicit role per indexed image ("subject from image 1, pose from image 3"), direct imperatives + preserve-clauses; role binding can still swap/fail (open issues) — sample several seeds, treat as best effort. Chinese first-class; Chinese glyph rendering is the headline strength.
 
+KREA FAMILY — disambiguate three things: FLUX.1 Krea dev (Jul 2025, FLUX fine-tune against the AI look), Krea 1 (hosted), and KREA 2 (K2) — Krea's from-scratch ~12.9B DiT (Qwen3-VL encoder), open weights Jun 22 2026: Raw checkpoint (52 steps, for LoRA training) and Turbo (8-step distilled, for generation) — "train on Raw, run on Turbo". FP8 ~12GB (12-16GB cards), native ComfyUI support. LICENSE is custom (Community License: roughly under $1M revenue and under 50 seats, plus content-filter obligations) — fine for teaching, read it before studio use. Dialect: natural prose, long detailed prompts, medium-first ("A stylized digital painting of..."); official painterly vocabulary: expressive thick brushstrokes, flat shading, soft muted retro, subtle paper texture, ligne claire. CFG-free Turbo → no negatives; convert exclusions to positive facts ("matte surface, no specular highlights" not "no gloss"). TRAPS (TESTED/community): stock ComfyUI KSampler misreads CFG 0.0 as pure unconditional — use CFG 1.0 there; the pipeline's prompt_enhance is ON by default and RL-trained to INCREASE diversity — turn it off for repeatable character art. Emphasis syntax (word:1.2) is actively destructive — restate in different words instead. Character consistency, three tiers: (1) palette lock — official guidance says reuse the same 3-5 precise color words across every sheet (palette drift is the top inconsistency cause); (2) image reference via VAEEncode→ReferenceLatent (does most identity work; text alone is worse) with KEEP-first phrasing; (3) LoRA trained on Raw. Turnaround sheets ("shown from four angles — front, three-quarter, side, back" at 16:9) work but are visually, NOT pixel, consistent (~512px per view) — use the sheet as a design doc, then regenerate each view with it as reference. Flat solid backgrounds: official examples use "solid vibrant blue/crimson/chroma green background" + "flat graphic design"; state "no cast shadow, no ground plane" positively. No edit model, no ControlNet ecosystem yet — for exact poses fall back to SDXL/Illustrious + ControlNet.
 OTHER LOCAL IMAGE MODELS (brief): LongCat-Image (6B, Apache) — quoted text is MANDATORY syntax, character-level encoding; GLM-Image (MIT, ~23GB); FireRed-Image-Edit-1.1 — current open editing SOTA.
 
 == GENERAL CONCEPTS ==
@@ -644,6 +661,9 @@ const GOTCHAS = [
   {t:'Seeds', m:'My wording change improved the video.', r:'Maybe. Seed variance can dwarf prompt effects (σ0.218 across seeds vs +0.022 from expansion on Wan). Test any wording claim across several seeds before believing it.'},
   {t:'Chinese', m:'Chinese prompts are always better on Chinese models.', r:'Proven wins: exact Han glyphs, native art/culture vocabulary, Chinese dialogue. The only A/B found showed positive-prompt language did NOT matter for general motion. Keep official negatives Chinese; never machine-translate tags or quoted text.'},
   {t:'Text-in-image', m:'Short text always renders; long text always fails.', r:'Rarity beats length: common Chinese characters render ~97%, rare ones 41%, very rare 6%. And Z-Image actually beats Qwen-Image on English multi-region text.'},
+  {t:'Krea 2', m:'CFG 0 works the same everywhere for Krea 2 Turbo.', r:'Stock ComfyUI KSampler misreads CFG 0.0 as pure unconditional output — your prompt gets IGNORED. Use CFG 1.0 in ComfyUI; 0.0 only in Krea\'s own CLI/diffusers.'},
+  {t:'Krea 2', m:'The built-in prompt enhancer helps character sheets.', r:'It defaults ON and is trained to maximize visual DIVERSITY — the exact opposite of consistent character art. Turn prompt_enhance off for repeatable sprites; lock a 3-5 color-word palette instead.'},
+  {t:'Krea 2', m:'A turnaround prompt gives production-ready consistent views.', r:'Four-view sheets are visually consistent, not pixel-consistent (~512px per view). Use the sheet as a design document, then regenerate each view individually with it as an image reference.'},
   {t:'Privacy', m:'Local AI still phones home somehow.', r:'Ollama and this app talk only to 127.0.0.1. After the one-time model download, everything works with Wi-Fi off — the cleanest demo is to try it.'}
 ];
 
@@ -988,6 +1008,16 @@ function validate(key, text) {
     const w = enWords(pos), h = hanCount(pos);
     if (!isHanDominant(pos) && w > 260) issues.push('too long (' + w + ' words; official rewriter targets ~200, concise)');
     if (isHanDominant(pos) && h > 480) issues.push('too long (' + h + ' Han chars; target ~300)');
+  }
+  if (key === 'krea2') {
+    if (/negative prompt/i.test(t)) issues.push('contains a negative prompt — Krea 2 Turbo is CFG-free (and in ComfyUI use CFG 1.0, not 0.0)');
+    if (/\([^)]+:\d/.test(t)) issues.push('uses (word:1.x) weighting — broken on Krea 2; restate the color/element in different words instead');
+    if (/masterpiece|best quality|8k|ultra.?hd/i.test(t)) issues.push('quality meta-tags — noise on Krea 2');
+    if (!/^(an? |the )?[^.]{0,60}(painting|illustration|drawing|watercolor|gouache|ink|sketch|art|study)/i.test(t)) issues.push('does not lead with the medium — Krea 2 responds to medium-first prompts');
+    if (/background/i.test(t) && !/(solid|flat)[^.]{0,40}background|background[^.]{0,40}(solid|flat)/i.test(t)) issues.push('background mentioned but not locked ("solid flat <color> background") — gradients and environments sneak in otherwise');
+    const w = enWords(t);
+    if (w < 55) issues.push('too short (' + w + ' words, want 80-140 of concrete description)');
+    if (w > 170) issues.push('too long (' + w + ' words, want 80-140)');
   }
   return issues;
 }
