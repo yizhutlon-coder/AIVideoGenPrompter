@@ -281,7 +281,7 @@ if (PS_SPLIT) {
   <div id="mdlPull"><i id="mdlFill"></i></div>
   <div id="mdlPullTxt"></div>
   <div id="mdlCustomRow">
-    <input id="mdlCustom" placeholder="any tag: llama3.2:3b, hf.co/user/model-GGUF…"
+    <input id="mdlCustom" placeholder="paste an ollama.com / huggingface.co link, or type a tag…"
       onkeydown="if(event.key==='Enter')pullAny($('mdlCustom').value.trim())">
     <button class="ghost" onclick="pullAny($('mdlCustom').value.trim())">Pull</button>
   </div>
@@ -1251,6 +1251,19 @@ const MODEL_CATALOG = [
   { tag:'phi4-mini',           size:'2.5 GB', note:'Compact; strong instructions, English-leaning.' }
 ];
 let mdlPulling = false;
+function normalizeTag(raw){
+  let t = (raw || '').trim();
+  if (!t) return '';
+  t = t.replace(/^https?:\/\//i, '').replace(/^www\./i, '');
+  if (/^ollama\.com\//i.test(t)) {
+    t = t.replace(/^ollama\.com\//i, '').split(/[?#]/)[0].replace(/\/+$/, '');
+    t = t.replace(/^library\//i, '').replace(/\/tags$/i, '').replace(/\/blobs.*$/i, '');
+  } else if (/^(huggingface\.co|hf\.co)\//i.test(t)) {
+    const parts = t.replace(/^(huggingface\.co|hf\.co)\//i, '').split(/[?#]/)[0].split('/').filter(Boolean);
+    t = 'hf.co/' + parts.slice(0, 2).join('/');
+  }
+  return t;
+}
 function toggleModels(){
   const p = $('mdlPanel');
   p.classList.toggle('open');
@@ -1288,6 +1301,8 @@ function useModel(name){
   toast('Now using ' + name);
 }
 async function pullAny(tag){
+  tag = normalizeTag(tag);
+  if ($('mdlCustom')) $('mdlCustom').value = tag;
   if (!tag || mdlPulling) return;
   mdlPulling = true;
   $('mdlPull').style.display = 'block';
@@ -1334,6 +1349,19 @@ async function delModel(name){
     toast('Removed ' + name);
   } catch(e) { toast('Delete failed: ' + e.message); }
 }
+
+(function(){
+  const inp = $('mdlCustom');
+  if (!inp) return;
+  inp.addEventListener('paste', e => {
+    const txt = (e.clipboardData || window.clipboardData).getData('text') || '';
+    if (/^(https?:\/\/)?(www\.)?(ollama\.com|hf\.co|huggingface\.co)\//i.test(txt.trim())) {
+      e.preventDefault();
+      inp.value = txt.trim();
+      pullAny(txt);
+    }
+  });
+})();
 
 /* ================= gotchas panel + language routing ================= */
 function toggleGotchas(){
