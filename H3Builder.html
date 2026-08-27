@@ -77,9 +77,9 @@
       <div class="card">
         <h3>Mode</h3>
         <div class="modes" id="modes"></div>
-        <label>Duration (seconds, 4–15)</label>
+        <label>Duration (seconds, 5–15 — 4s is API-only; 124 frames = 5.17s is the local floor)</label>
         <div class="row">
-          <input type="number" id="dur" min="4" max="15" value="8" oninput="refresh()">
+          <input type="number" id="dur" min="5" max="15" value="8" oninput="refresh()">
           <span class="hint" id="frameInfo" style="flex:2"></span>
         </div>
         <div class="hint" id="beatInfo" style="margin-top:5px"></div>
