@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>H3 Builder — hand-crafted MiniMax H3 prompts</title>
+<style>
+  :root{--bg:#0c0f14;--panel:#151a22;--panel2:#1c2330;--border:#2a3342;--text:#e9eef6;
+    --dim:#8f9cb0;--accent:#5eb1ff;--green:#6fdf9c;--warn:#ffb45e;--err:#ff7a7a;
+    --mono:ui-monospace,'Cascadia Code',Consolas,monospace;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 system-ui,'Segoe UI',sans-serif;}
+  .app{max-width:1280px;margin:0 auto;padding:18px 18px 60px;}
+  h1{font-size:18px;margin:0 0 2px;}
+  .sub{color:var(--dim);font-size:12.5px;margin:0 0 14px;}
+  .cols{display:grid;grid-template-columns:340px 1fr;gap:14px;align-items:start;}
+  @media(max-width:900px){.cols{grid-template-columns:1fr;}}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:12px;}
+  .card h3{margin:0 0 8px;font-size:13px;color:var(--accent);}
+  label{font-size:11.5px;color:var(--dim);display:block;margin:8px 0 3px;}
+  input[type=text],input[type=number],select,textarea{width:100%;background:var(--panel2);color:var(--text);
+    border:1px solid var(--border);border-radius:7px;padding:7px 9px;font-size:13px;font-family:inherit;}
+  textarea{font-family:var(--mono);font-size:12px;line-height:1.55;resize:vertical;}
+  textarea:focus,input:focus,select:focus{outline:none;border-color:var(--accent);}
+  .modes{display:flex;gap:5px;flex-wrap:wrap;}
+  .mode{padding:6px 12px;border-radius:7px;border:1px solid var(--border);background:var(--panel2);
+    color:var(--dim);cursor:pointer;font-size:12.5px;user-select:none;}
+  .mode.on{border-color:var(--accent);color:var(--text);background:#1a2536;}
+  .row{display:flex;gap:8px;align-items:center;}
+  .row>*{flex:1;}
+  .hint{font-size:11px;color:var(--dim);line-height:1.5;}
+  button{background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:7px;
+    padding:6px 11px;font-size:12px;cursor:pointer;}
+  button:hover{border-color:var(--accent);}
+  button.primary{background:var(--accent);color:#08111d;border:none;font-weight:700;padding:9px 20px;font-size:13.5px;}
+  button.mini{padding:3px 8px;font-size:11px;}
+  /* media manager */
+  .med{display:flex;gap:6px;align-items:center;background:var(--panel2);border:1px solid var(--border);
+    border-radius:8px;padding:6px 8px;margin-bottom:6px;flex-wrap:wrap;}
+  .med .tag{font-family:var(--mono);font-size:11px;color:var(--green);min-width:74px;}
+  .med .tag.off{color:var(--dim);text-decoration:line-through;}
+  .med input[type=text]{flex:3;min-width:110px;}
+  .med select{flex:0 0 auto;width:auto;}
+  .med input[type=number]{flex:0 0 54px;width:54px;}
+  .med .x{background:none;border:none;color:var(--dim);cursor:pointer;font-size:13px;}
+  .med .x:hover{color:var(--err);}
+  .budget{font-size:11px;font-family:var(--mono);color:var(--dim);margin-top:6px;line-height:1.7;}
+  .budget b{color:var(--text);}
+  .budget .over{color:var(--err);font-weight:700;}
+  /* toolbar */
+  .tb{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px;}
+  .chips{display:flex;gap:5px;flex-wrap:wrap;margin:6px 0;}
+  .chip{font-family:var(--mono);font-size:11px;background:var(--panel2);border:1px solid var(--border);
+    border-radius:12px;padding:3px 10px;cursor:pointer;color:var(--green);}
+  .chip:hover{border-color:var(--accent);}
+  /* validation */
+  .v{border-radius:7px;padding:6px 10px;font-size:12px;margin-bottom:5px;line-height:1.45;}
+  .v.err{background:#2a1518;border:1px solid var(--err);color:#ffb8b8;}
+  .v.warn{background:#2a2214;border:1px solid #6b5326;color:var(--warn);}
+  .v.ok{background:#12241a;border:1px solid #2a5c3f;color:var(--green);}
+  pre#out{background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:12px;
+    font-family:var(--mono);font-size:12px;white-space:pre-wrap;word-break:break-word;max-height:420px;overflow:auto;}
+  details{margin-top:8px;}
+  summary{cursor:pointer;font-size:12px;color:var(--accent);}
+  details .hint{margin-top:6px;}
+  dialog{background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:10px;max-width:420px;}
+  dialog::backdrop{background:rgba(0,0,0,.6);}
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>🎬 H3 Builder</h1>
+  <p class="sub">Hand-craft MiniMax H3 prompts in the official dialect — modes, reference-tag budgeting, and live rule checking. Fully offline; nothing leaves this page.</p>
+
+  <div class="cols">
+    <div><!-- left column -->
+      <div class="card">
+        <h3>Mode</h3>
+        <div class="modes" id="modes"></div>
+        <label>Duration (seconds, 4–15)</label>
+        <div class="row">
+          <input type="number" id="dur" min="4" max="15" value="8" oninput="refresh()">
+          <span class="hint" id="frameInfo" style="flex:2"></span>
+        </div>
+        <div class="hint" id="beatInfo" style="margin-top:5px"></div>
+      </div>
+
+      <div class="card" id="mediaCard">
+        <h3>Reference media (tags computed by H3's arrival-order rules)</h3>
+        <div id="medList"></div>
+        <div class="row" style="margin-top:6px">
+          <button class="mini" onclick="addMed('pic')">+ Picture</button>
+          <button class="mini" onclick="addMed('vid')">+ Video</button>
+          <button class="mini" onclick="addMed('aud')">+ Audio</button>
+        </div>
+        <div class="budget" id="budget"></div>
+      </div>
+
+      <div class="card">
+        <h3>Checks</h3>
+        <div id="checks"></div>
+      </div>
+
+      <details class="card" style="display:block">
+        <summary>📖 Format cheat sheet</summary>
+        <div class="hint">
+          <b>[Shot 1]</b> opens with a style keyword and has NO timestamp. Later shots: <b>[Shot N] At MM:SS.mmm, the camera cuts to…</b> — cut only when the shot adds new information; distance/angle changes are camera motion.<br><br>
+          <b>Camera</b> = motion type + amplitude + speed as a natural sentence: “The camera pushes in with small amplitude at slow speed toward…”. Types: Zoom In/Out · Push In/Pull Out · Pan L/R · Truck L/R · Tilt U/D · Pedestal U/D · Arc · Tracking · Static · Shake · POV · Roll.<br><br>
+          <b>Dialogue</b>: identity + delivery outside, exact words inside: The woman (S1) says: <b>&lt;d&gt;[English] I get off at the next station.&lt;/d&gt;</b> Speaker IDs stay stable. On-screen text goes in "double quotes" verbatim.<br><br>
+          <b>Beat budget</b> (official): 5s → 3-4 beats · 10s → 5-7 · 15s → 6-9. One primary action per beat. Never use arrows → slashes / or + as syntax.<br><br>
+          <b>Reference mode</b>: six sections in order; roles NARROW; every attached asset must be cited or it bleeds into the output; retention markers: fully_preserved · partially_preserved · attribute_transfer · weak_reference (visuals) / fully_copy · partially_copy · reference (audio — a steer, not a music slot).
+        </div>
+      </details>
+    </div>
+
+    <div><!-- right column -->
+      <div class="card" id="editor"></div>
+      <div class="card">
+        <h3>Assembled prompt</h3>
+        <pre id="out"></pre>
+        <div class="row" style="margin-top:8px">
+          <button class="primary" onclick="copyOut()">Copy prompt</button>
+          <span class="hint" id="copyNote"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<dialog id="dlgDialog">
+  <h3 style="margin-top:0">Insert dialogue</h3>
+  <label>Speaker description (outside the tag)</label>
+  <input type="text" id="dlgWho" placeholder="The young woman with a quiet, breathy voice">
+  <div class="row">
+    <div><label>Speaker ID</label><input type="text" id="dlgSid" value="S1"></div>
+    <div><label>Language</label><select id="dlgLang"><option>English</option><option>Chinese</option><option>Japanese</option><option>Spanish</option></select></div>
+  </div>
+  <label>Exact words</label>
+  <input type="text" id="dlgWords" placeholder="I get off at the next station.">
+  <div class="row" style="margin-top:10px">
+    <button onclick="$('dlgDialog').close()">Cancel</button>
+    <button class="primary" onclick="insertDialogue()">Insert</button>
+  </div>
+</dialog>
+
+<script>
+'use strict';
+function $(id){ return document.getElementById(id); }
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+
+/* ================= state ================= */
+var MODES = [
+  { id:'T2VA', label:'T2VA · text', hint:'Build the scene from text alone.' },
+  { id:'I2VA', label:'I2VA · first frame', hint:'Animate forward from one image.' },
+  { id:'FL2VA', label:'FL2VA · first+last', hint:'Interpolate between two frames.' },
+  { id:'L2VA', label:'L2VA · last frame', hint:'Converge onto a known ending.' },
+  { id:'REF', label:'Reference', hint:'Full-reference mode: six sections, media tags.' }
+];
+var mode = 'T2VA';
+var media = [];   // {kind:'pic'|'vid'|'aud', desc, dur, audioMode ('off'|'paired'|'alone'), on:true}
+var fields = {};  // per-mode field text, keyed mode+field
+var activeTA = null;   // last focused textarea id
+
+/* ================= frames & beats ================= */
+function frameCount(s){ var k = Math.ceil((24*s - 5) / 17); return 17*k + 5; }
+function beatBudget(s){ return s <= 6 ? '3-4' : s <= 12 ? '5-7' : '6-9'; }
+
+/* ================= media tags (arrival-order rules) ================= */
+function computeTags(){
+  var pics = [], vids = [], auds = [];
+  media.forEach(function(m, i){
+    if (!m.on) { m._tag = null; return; }
+    if (m.kind === 'pic') { pics.push(m); m._tag = '<Picture ' + pics.length + '>'; }
+    if (m.kind === 'vid') { vids.push(m); m._tag = '<Video ' + vids.length + '>'; }
+  });
+  // audio order: video soundtracks first (in video order), then standalone clips
+  var aN = 0;
+  media.forEach(function(m){
+    if (m.on && m.kind === 'vid' && m.audioMode !== 'off') { aN++; m._audTag = '<Audio ' + aN + '>'; }
+    else if (m.kind === 'vid') m._audTag = null;
+  });
+  media.forEach(function(m){
+    if (m.on && m.kind === 'aud') { aN++; m._tag = '<Audio ' + aN + '>'; }
+  });
+  return {
+    files: media.filter(function(m){ return m.on; }).length +
+           media.filter(function(m){ return m.on && m.kind === 'vid' && m.audioMode !== 'off'; }).length,
+    pics: pics.length, vids: vids.length, audios: aN,
+    vidSec: vids.reduce(function(a,m){ return a + (+m.dur || 0); }, 0),
+    audSec: media.filter(function(m){ return m.on && (m.kind === 'aud' || (m.kind === 'vid' && m.audioMode !== 'off')); })
+                 .reduce(function(a,m){ return a + (+m.dur || 0); }, 0)
+  };
+}
+
+function addMed(kind){
+  media.push({ kind: kind, desc: '', dur: kind === 'pic' ? 0 : 5, audioMode: kind === 'vid' ? 'off' : undefined, on: true });
+  refresh();
+}
+function delMed(i){ media.splice(i, 1); refresh(); }
+function updMed(i, k, v){ media[i][k] = (k === 'dur') ? +v : v; refresh(); }
+function togMed(i){ media[i].on = !media[i].on; refresh(); }
+
+function renderMedia(){
+  computeTags();
+  var kinds = { pic:'🖼', vid:'🎞', aud:'🎵' };
+  $('medList').innerHTML = media.map(function(m, i){
+    var tags = (m._tag || '—') + (m._audTag ? ' + ' + m._audTag : '');
+    return '<div class="med">' +
+      '<span class="tag' + (m.on ? '' : ' off') + '">' + kinds[m.kind] + ' ' + esc(tags) + '</span>' +
+      '<input type="text" placeholder="what is it? (e.g. my character photo)" value="' + esc(m.desc).replace(/"/g,'&quot;') + '" onchange="updMed(' + i + ',\'desc\',this.value)">' +
+      (m.kind !== 'pic' ? '<input type="number" min="2" max="15" title="seconds" value="' + (m.dur||5) + '" onchange="updMed(' + i + ',\'dur\',this.value)">' : '') +
+      (m.kind === 'vid' ? '<select title="its soundtrack" onchange="updMed(' + i + ',\'audioMode\',this.value)">' +
+        ['off','paired','alone'].map(function(o){ return '<option' + (m.audioMode === o ? ' selected' : '') + '>' + o + '</option>'; }).join('') + '</select>' : '') +
+      '<button class="mini" onclick="togMed(' + i + ')" title="toggle without renumber confusion">' + (m.on ? '◉' : '○') + '</button>' +
+      '<button class="x" onclick="delMed(' + i + ')">✕</button>' +
+    '</div>';
+  }).join('') || '<div class="hint">No reference media. T2VA needs none; Reference mode wants at least one.</div>';
+
+  var b = computeTags();
+  var over = function(v, lim){ return v > lim ? ' class="over"' : ''; };
+  $('budget').innerHTML =
+    'files <b' + over(b.files,12) + '>' + b.files + '</b>/12 · pictures <b' + over(b.pics,9) + '>' + b.pics + '</b>/9 · ' +
+    'videos <b' + over(b.vids,3) + '>' + b.vids + '</b>/3 (<b' + over(b.vidSec,15) + '>' + b.vidSec + '</b>/15s) · ' +
+    '♪ audio <b' + over(b.audios,3) + '>' + b.audios + '</b>/3 (<b' + over(b.audSec,15) + '>' + b.audSec + '</b>/15s)' +
+    '<br><span style="font-size:10.5px">tags number by arrival order — soundtracks before standalone clips; toggling ◉ renumbers everything after it</span>';
+}
+
+/* ================= editor ================= */
+var CAMS = ['Zoom In','Zoom Out','Push In','Pull Out','Pan Left','Pan Right','Truck Left','Truck Right',
+  'Tilt Up','Tilt Down','Pedestal Up','Pedestal Down','Arc Shot','Tracking Shot','Static Shot',
+  'Shake Slightly','Shake Strongly','POV','Roll Clockwise','Roll Counterclockwise'];
+var CAM_VERB = { 'Zoom In':'zooms in','Zoom Out':'zooms out','Push In':'pushes in','Pull Out':'pulls out',
+  'Pan Left':'pans left','Pan Right':'pans right','Truck Left':'trucks left','Truck Right':'trucks right',
+  'Tilt Up':'tilts up','Tilt Down':'tilts down','Pedestal Up':'pedestals up','Pedestal Down':'pedestals down',
+  'Arc Shot':'moves in an arc around the subject','Tracking Shot':'tracks the subject',
+  'Static Shot':'holds a static shot','Shake Slightly':'shakes slightly','Shake Strongly':'shakes strongly',
+  'POV':'adopts the subject\'s point of view','Roll Clockwise':'rolls clockwise','Roll Counterclockwise':'rolls counterclockwise' };
+
+function F(field){ return fields[mode + ':' + field] || ''; }
+function setF(field, v){ fields[mode + ':' + field] = v; }
+
+function taHTML(field, label, rows, ph){
+  return '<label>' + label + '</label>' +
+    '<textarea id="ta_' + field + '" rows="' + rows + '" placeholder="' + esc(ph || '') + '" ' +
+    'onfocus="activeTA=\'ta_' + field + '\'" oninput="setF(\'' + field + '\', this.value); refreshLight()"></textarea>';
+}
+
+function toolbarHTML(){
+  return '<div class="tb">' +
+    '<button class="mini" onclick="insertShot()">+ Shot</button>' +
+    '<select class="mini" id="camSel" style="width:auto">' + CAMS.map(function(c){ return '<option>' + c + '</option>'; }).join('') + '</select>' +
+    '<select class="mini" id="ampSel" style="width:auto"><option value="">amplitude —</option><option>with small amplitude</option><option>with large amplitude</option></select>' +
+    '<select class="mini" id="spdSel" style="width:auto"><option value="">speed —</option><option>at slow speed</option><option>at fast speed</option></select>' +
+    '<button class="mini" onclick="insertCam()">Insert camera</button>' +
+    '<button class="mini" onclick="$(\'dlgDialog\').showModal()">+ Dialogue</button>' +
+    '</div>';
+}
+
+function chipsHTML(){
+  computeTags();
+  var chips = [];
+  media.forEach(function(m){
+    if (m.on && m._tag) chips.push(m._tag);
+    if (m.on && m._audTag) chips.push(m._audTag);
+  });
+  if (!chips.length) return '';
+  return '<div class="chips">' + chips.map(function(t){
+    return '<span class="chip" onclick="insertText(' + JSON.stringify(t).replace(/"/g, '&quot;') + ')">' + esc(t) + '</span>';
+  }).join('') + '<span class="hint" style="padding-top:3px">click to insert at cursor</span></div>';
+}
+
+function renderEditor(){
+  var h = '<h3>' + MODES.find(function(m){ return m.id === mode; }).label + ' — ' + MODES.find(function(m){ return m.id === mode; }).hint + '</h3>';
+  if (mode === 'REF') {
+    h += chipsHTML();
+    h += taHTML('subj', 'subject_definitions — one line per referenced item, NARROW roles', 4, '<Subject 1> is the singer from <Picture 1>; preserve identity, hairstyle, and clothing.');
+    h += taHTML('summ', 'summary — starts with bracketed task type(s) joined by +', 2, '[reference generation + audio reference] <Subject 1> sings while ...');
+    h += taHTML('ret', 'retention_analysis — one line per label with a marker', 3, '<Subject 1> (appears in [Shot 1]): fully_preserved - identity, hair, clothing unchanged.');
+    h += toolbarHTML();
+    h += taHTML('dd', 'detailed_description — style sentence(s), then [Shot N] timeline (350-500 words for generation)', 10, 'The target video uses realistic concert photography with cool stage light.\n[Shot 1] <Subject 1> (S1) stands center stage ...');
+    h += taHTML('ss', 'overall_soundscape', 2, 'Low audience room tone continues beneath the voice.');
+    h += taHTML('mus', 'non_diegetic_music — or N/A', 1, 'N/A');
+  } else {
+    if (mode !== 'T2VA') h += '<div class="hint" id="alignLine" style="font-family:var(--mono);background:var(--panel2);border:1px solid var(--border);border-radius:7px;padding:8px;margin-bottom:4px"></div>';
+    h += toolbarHTML();
+    h += taHTML('imd', 'integrated_multimodal_description — [Shot 1] style keyword + composition, then the timeline', 9, '[Shot 1] Live-action, cinematic, a medium-wide shot frames ...');
+    h += taHTML('ss', 'overall_soundscape — 1-4 sentences, ambience/physical sound only', 2, 'Rain taps the window over low room tone.');
+    h += taHTML('mus', 'non_diegetic_music — instrumentation/tempo/dynamics, or N/A', 1, 'N/A');
+  }
+  $('editor').innerHTML = h;
+  ['subj','summ','ret','dd','ss','mus','imd'].forEach(function(f){
+    var el = $('ta_' + f);
+    if (el) el.value = F(f);
+  });
+}
+
+/* insertion helpers */
+function insertText(text){
+  var el = activeTA && $(activeTA);
+  if (!el) { el = $(mode === 'REF' ? 'ta_dd' : 'ta_imd'); if (!el) return; }
+  var s = el.selectionStart || el.value.length, e = el.selectionEnd || s;
+  el.value = el.value.slice(0, s) + text + el.value.slice(e);
+  el.selectionStart = el.selectionEnd = s + text.length;
+  el.focus();
+  setF(el.id.slice(3), el.value);
+  refreshLight();
+}
+function nextShotInfo(){
+  var body = mode === 'REF' ? F('dd') : F('imd');
+  var shots = (body.match(/\[Shot (\d+)\]/g) || []).map(function(x){ return +x.match(/\d+/)[0]; });
+  var n = shots.length ? Math.max.apply(null, shots) + 1 : 1;
+  var times = (body.match(/At (\d{2}):(\d{2})\.(\d{3})/g) || []).map(function(t){
+    var m = t.match(/At (\d{2}):(\d{2})\.(\d{3})/); return (+m[1])*60 + (+m[2]) + (+m[3])/1000;
+  });
+  var last = times.length ? Math.max.apply(null, times) : 0;
+  var next = Math.min(Math.floor(last) + 3, (+$('dur').value || 8) - 1);
+  return { n: n, t: next };
+}
+function insertShot(){
+  var si = nextShotInfo();
+  if (si.n === 1) { insertText('[Shot 1] '); return; }
+  var mm = String(Math.floor(si.t / 60)).padStart(2, '0'), ss = String(si.t % 60).padStart(2, '0');
+  insertText('\n[Shot ' + si.n + '] At ' + mm + ':' + ss + '.000, the camera cuts to ');
+}
+function insertCam(){
+  var c = $('camSel').value, amp = $('ampSel').value, spd = $('spdSel').value;
+  insertText('The camera ' + CAM_VERB[c] + (amp ? ' ' + amp : '') + (spd ? ' ' + spd : '') + ' ');
+}
+function insertDialogue(){
+  var who = $('dlgWho').value.trim() || 'The speaker';
+  var sid = $('dlgSid').value.trim() || 'S1';
+  var lang = $('dlgLang').value;
+  var words = $('dlgWords').value.trim() || '...';
+  $('dlgDialog').close();
+  insertText(who + ' (' + sid + ') says: <d>[' + lang + '] ' + words + '</d> ');
+}
+
+/* ================= assembly ================= */
+function alignmentLine(){
+  var d = (+$('dur').value || 8).toFixed(2);
+  if (mode === 'I2VA') return 'For the target video, at 0.00 seconds into the target video, <Picture 1> (from [Shot 1]) is fully referenced.';
+  if (mode === 'FL2VA') {
+    var lastShot = (F('imd').match(/\[Shot (\d+)\]/g) || ['[Shot 1]']).length;
+    return 'How the reference pictures align with the target video — Picture 1 (from Shot 1) aligns with the 0.00-second mark of the target video; Picture 2 (from Shot ' + lastShot + ') aligns with the ' + d + '-second mark of the target video.';
+  }
+  if (mode === 'L2VA') {
+    var ls = (F('imd').match(/\[Shot (\d+)\]/g) || ['[Shot 1]']).length;
+    return 'How the reference pictures align with the target video — <Picture 1> (from [Shot ' + ls + ']) aligns with the ' + d + '-second mark of the target video.';
+  }
+  return '';
+}
+function assemble(){
+  if (mode === 'REF') {
+    return 'subject_definitions:\n' + F('subj').trim() +
+      '\n\nsummary:\n' + F('summ').trim() +
+      '\n\nretention_analysis:\n' + F('ret').trim() +
+      '\n\ndetailed_description:\n' + F('dd').trim() +
+      '\n\noverall_soundscape:\n' + (F('ss').trim() || 'N/A') +
+      '\n\nnon_diegetic_music:\n' + (F('mus').trim() || 'N/A');
+  }
+  var head = mode === 'T2VA' ? '' : alignmentLine() + '\n\n';
+  return head + 'integrated_multimodal_description: ' + F('imd').trim() +
+    '\n\noverall_soundscape: ' + (F('ss').trim() || 'N/A') +
+    '\n\nnon_diegetic_music: ' + (F('mus').trim() || 'N/A');
+}
+
+/* ================= validation ================= */
+function check(){
+  var out = [];
+  var E = function(m){ out.push({ l:'err', m:m }); };
+  var W = function(m){ out.push({ l:'warn', m:m }); };
+  var dur = +$('dur').value || 8;
+  var b = computeTags();
+  var body = mode === 'REF' ? F('dd') : F('imd');
+  var full = assemble();
+
+  // media budgets
+  if (b.files > 12) E('Over the 12-file reference cap (' + b.files + ') — soundtracks count as files.');
+  if (b.pics > 9) E('More than 9 pictures.');
+  if (b.vids > 3) E('More than 3 videos.');
+  if (b.audios > 3) E('More than 3 audio references (video soundtracks count).');
+  if (b.vidSec > 15) E('Video references exceed 15s total (' + b.vidSec + 's).');
+  if (b.audSec > 15) E('Audio references exceed 15s total (' + b.audSec + 's).');
+  media.forEach(function(m){
+    if (m.on && m.kind !== 'pic' && ((+m.dur || 0) < 2 || (+m.dur || 0) > 15))
+      E('A ' + (m.kind === 'vid' ? 'video' : 'audio clip') + ' is outside the 2-15s range.');
+  });
+  if (media.some(function(m){ return m.on && m.kind === 'aud'; }) &&
+      !media.some(function(m){ return m.on && m.kind !== 'aud'; }))
+    E('Audio cannot be sent without at least one image or video alongside it.');
+
+  // mode/media agreement
+  if (mode === 'T2VA' && b.files > 0) W('T2VA uses no reference media — attached items would be ignored (or switch mode).');
+  if (mode === 'I2VA' && b.pics < 1) E('I2VA needs one picture (the first frame).');
+  if (mode === 'FL2VA' && b.pics < 2) E('FL2VA needs two pictures (first and last frame).');
+  if (mode === 'L2VA' && b.pics < 1) E('L2VA needs one picture (the last frame).');
+  if ((mode === 'I2VA' || mode === 'L2VA') && b.pics > 1) W('Only Picture 1 is used in this mode; extra pictures are ignored.');
+  if (mode === 'REF' && b.files === 0) W('Reference mode with no media — use T2VA instead.');
+
+  // timeline
+  if (body.trim()) {
+    if (!/\[Shot 1\]/.test(body)) E('Missing [Shot 1].');
+    if (/\[Shot 1\]\s*At \d/.test(body)) E('[Shot 1] must NOT carry a timestamp.');
+    var stamps = [];
+    var re = /\[Shot (\d+)\](\s*At (\d{2}):(\d{2})\.(\d{3}))?/g, mt;
+    while ((mt = re.exec(body)) !== null) {
+      var n = +mt[1];
+      if (n > 1 && !mt[2]) E('[Shot ' + n + '] needs a cut time like "At 00:03.000".');
+      if (mt[2]) {
+        var t = (+mt[3])*60 + (+mt[4]) + (+mt[5])/1000;
+        stamps.push({ n:n, t:t });
+        if (t >= dur) E('[Shot ' + n + '] cut time ' + t.toFixed(2) + 's is at/after the video ends (' + dur + 's).');
+      }
+    }
+    for (var i = 1; i < stamps.length; i++)
+      if (stamps[i].t <= stamps[i-1].t) E('Cut times must strictly increase ([Shot ' + stamps[i].n + ']).');
+    var shotCount = (body.match(/\[Shot \d+\]/g) || []).length;
+    var hi = +beatBudget(dur).split('-')[1];
+    if (shotCount > 4) W(shotCount + ' shots — official doctrine prefers fewer, fuller shots (render per shot and assemble).');
+    var beats = (body.match(/\b(then|as|while|before|after)\b/gi) || []).length + shotCount;
+    if (beats > hi + 3) W('Content looks dense for ' + dur + 's — beat budget is ' + beatBudget(dur) + ' primary actions.');
+    if (/(→|->|\w\+\w)/.test(full)) E('Arrows/plus signs present — H3 may render them as on-screen text.');
+    if (/\[CUT TO/i.test(full)) E('[CUT TO] is not H3 syntax.');
+    if (/<d>(?!\[)/.test(full)) E('Dialogue <d> missing its [Language] tag.');
+    if (/<d>\[/.test(full) && !/\(S\d/.test(full)) W('Dialogue present but no (S1)-style speaker ID.');
+  } else W('Timeline is empty.');
+
+  if (mode === 'REF') {
+    if (!F('subj').trim()) E('subject_definitions is empty.');
+    if (!F('summ').trim()) E('summary is empty.');
+    else if (!/\[(keyframe completion|reference generation|video editing|video continuation|audio reuse|audio reference)/.test(F('summ')))
+      E('summary must start with bracketed task type(s), e.g. [reference generation + audio reuse].');
+    if (!F('ret').trim()) E('retention_analysis is empty.');
+    else if (!/(fully_preserved|partially_preserved|attribute_transfer|weak_reference|fully_copy|partially_copy|reference)/.test(F('ret')))
+      W('retention_analysis has no relationship markers.');
+    // every attached tag cited somewhere
+    media.forEach(function(m){
+      [m._tag, m._audTag].forEach(function(tag){
+        if (m.on && tag && full.indexOf(tag) === -1)
+          W(tag + (m.desc ? ' (' + m.desc + ')' : '') + ' is attached but never mentioned — it will still be sent and can bleed into the output.');
+      });
+    });
+    // cited tags that don't exist
+    var cited = full.match(/<(Picture|Video|Audio) \d+>/g) || [];
+    var known = [];
+    media.forEach(function(m){ if (m.on && m._tag) known.push(m._tag); if (m.on && m._audTag) known.push(m._audTag); });
+    cited.filter(function(v, i, a){ return a.indexOf(v) === i; }).forEach(function(t){
+      if (known.indexOf(t) === -1) E(t + ' is cited but no attached media gets that tag (check arrival-order numbering).');
+    });
+    // subjects need retention entries
+    (F('subj').match(/<Subject \d+>/g) || []).filter(function(v,i,a){ return a.indexOf(v)===i; }).forEach(function(sub){
+      if (F('ret').indexOf(sub) === -1) W(sub + ' has no retention_analysis entry.');
+    });
+    var w = F('dd').trim() ? F('dd').trim().split(/\s+/).length : 0;
+    if (w && w < 300) W('detailed_description is ' + w + ' words — official generation target is 350-500.');
+    if (w > 550) W('detailed_description is ' + w + ' words — official target is 350-500.');
+  } else {
+    if (!F('ss').trim()) W('overall_soundscape is empty — use N/A only for explicit total silence.');
+  }
+
+  if (!out.length) out.push({ l:'ok', m:'✓ All checks pass — official-format H3 prompt.' });
+  return out;
+}
+
+/* ================= render ================= */
+function copyOut(){
+  navigator.clipboard.writeText($('out').textContent).then(function(){
+    $('copyNote').textContent = '✓ copied';
+    setTimeout(function(){ $('copyNote').textContent = ''; }, 1400);
+  });
+}
+function refreshLight(){
+  $('out').textContent = assemble();
+  $('checks').innerHTML = check().map(function(c){ return '<div class="v ' + c.l + '">' + esc(c.m) + '</div>'; }).join('');
+  var al = $('alignLine');
+  if (al) al.textContent = alignmentLine();
+  renderMedia();
+}
+function refresh(){
+  $('modes').innerHTML = MODES.map(function(m){
+    return '<span class="mode' + (m.id === mode ? ' on' : '') + '" onclick="mode=\'' + m.id + '\'; refresh()">' + m.label + '</span>';
+  }).join('');
+  var d = +$('dur').value || 8;
+  $('frameInfo').textContent = '= ' + frameCount(d) + ' frames (' + (frameCount(d)/24).toFixed(3) + 's actual, 17k+5 grid @24fps)';
+  $('beatInfo').textContent = 'Beat budget for ' + d + 's: ' + beatBudget(d) + ' primary actions, one per beat.';
+  renderEditor();
+  refreshLight();
+}
+refresh();
+</script>
+</body>
+</html>

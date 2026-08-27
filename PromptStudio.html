@@ -137,6 +137,7 @@
   #clipPanel{position:fixed;top:0;right:-680px;width:660px;max-width:96vw;height:100vh;background:var(--panel);
     border-left:1px solid var(--border);transition:right .25s;z-index:12;display:flex;flex-direction:column;}
   #clipPanel.open{right:0;box-shadow:-20px 0 50px rgba(0,0,0,.5);}
+  #h3bPanel.open{right:0 !important;box-shadow:-20px 0 50px rgba(0,0,0,.5);}
   #clipPanel .cp-head{padding:13px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
   #clipPanel .cp-head b{font-size:14px;flex:1;}
   #clipPanel iframe{flex:1;border:none;width:100%;background:var(--bg);}
@@ -209,6 +210,7 @@ if (PS_SPLIT) {
     <div class="right">
       <select id="modelSel" title="Local LLM used for translation" style="display:none"></select>
       <button class="ghost" id="clipBtn" onclick="toggleClips()" title="Cut reference clips to exact seconds (H3)">🎞 Clips</button>
+      <button class="ghost" id="h3bBtn" onclick="toggleH3B()" title="Hand-craft H3 prompts: modes, tag budgeting, live rule checks">🎛 H3 Builder</button>
       <button class="ghost" id="gotBtn" onclick="toggleGotchas()" title="Myths and gotchas that trip people up">🧠 Gotchas</button>
       <button class="ghost" id="mdlBtn" onclick="toggleModels()" title="Install, switch, or remove local LLMs">⚙ Models</button>
       <button class="ghost" id="askBtn" onclick="toggleAsk()" title="Ask the tutor about these models">💬 Ask</button>
@@ -263,6 +265,14 @@ if (PS_SPLIT) {
     <div class="results" id="results"></div>
     <div id="tipLine"></div>
   </div>
+</div>
+
+<div id="h3bPanel" style="position:fixed;top:0;right:-1020px;width:1000px;max-width:97vw;height:100vh;background:var(--panel);border-left:1px solid var(--border);transition:right .25s;z-index:12;display:flex;flex-direction:column;">
+  <div class="cp-head"><b>🎛 H3 Builder</b>
+    <span style="font-size:11.5px;color:var(--dim)">hand-crafted official-format prompts with live checking</span>
+    <button class="pin-x" onclick="toggleH3B()">✕</button>
+  </div>
+  <iframe id="h3bFrame" data-src="H3Builder.html" style="flex:1;border:none;width:100%;background:var(--bg);"></iframe>
 </div>
 
 <div id="clipPanel">
@@ -1427,6 +1437,11 @@ async function askSend(){
   $('askMsgs').scrollTop = $('askMsgs').scrollHeight;
 }
 
+function toggleH3B(){
+  const p = $('h3bPanel'), f = $('h3bFrame');
+  if (!f.src) f.src = f.dataset.src;
+  p.classList.toggle('open');
+}
 function toggleClips(){
   const p = $('clipPanel'), f = $('clipFrame');
   if (!f.src) f.src = f.dataset.src;   // lazy-load only when first opened
