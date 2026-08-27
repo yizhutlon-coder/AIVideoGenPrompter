@@ -306,12 +306,12 @@ if (PS_SPLIT) {
 </div>
 
 <div id="askPanel">
-  <div class="ap-head"><b>💬 Model tutor</b>
+  <div class="ap-head"><b>💬 Model tutor</b><span id="ctxBadge" style="font-size:10.5px;color:var(--dim)"></span>
     <button class="ghost" onclick="askClear()" style="font-size:11px">New chat</button>
     <button class="pin-x" onclick="toggleAsk()">✕</button>
   </div>
   <div id="askMsgs"></div>
-  <div class="ap-hint">Answers come from the local model, grounded in a built-in knowledge bank (verified Aug 2026) covering all 8 models, CFG/negatives, encoders, and ComfyUI safety.</div>
+  <div class="ap-hint">Grounded in the built-in knowledge bank (verified Aug 2026). The conversation is continuous — follow-ups see previous turns — and survives a refresh within this tab. "New chat" resets it.</div>
   <div class="ap-input">
     <textarea id="askInput" placeholder="e.g. Why doesn't my negative prompt work on Flux?"></textarea>
     <button id="askSendBtn" onclick="askSend()">Ask</button>
@@ -752,7 +752,8 @@ let busy = false;
 let lastRun = null;          // { intent, outputs, hist }
 let pinOpen = null;          // null = auto (open when pins exist, except in pane mode)
 let lastPinJson = '';
-let askMsgs = [];            // tutor chat, session only
+let askMsgs = [];            // tutor chat — survives refresh within the tab via sessionStorage
+try { askMsgs = JSON.parse(sessionStorage.getItem('ps_ask') || '[]'); } catch(e) {}
 let askBusy = false;
 let history = [];
 try { history = JSON.parse(localStorage.getItem('ps_history') || '[]'); } catch(e) {}
@@ -1396,18 +1397,27 @@ function langSuffix(){
   return '';
 }
 
+function saveAsk(){ try { sessionStorage.setItem('ps_ask', JSON.stringify(askMsgs)); } catch(e) {} }
 function toggleAsk(){
   const p = $('askPanel');
   p.classList.toggle('open');
   if (p.classList.contains('open')) {
-    if (!askMsgs.length) askGreet();
+    if (!$('askMsgs').children.length) {
+      if (askMsgs.length) askMsgs.forEach(m => addMsg(m.role === 'user' ? 'u' : 'a', m.content));
+      else askGreet();
+    }
+    updateCtxBadge();
     $('askInput').focus();
   }
+}
+function updateCtxBadge(){
+  const el = $('ctxBadge');
+  if (el) el.textContent = askMsgs.length ? '🧵 remembering ' + Math.min(askMsgs.length, 16) + ' turn' + (askMsgs.length > 1 ? 's' : '') : '🧵 new conversation';
 }
 function askGreet(){
   addMsg('a', 'Hi! Ask me anything about the 8 models in this app — prompt styles, negatives and CFG, VRAM, licenses, ComfyUI safety. My model facts come from an Aug 2026 knowledge bank, not just the LLM\'s memory.');
 }
-function askClear(){ askMsgs = []; $('askMsgs').innerHTML = ''; askGreet(); }
+function askClear(){ askMsgs = []; saveAsk(); $('askMsgs').innerHTML = ''; askGreet(); updateCtxBadge(); }
 function addMsg(cls, text){
   const d = document.createElement('div');
   d.className = 'msg ' + cls;
@@ -1425,13 +1435,14 @@ async function askSend(){
   askMsgs.push({ role:'user', content: q });
   const bubble = addMsg('a', '…');
   try {
-    const reply = await streamChat(ASK_SYSTEM, askMsgs.slice(-10), partial => {
+    const reply = await streamChat(ASK_SYSTEM, askMsgs.slice(-16), partial => {
       bubble.textContent = partial.replace(/<think>[\s\S]*?(<\/think>|$)/g, '').trim();
       $('askMsgs').scrollTop = $('askMsgs').scrollHeight;
     }, 0.4);
     bubble.textContent = reply || '(no answer — try rephrasing)';
     askMsgs.push({ role:'assistant', content: reply });
-    if (askMsgs.length > 16) askMsgs = askMsgs.slice(-12);
+    if (askMsgs.length > 24) askMsgs = askMsgs.slice(-18);
+    saveAsk(); updateCtxBadge();
   } catch(e) {
     bubble.textContent = '✗ ' + e.message + ' — is Ollama still running?';
   }
