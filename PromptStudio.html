@@ -786,6 +786,7 @@ Black/blank output, verified causes: --fp16-vae (its own help text warns "might 
 Out of memory, in order: official fp8 build of the same model (about half the size; GGUF smaller still but needs ComfyUI-GGUF, and ComfyUI itself recommends native fp8 over GGUF when dynamic VRAM is on); lower resolution/batch; VAE Decode (Tiled) node; --reserve-vram 2 / --disable-smart-memory / --lowvram / --novram / --cpu (last resort). --normalvram NO LONGER EXISTS, and --lowvram is a no-op under dynamic VRAM. Offloading trades VRAM for system RAM — RAM-rich machines cope far better. fp8 needs a 40-series+ GPU (30-series: bf16; 20-series: fp16).
 Seeds: control_after_generate — fixed reuses the seed (reproduce/compare), randomize picks new each run, increment/decrement step by 1. ComfyUI also skips re-running unchanged nodes — same seed + same settings = instant cached repeat, not a bug.
 Bypass vs mute: Ctrl+B bypasses (data passes through untouched); Ctrl+M mutes (blocks execution downstream). Shipped workflows use bypassed groups as OPTIONAL sections — e.g. our Wan graph's LoadImage is bypassed for T2V, enabled for I2V.
+Managing many LoRAs — Lora Manager setup (recommended, multi-step): (1) ensure the built-in ComfyUI-Manager is enabled (Desktop: on by default; portable/manual: pip install -r manager_requirements.txt then launch with --enable-manager); (2) in the Manager search "Lora Manager" — registry id comfyui-lora-manager, ~766k installs, current v1.2.x — Install, then RESTART ComfyUI; (3) open its LoRA management page from the ComfyUI sidebar: it scans models/loras, shows previews, fetches Civitai metadata and trigger words, stores per-LoRA preset strengths, and downloads new LoRAs directly into the correct folder; (4) in workflows its "Lora Loader (LoraManager)" node auto-applies the preset strength and trigger words (other nodes: Lora Stacker/Stack Combiner/TriggerWord Toggle, all suffixed "(LoraManager)"). Prompt Studio's workflow exports deliberately use core loader nodes for portability — swap in the LoraManager loader after installing; we do not auto-generate its nodes because its free-text stack syntax silently no-ops if the syntax drifts. UNIVERSAL LoRA REMINDERS: strength defaults are starting points — read the LoRA's card (characters ~0.6-1.0, styles ~0.4-0.8); trigger words go in the prompt (speed/acceleration LoRAs never have them — don't invent one); wrong-base-model LoRAs fail SILENTLY ("lora key not loaded" in console, output unchanged); on Turbo/distilled checkpoints any LoRA partially de-distills — raise steps and real CFG; stack one at a time and verify.
 Outputs land in ComfyUI/output/ (SaveImage/SaveVideo filename_prefix supports subfolders like "video/myproject"). First run is slow because multi-GB weights load; later runs reuse them. Version: Settings→About. Queue from another program: POST API-format JSON to /prompt (needs --enable-cors-header for browser apps). ComfyUI runs fully offline once models are downloaded — nothing uploads.
 
 == GENERAL CONCEPTS ==
@@ -1779,6 +1780,20 @@ function buildWorkflow(key, opts){
     wfSet(wf, 3059, 0, o.width || 960); wfSet(wf, 3059, 1, o.height || 544);
     if (seed !== null) { wfSet(wf, 4832, 0, seed); wfSet(wf, 4814, 0, seed); }
   }
+  // LoRA reminder note travels inside the workflow itself
+  if (loras.length) {
+    const distilled = (tplKey === 'krea' || tplKey === 'zimage' || tplKey === 'qwen' || tplKey === 'klein' || tplKey === 'ltx');
+    const noteText = '## ⚠ LoRA checklist (Prompt Studio)\n\n' +
+      '- **Adjust strength to the LoRA\'s own card** — the value set here is a starting point; character LoRAs often want 0.6-1.0, style LoRAs 0.4-0.8.\n' +
+      '- **Trigger words belong in the prompt** (style/character LoRAs; speed LoRAs never have trigger words).\n' +
+      '- **Wrong-base LoRAs fail SILENTLY** — output looks identical to no-LoRA; the console logs "lora key not loaded".\n' +
+      (distilled ? '- **Distilled/Turbo graph + LoRA = partial de-distillation** — raise steps' + (tplKey === 'krea' ? ' (Prompt Studio already bumped 8→12)' : ' (and CFG where real)') + ' if output turns mushy.\n' : '') +
+      '- **Stack one LoRA at a time** — verify each works before adding the next.\n' +
+      '- Juggling many LoRAs? Install **Lora Manager** (registry: comfyui-lora-manager) — ask the Prompt Studio tutor for setup.';
+    wf.nodes.push({ id: ++wf.last_node_id, type: 'MarkdownNote', pos: [16, 16], size: [430, 230],
+      flags: {}, order: 0, mode: 0, inputs: [], outputs: [], title: 'LoRA checklist',
+      properties: {}, widgets_values: [noteText], color: '#432', bgcolor: '#653' });
+  }
   // sanitize: drop stale links whose endpoints don't exist (the LTX vendor file ships one)
   const ids = new Set(wf.nodes.map(function(x){ return x.id; }));
   wf.links = wf.links.filter(function(l){ return ids.has(l[1]) && ids.has(l[3]); });
@@ -1814,12 +1829,20 @@ function openWf(key){
     h += '<label style="margin-top:8px">LoRAs (exact filename from your models/loras folder; blank = none)</label>';
     for (let i = 0; i < 2; i++) h += '<div class="row"><input type="text" id="wfLora' + i + '" placeholder="my_style_lora.safetensors" style="flex:3"><input type="number" id="wfLoraS' + i + '" step="0.05" value="0.8" title="strength" style="flex:1"></div>';
     h += '<label style="margin-top:4px"><input type="checkbox" id="wfRg"> Use rgthree Power Lora Loader — <span style="color:var(--warn)">experimental</span>: one node, needs the rgthree-comfy pack; may need manual re-wiring if it fails</label>';
+    h += '<div class="hint" style="color:var(--warn)">Reminder: with any LoRA, adjust strength to its card, put its trigger words in the prompt, and on Turbo/distilled models raise steps/CFG (de-distillation). A checklist note is embedded in the exported workflow.</div>';
+    h += '<details style="margin-top:6px"><summary style="font-size:12px;color:var(--accent);cursor:pointer">Using many LoRAs? Set up Lora Manager (recommended)</summary><div class="hint" style="margin-top:5px">' +
+      '1️⃣ Enable the built-in ComfyUI-Manager (Desktop: already on; portable/manual: install manager_requirements.txt, launch with --enable-manager).<br>' +
+      '2️⃣ In the Manager, search <b>Lora Manager</b> (registry id comfyui-lora-manager, 766k+ installs) → Install → <b>restart ComfyUI</b>.<br>' +
+      '3️⃣ Open its LoRA page from the ComfyUI sidebar — it scans models/loras, shows previews, pulls Civitai metadata and trigger words, stores per-LoRA preset strengths, and downloads new LoRAs into the right folder.<br>' +
+      '4️⃣ In workflows, its <b>Lora Loader (LoraManager)</b> node auto-applies your preset strength and trigger words.<br>' +
+      'Our export uses core nodes so it loads everywhere — swap the loader for the LoraManager one after installing.</div></details>';
   }
   if (loraMode === 'builtin') {
     h += '<label style="margin-top:8px">Krea 2 LoRA (built-in slot; blank = none)</label>';
     h += '<div class="row"><input type="text" id="wfLora0" placeholder="krea2_darkbrush.safetensors" style="flex:3"><input type="number" id="wfLoraS0" step="0.05" value="0.8" style="flex:1"></div>';
     h += '<label>Trigger words (added by the graph)</label><input type="text" id="wfTrig" placeholder="muted minimalist sketch style">';
     h += '<div class="hint">With a LoRA, steps auto-bump 8→12 (de-distillation rule).</div>';
+    h += '<div class="hint" style="color:var(--warn)">Reminder: adjust strength to the LoRA card and keep its trigger words — a checklist note is embedded in the exported workflow.</div>';
   }
   if (loraMode === 'none') h += '<div class="hint" style="margin-top:8px">LoRA insertion is not offered for this graph in simple export — after importing, add a "Load LoRA" node between Load Diffusion Model and the sampler (ask the 💬 tutor how).</div>';
   h += '<div class="hint" style="margin-top:8px">' + wfNotes(key, tplKey) + '</div>';
