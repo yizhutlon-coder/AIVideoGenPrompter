@@ -1,0 +1,19 @@
+AI Video Gen Prompter / Prompt Studio
+Copyright 2026 yizhutlon-coder
+
+Licensed under the Apache License, Version 2.0.
+
+THIRD-PARTY MATERIALS
+This repository includes materials that remain under their own terms:
+- ComfyUI workflow template JSONs harvested from Comfy-Org/workflow_templates
+  (GNU GPL v3 governs ComfyUI itself; templates published by Comfy-Org) and one
+  official Lightricks example workflow from Lightricks/ComfyUI-LTXVideo — see
+  research/_addenda/comfy-templates/INDEX.md for sources and provenance.
+- Official model negative prompts and system-prompt excerpts quoted from their
+  vendors' repositories (Alibaba/Wan, Qwen, Tongyi Z-Image, MiniMax, Lightricks,
+  Black Forest Labs, Krea), used for interoperability and teaching with
+  attribution in the research corpus (research/).
+- The research corpus (research/) quotes and cites community and academic
+  sources; each claim carries its source URL.
+The Apache 2.0 grant above applies to the original code and documentation of
+this project, not to those third-party materials.
