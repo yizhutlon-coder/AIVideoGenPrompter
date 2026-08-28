@@ -1,52 +1,86 @@
-# AI Video Gen Prompter
+# AI Video Gen Prompter — Prompt Studio
 
-Describe a shot once in plain language — get it translated into the native prompt dialect of eight local AI models (four video, four image), side by side:
+An **offline teaching toolkit** for local AI video and image generation. Describe a shot once in plain language and get it translated into the native prompt dialect of **12 local models** — format-checked against official rules, explained by a built-in tutor, and exportable as ready-wired ComfyUI workflows.
 
-| Model | Prompt dialect |
+Everything runs on your own machine through [Ollama](https://ollama.com). No accounts, no cloud, no telemetry — prompts never leave your computer, and after a one-time model download it works with Wi-Fi off.
+
+| Video | Image |
 |---|---|
-| **Wan 2.2** (video) | Keyword formula (Subject + Scene + Motion + cinematography vocab) + official Chinese negative prompt |
-| **LTX 2.3** (video) | One flowing present-tense cinematic prose paragraph |
-| **MiniMax H3** (video) | Timeline blocks `[0s-2s]`, SUBJECT/ACTION/CAMERA, audio block, speaker IDs |
-| **SCAIL-2** (video) | Motion transfer — prompt describes the output only; motion comes from a driving video |
-| **SDXL** (image) | Comma-separated keyword tags, front-loaded, sparing `(word:1.2)` weights + standard negative list |
-| **Flux** (image) | Natural declarative prose; **no negatives** (CFG 1), no weights, no quality meta-tags |
-| **Z-Image** (image) | Long objective prose with spatial layering; meta-tags officially banned; text-in-image in `""` |
-| **Qwen-Image** (image) | Rich prose + official ", Ultra HD, 4K, cinematic composition." suffix + official Chinese negative list |
+| Wan 2.2 (T2V + I2V dialects) | SDXL (photoreal + anime-tag dialects) |
+| LTX 2.3/2.5 | Flux (FLUX.1 / FLUX.2 klein) |
+| MiniMax H3 (+ full-reference mode) | Z-Image Turbo/Base |
+| SCAIL-2 | Qwen-Image 2512 |
+| | Krea 2 |
 
-Runs 100% offline on your own machine via a small local LLM (Qwen through [Ollama](https://ollama.com)). No accounts, no cloud, prompts never leave your computer.
+Each model wants a *different* prompt language — keyword formulas, cinematic prose, timeline schemas with speaker IDs, Danbooru tags, native Chinese. That difference is the whole subject this app teaches.
 
-## Quick start
+---
 
-1. Install [Ollama](https://ollama.com/download) (one time).
-2. **Windows:** double-click `Start-PromptStudio.bat` · **Mac/Linux:** run `start-promptstudio.sh`
-3. First run only: click the **Download Qwen** button in the app (7B ≈ 4.7 GB, or 3B for slower machines) and watch the progress bar.
-4. Type what you want to see → **Translate** → copy the version for your model.
+## Quick start (Windows)
 
-Every run after that: double-click the launcher and go. Works with Wi-Fi off once the model is downloaded.
+1. **Install [Ollama](https://ollama.com/download)** — one time, normal system install.
+2. **Double-click `Start-PromptStudio.bat`.** It starts Ollama with the right settings and opens the app. (Mac/Linux: `start-promptstudio.sh`.)
+3. **First run only:** the app shows a 3-step wizard. Click **Download Qwen 7B** (4.7 GB, progress bar in-app) — or the 3B option for weaker laptops. No terminal, ever.
 
-## Portable / USB-stick mode (zero install on other machines)
+That's it. Every run after: double-click the launcher, type an idea, hit **Translate**.
 
-1. On any machine that has the model already: run `Make-Portable.bat` once (needs internet the first time — bundles the official portable Ollama runtime and copies your downloaded models into this folder, ~6 GB total).
-2. Copy the whole folder to a USB stick or another machine.
-3. There: double-click `Start-Portable.bat`. No install, no admin, no downloads — the runtime and models travel with the folder.
+### About the model download (what/where/why)
 
-Tips: USB 3.0 (or copying the folder to the machine first) speeds up model loading a lot; on weak laptops pull the Qwen 3B model instead of 7B. The `runtime/` and `models/` folders are gitignored — they belong on the stick, not in the repo.
+- The download is the **local LLM that rewrites your prompts** (Qwen 2.5 7B recommended — it's the only catalog model that writes idiomatic Chinese, which the Alibaba-family models want). It is *not* the video/image models themselves — those live in your ComfyUI install.
+- It's stored by Ollama in your user profile (`~/.ollama`), **not** in this folder — so the folder stays small and shareable.
+- Want other LLMs? **⚙ Models** in the app header: one-click installs from a curated catalog, or paste any ollama.com / HuggingFace link and it pulls automatically. Anything Ollama serves works; the app's expertise lives in its prompts, not the model.
+- After downloading, the whole app works **fully offline** — the cleanest way to verify the privacy story is to turn Wi-Fi off and use it.
 
-## Features
+---
 
-- Streams output live from the local LLM
-- **Format checker** — validates each output against the model's official rules (✓ or ⚠), with a one-click **Fix** that sends violations back to the LLM
-- History panel (last 40 translations, stored locally in your browser)
-- Model picker — works with any model you have in Ollama; Qwen recommended
-- `video-prompt-translator.html` — earlier teaching version with detailed "why this format?" explanations per model
+## What's in the app
 
-## Privacy notes
+- **Translate** — one idea in, per-model dialect out, streaming live. Output language: Auto / EN / 中文 (Auto picks native Chinese where it measurably wins). **📋 Project context** stores persistent invariants ("my fishing-village game: painterly, muted palette") applied to every translation.
+- **Format checker** — every output is validated against that model's official rules (✓ / ⚠ with one-click **Fix**). Catches things like negative prompts on CFG-free models, Wan camera-verb mistakes, H3 timeline violations.
+- **⬇ WF (workflow export)** — turns a translated prompt into a ready-wired **ComfyUI workflow JSON**: verified official Comfy-Org templates, your prompt injected, correct sampler recipes, resolution/duration/seed controls, optional LoRAs (with an embedded strength/trigger-word checklist note, and auto step-bumps on distilled models). Drag the file onto the ComfyUI canvas — no node wiring.
+- **💬 Ask** — an offline tutor grounded in a research-verified knowledge bank (evidence-graded, updated weekly): prompt techniques, model comparisons, ComfyUI troubleshooting, LoRA setup. Conversations are continuous within a session.
+- **🗺 Picker** — pick your GPU VRAM + task, see which of 21 models fit (comfortable/tight/too big), with ease ratings, license warnings, and what each excels at.
+- **🧠 Gotchas** — 40+ myth-vs-reality cards for the misconceptions that trip everyone ("negative prompts work everywhere", "(word:1.3) is portable", "longer prompts are better"…). A random one appears as a footer tip each launch.
+- **🎛 H3 Builder** — hand-craft MiniMax H3 prompts in the official dialect: all five modes, reference-tag budget simulator (arrival-order rules!), toolbar inserters, live rule checking. Also standalone as `H3Builder.html`.
+- **🎞 Clips** — pick exact-second windows from reference videos for H3's 15s budget; copies a frame-accurate ffmpeg command. Also standalone as `ClipPicker.html` + drag-and-drop `ClipChopper.bat` for bulk splitting.
+- **📌 Pins / History / Split view** — pin outputs to a board (shared across split panes), 40-entry history, and a two-workspace split screen for e.g. image-gen on the left, image-to-video on the right.
+- **🌓 Theme** — Auto (follows OS) / Dark / Light, synced across all tools.
 
-- Internet is used only for the one-time Ollama install + model download. Inference is fully local (Ollama listens on `127.0.0.1` only).
-- The launcher sets `OLLAMA_ORIGINS=*` so the app page can reach Ollama. This means a website open in your browser could also send requests to your local Ollama (it can never read your files, prompts, or history). Work offline or close unknown tabs if that concerns you.
+## The portable packager (standalone USB version)
 
-## Updating the prompt rules
+Turn the folder into a **zero-install kit** that runs on any Windows machine — classroom-ready:
 
-Each model's dialect lives in the `TARGETS` object in `PromptStudio.html` (system prompt + one worked example). When a model ships new prompting guidance, edit those strings — nothing else needs to change.
+1. On a machine that already has the LLM downloaded: **double-click `Make-Portable.bat`** (needs internet once). It downloads the official portable Ollama runtime into `runtime/` (~1 GB) and copies your downloaded LLMs into `models/` (a few GB).
+2. **Copy the whole folder** to a USB stick or any machine.
+3. There: **double-click `Start-Portable.bat`.** No install, no admin, no internet — runtime and models travel with the folder. If no model was copied, the app's Download button pulls one onto the stick.
 
-Prompt dialects sourced from official guides (Aug 2026): Wan 2.2 README, LTX 2.3 prompt guide, MiniMax H3 HuggingFace docs, SCAIL-2 repo.
+Tips: USB 3.0 (or copy-to-disk first) loads models much faster; use the 3B model for weak laptops. `runtime/` and `models/` are gitignored — they belong on the stick, never in the repo.
+
+## Folder map
+
+```
+PromptStudio.html        the main app (single file, open in any browser)
+Start-PromptStudio.bat   everyday launcher (Windows)  ·  start-promptstudio.sh (Mac/Linux)
+Make-Portable.bat        build the standalone USB kit
+Start-Portable.bat       run the standalone kit (zero install)
+H3Builder.html           hand-crafted H3 prompts (also inside the app)
+ClipPicker.html          exact-second clip windows (also inside the app)
+ClipChopper.bat          drag-and-drop bulk video splitter (needs ffmpeg)
+ComfyUI-Privacy-Handout.pdf   one-page student handout
+research/                the evidence-graded research corpus behind the app
+  digests/               weekly research digests (what changed, what contradicts)
+  _addenda/              deep-dives, sweeps, verified ComfyUI template ground-truth
+RESEARCH-PLAN.md         spec for research passes   ·   DESIGN-BRIEF.md  visual-pass spec
+```
+
+## How the knowledge stays current
+
+The app's system prompts, knowledge bank, gotchas, and validators are compiled from a research corpus where **every claim carries an evidence grade** (`[OFFICIAL]` / `[STAFF]` / `[TESTED]` / `[LORE]`) and a source URL. A weekly automated sweep (Chinese + Western sources) produces digests in `research/digests/`; corrections get folded in — including corrections *to our own claims* (see the digests' errata). If you find the app teaching something wrong, that pipeline is how it gets fixed.
+
+## Privacy
+
+The app talks only to `127.0.0.1` (Ollama). The launcher sets `OLLAMA_ORIGINS=*` so the local page can reach it — meaning a website open in your browser could also send requests to your local Ollama (it can never read your files, prompts, or history). Work offline or avoid untrusted tabs if that matters to you. Details in the ComfyUI privacy handout.
+
+## Contributing / adapting
+
+Each model's dialect lives in the `TARGETS` object in `PromptStudio.html` (system prompt + worked examples); the tutor's knowledge in `KNOWLEDGE`; misconceptions in `GOTCHAS`; workflow templates in `WF_TEMPLATES` (verified official JSONs — see `research/_addenda/comfy-templates/INDEX.md` for the parameterization ground truth). Everything is a single readable file — reading it is a legitimate class exercise.
