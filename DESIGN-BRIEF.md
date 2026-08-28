@@ -44,4 +44,4 @@ After changes, extract each file's script blocks and `node --check` them; boot P
 
 ## Files & git
 
-Work in this folder on `PromptStudio.html`, `H3Builder.html`, `ClipPicker.html` (and `video-prompt-translator.html` only if trivial). Commit in logical steps with plain messages ("design: unify button system"). Do not push. Do not touch `research/`, `README.md`, launchers, or `RESEARCH-PLAN.md`.
+Work in this folder on `PromptStudio.html`, `tools/H3Builder.html`, `tools/ClipPicker.html` (and `video-prompt-translator.html` only if trivial). Commit in logical steps with plain messages ("design: unify button system"). Do not push. Do not touch `research/`, `README.md`, launchers, or `RESEARCH-PLAN.md`.

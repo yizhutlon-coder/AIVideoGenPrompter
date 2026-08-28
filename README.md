@@ -51,8 +51,8 @@ That's it. Every run after: double-click the launcher, type an idea, hit **Trans
 - **💬 Ask** — an offline tutor grounded in a research-verified knowledge bank (evidence-graded, updated weekly): prompt techniques, model comparisons, ComfyUI troubleshooting, LoRA setup. Conversations are continuous within a session.
 - **🗺 Picker** — pick your GPU VRAM + task, see which of 21 models fit (comfortable/tight/too big), with ease ratings, license warnings, and what each excels at.
 - **🧠 Gotchas** — 40+ myth-vs-reality cards for the misconceptions that trip everyone ("negative prompts work everywhere", "(word:1.3) is portable", "longer prompts are better"…). A random one appears as a footer tip each launch.
-- **🎛 H3 Builder** — hand-craft MiniMax H3 prompts in the official dialect: all five modes, reference-tag budget simulator (arrival-order rules!), toolbar inserters, live rule checking. Also standalone as `H3Builder.html`.
-- **🎞 Clips** — pick exact-second windows from reference videos for H3's 15s budget; copies a frame-accurate ffmpeg command. Also standalone as `ClipPicker.html` + drag-and-drop `ClipChopper.bat` for bulk splitting.
+- **🎛 H3 Builder** — hand-craft MiniMax H3 prompts in the official dialect: all five modes, reference-tag budget simulator (arrival-order rules!), toolbar inserters, live rule checking. Also standalone in `tools/`.
+- **🎞 Clips** — pick exact-second windows from reference videos for H3's 15s budget; copies a frame-accurate ffmpeg command. Also standalone in `tools/`, with drag-and-drop `ClipChopper.bat` for bulk splitting.
 - **📌 Pins / History / Split view** — pin outputs to a board (shared across split panes), 40-entry history, and a two-workspace split screen for e.g. image-gen on the left, image-to-video on the right.
 - **🌓 Theme** — Auto (follows OS) / Dark / Light, synced across all tools.
 
@@ -73,9 +73,9 @@ PromptStudio.html        the main app (single file, open in any browser)
 Start-PromptStudio.bat   everyday launcher (Windows)  ·  start-promptstudio.sh (Mac/Linux)
 Make-Portable.bat        build the standalone USB kit
 Start-Portable.bat       run the standalone kit (zero install)
-H3Builder.html           hand-crafted H3 prompts (also inside the app)
-ClipPicker.html          exact-second clip windows (also inside the app)
-ClipChopper.bat          drag-and-drop bulk video splitter (needs ffmpeg)
+tools/                   standalone versions of the in-app tools
+  H3Builder.html         hand-crafted H3 prompts   ·  ClipPicker.html  exact-second clip windows
+  ClipChopper.bat        drag-and-drop bulk video splitter (needs ffmpeg)
 ComfyUI-Privacy-Handout.pdf   one-page student handout
 research/                the evidence-graded research corpus behind the app
   digests/               weekly research digests (what changed, what contradicts)
