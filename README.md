@@ -14,6 +14,16 @@ Everything runs on your own machine through [Ollama](https://ollama.com). No acc
 
 Each model wants a *different* prompt language — keyword formulas, cinematic prose, timeline schemas with speaker IDs, Danbooru tags, native Chinese. That difference is the whole subject this app teaches.
 
+## Privacy first
+
+This project exists for people who run AI locally *because* they care where their data goes. Accordingly:
+
+- **Everything is local.** The only network destination in the app is `127.0.0.1` (your own Ollama). No telemetry, no analytics, no accounts, no update pings, no CDN scripts — the app is self-contained files.
+- **Fully offline after setup.** Internet is used exactly twice, both at your initiative: installing Ollama and downloading an LLM. After that, turn Wi-Fi off — everything works. That test *is* the proof; run it.
+- **Your data stays in your browser.** Prompts, history, pins, and project context live in localStorage on your machine. Nothing is uploaded, synced, or shared. "Clear all" buttons wipe them.
+- **Auditable by design.** One readable HTML file, no build step, no minification — search it for `http` yourself (see [Verifying your copy](#verifying-your-copy-is-authentic)). The in-app footer repeats these audit instructions so they travel with every copy.
+- **One honest caveat:** the launcher sets `OLLAMA_ORIGINS=*` so the app page can reach Ollama; a website open in your browser could also send requests to your local Ollama (it can never read your files, prompts, or history). Work offline or avoid untrusted tabs if that concerns you — details in the included privacy handout, which also covers ComfyUI's own privacy posture.
+
 ---
 
 ## Quick start (Windows)
@@ -76,10 +86,6 @@ RESEARCH-PLAN.md         spec for research passes   ·   DESIGN-BRIEF.md  visual
 ## How the knowledge stays current
 
 The app's system prompts, knowledge bank, gotchas, and validators are compiled from a research corpus where **every claim carries an evidence grade** (`[OFFICIAL]` / `[STAFF]` / `[TESTED]` / `[LORE]`) and a source URL. A weekly automated sweep (Chinese + Western sources) produces digests in `research/digests/`; corrections get folded in — including corrections *to our own claims* (see the digests' errata). If you find the app teaching something wrong, that pipeline is how it gets fixed.
-
-## Privacy
-
-The app talks only to `127.0.0.1` (Ollama). The launcher sets `OLLAMA_ORIGINS=*` so the local page can reach it — meaning a website open in your browser could also send requests to your local Ollama (it can never read your files, prompts, or history). Work offline or avoid untrusted tabs if that matters to you. Details in the ComfyUI privacy handout.
 
 ## Verifying your copy is authentic
 
