@@ -10,6 +10,17 @@
     --text:#e9eef6; --dim:#8f9cb0; --accent:#5eb1ff; --green:#6fdf9c;
     --warn:#ffb45e; --err:#ff7a7a; --mono:ui-monospace,'Cascadia Code',Consolas,monospace;
   }
+  [data-theme="light"]{
+    --bg:#f3f5f8; --panel:#ffffff; --panel2:#e9edf3; --border:#ccd5e0;
+    --text:#1c2534; --dim:#5b6779; --accent:#1f6fb8; --green:#1c7a44; --warn:#9c5f10; --err:#b23434;
+  }
+  [data-theme="light"] .msg.u{background:#dbeafe;}
+  [data-theme="light"] .bigbtn, [data-theme="light"] button.go, [data-theme="light"] .refine button,
+  [data-theme="light"] .ap-input button, [data-theme="light"] .chk .fixbtn{color:#fff;}
+  [data-theme="light"] #histPanel.open, [data-theme="light"] #askPanel.open, [data-theme="light"] #gotPanel.open,
+  [data-theme="light"] #mdlPanel.open, [data-theme="light"] #pickPanel.open, [data-theme="light"] #clipPanel.open,
+  [data-theme="light"] #h3bPanel.open{box-shadow:-20px 0 50px rgba(25,35,55,.18);}
+  #themeSel{background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:7px;padding:6px 8px;font-size:12px;}
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 system-ui,'Segoe UI',sans-serif;}
   .app{max-width:1240px;margin:0 auto;padding:20px 20px 70px;}
@@ -228,6 +239,9 @@ if (PS_SPLIT) {
     <h1>🎬 Prompt Studio</h1>
     <span class="state"><span class="dot" id="dot"></span><span id="stateTxt">connecting…</span></span>
     <div class="right">
+      <select id="themeSel" title="Theme" onchange="setTheme(this.value)">
+        <option value="auto">🌓 Auto</option><option value="dark">🌙 Dark</option><option value="light">☀️ Light</option>
+      </select>
       <select id="modelSel" title="Local LLM used for translation" style="display:none"></select>
       <button class="ghost" id="clipBtn" onclick="toggleClips()" title="Cut reference clips to exact seconds (H3)">🎞 Clips</button>
       <button class="ghost" id="h3bBtn" onclick="toggleH3B()" title="Hand-craft H3 prompts: modes, tag budgeting, live rule checks">🎛 H3 Builder</button>
@@ -400,6 +414,24 @@ if (PS_SPLIT) {
 <script>
 'use strict';
 const OLLAMA = 'http://localhost:11434';
+
+/* ================= theme ================= */
+function themePref(){ try { return localStorage.getItem('ps_theme') || 'auto'; } catch(e) { return 'auto'; } }
+function applyTheme(){
+  const t = themePref();
+  const sysLight = window.matchMedia ? matchMedia('(prefers-color-scheme: light)').matches : false;
+  const light = t === 'light' || (t === 'auto' && sysLight);
+  document.documentElement.setAttribute('data-theme', light ? 'light' : 'dark');
+  const sel = $('themeSel');
+  if (sel && sel.value !== t) sel.value = t;
+}
+function setTheme(t){
+  try { localStorage.setItem('ps_theme', t); } catch(e) {}
+  applyTheme();
+}
+applyTheme();
+window.addEventListener('storage', e => { if (!e.key || e.key === 'ps_theme') applyTheme(); });
+if (window.matchMedia) { try { matchMedia('(prefers-color-scheme: light)').addEventListener('change', applyTheme); } catch(e) {} }
 const $ = id => document.getElementById(id);
 
 /* ================= model dialects ================= */
