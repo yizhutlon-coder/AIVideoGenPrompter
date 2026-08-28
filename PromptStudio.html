@@ -422,7 +422,7 @@ function applyTheme(){
   const sysLight = window.matchMedia ? matchMedia('(prefers-color-scheme: light)').matches : false;
   const light = t === 'light' || (t === 'auto' && sysLight);
   document.documentElement.setAttribute('data-theme', light ? 'light' : 'dark');
-  const sel = $('themeSel');
+  const sel = document.getElementById('themeSel');
   if (sel && sel.value !== t) sel.value = t;
 }
 function setTheme(t){
