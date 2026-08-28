@@ -106,6 +106,26 @@
   #mdlPull{height:8px;background:var(--panel2);border-radius:4px;margin:0 14px 8px;overflow:hidden;display:none;}
   #mdlPull i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--green));}
   #mdlPullTxt{font-size:11px;color:var(--dim);padding:0 14px 10px;font-family:var(--mono);}
+  /* model picker */
+  #pickPanel{position:fixed;top:0;right:-820px;width:800px;max-width:97vw;height:100vh;background:var(--panel);
+    border-left:1px solid var(--border);transition:right .25s;z-index:11;display:flex;flex-direction:column;}
+  #pickPanel.open{right:0;box-shadow:-20px 0 50px rgba(0,0,0,.5);}
+  .pk-filters{display:flex;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);flex-wrap:wrap;align-items:center;}
+  .pk-filters select{background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:7px;padding:6px 9px;font-size:12.5px;}
+  .pk-filters span{font-size:11.5px;color:var(--dim);}
+  #pickList{flex:1;overflow-y:auto;padding:10px 14px;display:flex;flex-direction:column;gap:8px;}
+  .pk{background:var(--panel2);border:1px solid var(--border);border-radius:9px;padding:9px 12px;}
+  .pk.dim{opacity:.42;}
+  .pk-h{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;}
+  .pk-h b{font-size:13.5px;}
+  .pk-fit{font-size:11px;font-weight:700;}
+  .pk-fit.ok{color:var(--green);} .pk-fit.tight{color:var(--warn);} .pk-fit.no{color:var(--err);}
+  .pk-lic{font-size:10px;border:1px solid var(--border);border-radius:9px;padding:1px 8px;color:var(--dim);}
+  .pk-lic.risk{border-color:var(--warn);color:var(--warn);}
+  .pk-specs{font-size:11px;font-family:var(--mono);color:var(--dim);margin-top:3px;}
+  .pk-best{font-size:12px;color:var(--text);margin-top:4px;line-height:1.45;}
+  .pk-warn{font-size:11.5px;color:var(--warn);margin-top:2px;line-height:1.4;}
+  .pk-note{font-size:10.5px;color:var(--dim);padding:8px 14px;border-top:1px solid var(--border);line-height:1.5;}
   /* gotchas panel */
   #gotPanel{position:fixed;top:0;right:-460px;width:448px;height:100vh;background:var(--panel);
     border-left:1px solid var(--border);transition:right .25s;z-index:11;display:flex;flex-direction:column;}
@@ -212,6 +232,7 @@ if (PS_SPLIT) {
       <button class="ghost" id="clipBtn" onclick="toggleClips()" title="Cut reference clips to exact seconds (H3)">🎞 Clips</button>
       <button class="ghost" id="h3bBtn" onclick="toggleH3B()" title="Hand-craft H3 prompts: modes, tag budgeting, live rule checks">🎛 H3 Builder</button>
       <button class="ghost" id="gotBtn" onclick="toggleGotchas()" title="Myths and gotchas that trip people up">🧠 Gotchas</button>
+      <button class="ghost" id="pickBtn" onclick="togglePicker()" title="Which model fits your machine and task?">🗺 Picker</button>
       <button class="ghost" id="mdlBtn" onclick="toggleModels()" title="Install, switch, or remove local LLMs">⚙ Models</button>
       <button class="ghost" id="askBtn" onclick="toggleAsk()" title="Ask the tutor about these models">💬 Ask</button>
       <button class="ghost" id="pinCount" onclick="togglePins()" title="Pinned prompts">📌</button>
@@ -302,6 +323,40 @@ if (PS_SPLIT) {
       onkeydown="if(event.key==='Enter')pullAny($('mdlCustom').value.trim())">
     <button class="ghost" onclick="pullAny($('mdlCustom').value.trim())">Pull</button>
   </div>
+</div>
+
+<div id="pickPanel">
+  <div class="ap-head"><b>🗺 Model Picker</b>
+    <span style="font-size:11px;color:var(--dim)">what fits your machine + task (evidence: research corpus, Aug 2026)</span>
+    <button class="pin-x" onclick="togglePicker()">✕</button>
+  </div>
+  <div class="pk-filters">
+    <span>GPU VRAM</span>
+    <select id="pkVram" onchange="renderPicker()">
+      <option value="6">6 GB</option><option value="8">8 GB</option><option value="12" selected>12 GB</option>
+      <option value="16">16 GB</option><option value="24">24 GB</option><option value="32">32 GB</option>
+      <option value="48">48 GB</option><option value="96">80+ GB</option>
+    </select>
+    <span>Task</span>
+    <select id="pkTask" onchange="renderPicker()">
+      <option value="any">Any</option>
+      <optgroup label="Video">
+        <option value="t2v">Text → video</option><option value="i2v">Image → video</option>
+        <option value="swap">Character swap / motion transfer</option>
+        <option value="audio">Video with audio / dialogue</option>
+        <option value="long">Long video (&gt;15s)</option><option value="multishot">Multi-shot / cuts</option>
+      </optgroup>
+      <optgroup label="Image">
+        <option value="photo">Photoreal</option><option value="anime">Anime / manga</option>
+        <option value="paint">Painterly / character art</option>
+        <option value="textEN">Text in image (EN)</option><option value="textZH">Text in image (中文)</option>
+        <option value="edit">Image editing</option><option value="ref">Multi-image reference</option>
+      </optgroup>
+    </select>
+    <span>☑ <label style="font-size:11.5px;color:var(--dim)"><input type="checkbox" id="pkFree" onchange="renderPicker()"> commercial-safe only</label></span>
+  </div>
+  <div id="pickList"></div>
+  <div class="pk-note">System RAM matters too: big models want 32-64 GB (H3 drops 45→6 GB RSS with ComfyUI's low-memory flag). "Tight" = quantized/GGUF/offload territory — expect quality loss and slower runs. Ease ★ = setup + recipe stability, not output quality. Figures from the graded research corpus; ask the 💬 tutor for sources.</div>
 </div>
 
 <div id="gotPanel">
@@ -1395,6 +1450,102 @@ async function delModel(name){
     }
   });
 })();
+
+/* ================= model picker ================= */
+const MODELSPEC = [
+  // kind:v/i · min/comfy VRAM GB · ease 1-5 · lic: ok|nc|risk
+  {name:'Wan 2.2 TI2V-5B', kind:'v', tags:['t2v','i2v'], min:8, comfy:12, disk:'~12 GB', speed:'medium', ease:4, lic:'Apache 2.0', licClass:'ok',
+   best:'Entry-level video that punches up: solid scene fidelity and the family\'s top-tier temporal consistency on a consumer card.',
+   warn:'Weak camera-following (family trait); 720p class.'},
+  {name:'Wan 2.2 A14B (T2V/I2V)', kind:'v', tags:['t2v','i2v'], min:12, comfy:24, disk:'~28 GB quant.', speed:'slow', ease:3, lic:'Apache 2.0', licClass:'ok',
+   best:'Best open scene semantics + highest measured temporal consistency of ANY model (incl. closed). The open-weight workhorse.',
+   warn:'Weakest measured camera-follower; realism bias drags anime toward live-action.'},
+  {name:'LTX 2.3 (distilled)', kind:'v', tags:['t2v','i2v','audio'], min:8, comfy:16, disk:'~26 GB', speed:'fast (8-step)', ease:4, lic:'LTXV open', licClass:'ok',
+   best:'Fastest iteration loop (~5.7x Wan) with native audio foley — the seed-hunting workhorse.',
+   warn:'Negatives are inert (CFG 1); native speech is gibberish (mux TTS); camera weak.'},
+  {name:'LTX 2.5', kind:'v', tags:['t2v','i2v','audio','multishot'], min:12, comfy:24, disk:'~45 GB', speed:'fast-ish', ease:3, lic:'LTXV (gated)', licClass:'ok',
+   best:'Native multi-shot with named cuts + duration control; most 2.3 LoRAs transfer.',
+   warn:'Slower per clip than 2.3; lost its one multi-shot bakeoff to H3; gated download.'},
+  {name:'MiniMax H3', kind:'v', tags:['t2v','audio','multishot','edit','ref'], min:48, comfy:80, disk:'~125 GB', speed:'very slow', ease:2, lic:'Regional restrictions', licClass:'risk',
+   best:'The audiovisual native: stereo audio, dialogue, faithful cuts, on-screen text, reference-driven editing (#1 editing Elo).',
+   warn:'62 GB transformer + 62 GB encoder; license excludes US/EU/UK/KR and restricts outputs; 5-15s, 768p local.'},
+  {name:'SCAIL-2', kind:'v', tags:['swap','long','i2v'], min:8, comfy:16, disk:'7-33 GB', speed:'medium/chunk', ease:3, lic:'Apache 2.0', licClass:'ok',
+   best:'Exact motion transfer and character replacement, unlimited length via 81-frame chunks.',
+   warn:'Prompt-inert — masks (exact trained color palette) and drive quality are the real work; silent output.'},
+  {name:'Wan2.2-Animate-2', kind:'v', tags:['swap'], min:16, comfy:24, disk:'~83 GB', speed:'slow', ease:2, lic:'Apache 2.0', licClass:'ok',
+   best:'Character animation with independent text-driven camera (48 viewpoints) — on paper.',
+   warn:'Essentially untested in the wild (zero community recipes, 3 weeks in); Chinese two-field dialect.'},
+  {name:'FramePack', kind:'v', tags:['t2v','i2v','long'], min:6, comfy:8, disk:'~30 GB', speed:'slow, steady', ease:4, lic:'Apache 2.0', licClass:'ok',
+   best:'Runs on a 6 GB laptop, makes 60-second clips, and is the best measured local camera-follower (71%).',
+   warn:'Weakest overall visual quality of the roster; fixed 25-step recipe.'},
+  {name:'SDXL photoreal (Juggernaut/RealVis)', kind:'i', tags:['photo'], min:6, comfy:8, disk:'~7 GB', speed:'fast', ease:5, lic:'RAIL++-M', licClass:'ok',
+   best:'Cheapest capable photoreal + the only fully mature ControlNet/regional-control ecosystem.',
+   warn:'77-token window; weakest text rendering; quality-tag/sampler advice varies per checkpoint.'},
+  {name:'Illustrious / NoobAI (anime)', kind:'i', tags:['anime'], min:6, comfy:8, disk:'~7 GB', speed:'fast', ease:5, lic:'varies/checkpoint', licClass:'ok',
+   best:'Still king of anime — every top Civitai anime checkpoint builds on it. Full ControlNet support.',
+   warn:'Danbooru tag dialect; each derivative has its own quality-tag scheme — read the card.'},
+  {name:'FLUX.1 dev / schnell / Krea', kind:'i', tags:['photo'], min:8, comfy:16, disk:'~24 GB (GGUF 7-13)', speed:'medium', ease:4, lic:'dev NC / schnell Apache', licClass:'nc',
+   best:'Great prose adherence per VRAM; keeps Fill/Redux tooling FLUX.2 dropped; Krea dev fights the AI look.',
+   warn:'No negatives (CFG 1); 512-token silent truncation; dev weights non-commercial.'},
+  {name:'FLUX.2 dev', kind:'i', tags:['photo','ref'], min:24, comfy:64, disk:'~64 GB', speed:'slow', ease:2, lic:'Non-commercial', licClass:'nc',
+   best:'Best open-model raw adherence (T2I-CoReBench 64.4); JSON-structured prompts for complex scenes.',
+   warn:'Monster hardware; no Fill/Redux; strong on sparse text only (collapses at 5+ text regions).'},
+  {name:'FLUX.2 klein 9B', kind:'i', tags:['photo','ref','edit'], min:12, comfy:16, disk:'~18 GB', speed:'fast (distilled)', ease:4, lic:'Non-commercial', licClass:'nc',
+   best:'Best measured multi-image reference of any open model (8.3M human votes).',
+   warn:'Uses a QWEN3 text encoder, not Mistral — wrong encoder gives black images.'},
+  {name:'FLUX.2 klein 4B', kind:'i', tags:['photo'], min:6, comfy:8, disk:'~8 GB', speed:'very fast', ease:4, lic:'Apache 2.0', licClass:'ok',
+   best:'The laptop champion (1.2 s/image on a 5090) with unrestricted commercial use.',
+   warn:'No upsampler — your prompt must carry all the detail.'},
+  {name:'Z-Image Turbo', kind:'i', tags:['photo','textEN','textZH'], min:6, comfy:12, disk:'~8-13 GB', speed:'very fast (8-9 steps)', ease:4, lic:'Apache 2.0', licClass:'ok',
+   best:'Best short-text-per-VRAM anywhere (OneIG-EN 0.994), fully bilingual, tiny and quick.',
+   warn:'Low seed diversity (vary wording); no negatives; 512-token silent truncation.'},
+  {name:'Z-Image Base', kind:'i', tags:['photo','textEN','textZH'], min:10, comfy:16, disk:'~13 GB', speed:'medium (28-50 steps)', ease:3, lic:'Apache 2.0', licClass:'ok',
+   best:'The composition pick: real CFG + negatives, long-text strength, rich seed variety.',
+   warn:'Slower; cfg_normalization needs setting (off=stylized, on=realism).'},
+  {name:'Qwen-Image 2512', kind:'i', tags:['photo','textZH','textEN'], min:12, comfy:16, disk:'~40 GB (Q4 ~12)', speed:'slow (40-50 steps)', ease:3, lic:'Apache 2.0', licClass:'ok',
+   best:'Chinese text champion; long English paragraphs; dense multi-region posters.',
+   warn:'Big download; Lightning LoRAs drop CFG to 1 and kill negatives.'},
+  {name:'Qwen-Image-Edit-2511', kind:'i', tags:['edit','ref'], min:12, comfy:16, disk:'~40 GB', speed:'slow', ease:3, lic:'Apache 2.0', licClass:'ok',
+   best:'Instruction editing with indexed multi-image roles ("pose from image 3").',
+   warn:'Role binding can swap or fail — sample several seeds, treat as best-effort.'},
+  {name:'Krea 2 (Turbo/Raw)', kind:'i', tags:['paint','photo'], min:12, comfy:16, disk:'~13 GB FP8', speed:'fast (Turbo 8)', ease:3, lic:'Custom (<$1M/<50 seats)', licClass:'risk',
+   best:'The painterly/anti-AI-look pick — flat-background character art, matte texture.',
+   warn:'No independent benchmarks; ComfyUI wants CFG 1.0 (not 0); prompt_enhance default trap; near-zero seed variety.'},
+  {name:'LongCat-Image', kind:'i', tags:['textZH'], min:6, comfy:10, disk:'~12 GB', speed:'fast', ease:3, lic:'Apache 2.0', licClass:'ok',
+   best:'Rare Chinese characters solved (70.3 where everyone else scores 2-6); ties 20B Qwen on GenEval at 6B.',
+   warn:'Quoted text is mandatory syntax; young ecosystem.'}
+];
+function togglePicker(){
+  const p = $('pickPanel');
+  p.classList.toggle('open');
+  if (p.classList.contains('open')) renderPicker();
+}
+function renderPicker(){
+  const vram = +$('pkVram').value, task = $('pkTask').value, freeOnly = $('pkFree').checked;
+  const stars = e => '★★★★★'.slice(0, e) + '☆☆☆☆☆'.slice(0, 5 - e);
+  let list = MODELSPEC
+    .filter(m => task === 'any' || m.tags.indexOf(task) !== -1)
+    .filter(m => !freeOnly || m.licClass === 'ok')
+    .map(m => {
+      const fit = vram >= m.comfy ? 2 : vram >= m.min ? 1 : 0;
+      return { m: m, fit: fit };
+    })
+    .sort((a, b) => b.fit - a.fit || b.m.ease - a.m.ease || a.m.min - b.m.min);
+  $('pickList').innerHTML = list.map(x => {
+    const m = x.m;
+    const fitTxt = x.fit === 2 ? '✓ comfortable' : x.fit === 1 ? '⚠ tight' : '✗ too big';
+    const fitCls = x.fit === 2 ? 'ok' : x.fit === 1 ? 'tight' : 'no';
+    return `<div class="pk${x.fit === 0 ? ' dim' : ''}">
+      <div class="pk-h"><b>${m.kind === 'v' ? '🎬' : '🖼'} ${esc(m.name)}</b>
+        <span class="pk-fit ${fitCls}">${fitTxt}</span>
+        <span class="pk-lic${m.licClass === 'risk' ? ' risk' : ''}">${esc(m.lic)}</span>
+        <span style="font-size:11px;color:var(--warn)">${stars(m.ease)}</span></div>
+      <div class="pk-specs">VRAM ${m.min}+ GB (comfy ${m.comfy}) · disk ${esc(m.disk)} · ${esc(m.speed)}</div>
+      <div class="pk-best">${esc(m.best)}</div>
+      <div class="pk-warn">⚠ ${esc(m.warn)}</div>
+    </div>`;
+  }).join('') || '<div style="padding:12px;color:var(--dim);font-size:12.5px">Nothing matches those filters.</div>';
+}
 
 /* ================= gotchas panel + language routing ================= */
 function toggleGotchas(){
