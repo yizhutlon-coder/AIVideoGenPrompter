@@ -14,6 +14,16 @@ Everything runs on your own machine through [Ollama](https://ollama.com). No acc
 
 Each model wants a *different* prompt language — keyword formulas, cinematic prose, timeline schemas with speaker IDs, Danbooru tags, native Chinese. That difference is the whole subject this app teaches.
 
+## ⬇ Download — no GitHub knowledge needed
+
+**[Click here to download everything as one ZIP](https://github.com/yizhutlon-coder/AIVideoGenPrompter/archive/refs/heads/main.zip)** (~3 MB — no AI models inside; the app downloads its LLM itself with a progress bar).
+
+1. Open the downloaded ZIP → **Extract All** to anywhere (Desktop is fine).
+2. Open the extracted folder → double-click **`Start-PromptStudio.bat`**.
+3. Follow the 3-step wizard on screen. Done.
+
+That link always gives the newest version. Prefer a frozen snapshot? Use the [v1.0 release ZIP](https://github.com/yizhutlon-coder/AIVideoGenPrompter/archive/refs/tags/v1.0.zip) — its checksums are pinned in that snapshot's `SHA256SUMS.txt`.
+
 ## Privacy first
 
 This project exists for people who run AI locally *because* they care where their data goes. Accordingly:
