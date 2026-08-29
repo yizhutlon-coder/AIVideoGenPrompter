@@ -22,7 +22,7 @@ Each model wants a *different* prompt language — keyword formulas, cinematic p
 2. Open the extracted folder → double-click **`Start-PromptStudio.bat`**.
 3. Follow the 3-step wizard on screen. Done.
 
-That link always gives the newest version. Prefer a frozen snapshot? Use the [v1.0 release ZIP](https://github.com/yizhutlon-coder/AIVideoGenPrompter/archive/refs/tags/v1.0.zip) — its checksums are pinned in that snapshot's `SHA256SUMS.txt`.
+That link always gives the newest version. Prefer a frozen snapshot? Use the [v1.0 release ZIP](https://github.com/yizhutlon-coder/AIVideoGenPrompter/archive/refs/tags/v1.0.zip) — its checksums are pinned in that snapshot's `docs/SHA256SUMS.txt`.
 
 ## Privacy first
 
@@ -86,11 +86,10 @@ Start-Portable.bat       run the standalone kit (zero install)
 tools/                   standalone versions of the in-app tools
   H3Builder.html         hand-crafted H3 prompts   ·  ClipPicker.html  exact-second clip windows
   ClipChopper.bat        drag-and-drop bulk video splitter (needs ffmpeg)
-ComfyUI-Privacy-Handout.pdf   one-page student handout
+docs/                    privacy handout (PDF), checksums, research plan, design brief
 research/                the evidence-graded research corpus behind the app
   digests/               weekly research digests (what changed, what contradicts)
   _addenda/              deep-dives, sweeps, verified ComfyUI template ground-truth
-RESEARCH-PLAN.md         spec for research passes   ·   DESIGN-BRIEF.md  visual-pass spec
 ```
 
 ## How the knowledge stays current
@@ -103,7 +102,7 @@ This app's biggest safety property is that it is **auditable in two minutes**. I
 
 1. **The network audit.** The authentic app contacts ONLY `127.0.0.1` (your local Ollama). Open any `.html` file in a text editor and search for `http` — the only network URLs present should be `localhost:11434` / `127.0.0.1`, documentation links inside display text, and the official model-download domains in the launcher scripts. Any other endpoint in a fetch/XHR is a red flag.
 2. **The live check.** Open the app, press F12 → Network tab, use it. Every request should target `127.0.0.1:11434`. Then turn Wi-Fi off — everything should still work.
-3. **The checksum check.** Compare your files against `SHA256SUMS.txt` from the official repo: Windows `certutil -hashfile PromptStudio.html SHA256`, Mac/Linux `shasum -a 256 PromptStudio.html`. Checksums are regenerated on every release commit.
+3. **The checksum check.** Compare your files against `docs/SHA256SUMS.txt` from the official repo: Windows `certutil -hashfile PromptStudio.html SHA256`, Mac/Linux `shasum -a 256 PromptStudio.html`. Checksums are regenerated on every release commit.
 
 Forks are welcome under Apache 2.0 — but the license requires modified files to carry prominent change notices, and this project's name may not be used to endorse modified versions (see LICENSE §4(b), §6, and NOTICE). A copy that claims to be Prompt Studio but fails the audit above is not this project. Report impersonating or malicious forks via GitHub's report-abuse and DMCA processes — the change-notice clause is what makes those reports stick.
 
