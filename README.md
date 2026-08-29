@@ -19,7 +19,7 @@ Each model wants a *different* prompt language — keyword formulas, cinematic p
 **[Click here to download everything as one ZIP](https://github.com/yizhutlon-coder/AIVideoGenPrompter/archive/refs/heads/main.zip)** (~3 MB — no AI models inside; the app downloads its LLM itself with a progress bar).
 
 1. Open the downloaded ZIP → **Extract All** to anywhere (Desktop is fine).
-2. Open the extracted folder → double-click **`Start-PromptStudio.bat`**.
+2. Open the extracted folder → double-click **`!START HERE.bat`** (it sorts to the top of the folder — there is no .exe; this IS the program).
 3. Follow the 3-step wizard on screen. Done.
 
 That link always gives the newest version. Prefer a frozen snapshot? Use the [v1.0 release ZIP](https://github.com/yizhutlon-coder/AIVideoGenPrompter/archive/refs/tags/v1.0.zip) — its checksums are pinned in that snapshot's `docs/SHA256SUMS.txt`.
@@ -39,7 +39,7 @@ This project exists for people who run AI locally *because* they care where thei
 ## Quick start (Windows)
 
 1. **Install [Ollama](https://ollama.com/download)** — one time, normal system install.
-2. **Double-click `Start-PromptStudio.bat`.** It starts Ollama with the right settings and opens the app. (Mac/Linux: `start-promptstudio.sh`.)
+2. **Double-click `!START HERE.bat`** (same as `Start-PromptStudio.bat`). It starts Ollama with the right settings and opens the app in your browser — there is no .exe; the app is an HTML file, which is why it is small and auditable. (Mac/Linux: `start-promptstudio.sh`.)
 3. **First run only:** the app shows a 3-step wizard. Click **Download Qwen 7B** (4.7 GB, progress bar in-app) — or the 3B option for weaker laptops. No terminal, ever.
 
 That's it. Every run after: double-click the launcher, type an idea, hit **Translate**.
@@ -79,8 +79,9 @@ Tips: USB 3.0 (or copy-to-disk first) loads models much faster; use the 3B model
 ## Folder map
 
 ```
+!START HERE.bat          double-click this to run (Windows)
 PromptStudio.html        the main app (single file, open in any browser)
-Start-PromptStudio.bat   everyday launcher (Windows)  ·  start-promptstudio.sh (Mac/Linux)
+Start-PromptStudio.bat   the launcher !START HERE calls  ·  start-promptstudio.sh (Mac/Linux)
 Make-Portable.bat        build the standalone USB kit
 Start-Portable.bat       run the standalone kit (zero install)
 tools/                   standalone versions of the in-app tools
