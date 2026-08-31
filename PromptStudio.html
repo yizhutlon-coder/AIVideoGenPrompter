@@ -467,6 +467,7 @@ Rules:
 - Motion must name WHAT moves (body part or element), its amplitude and speed, and its visible effect. ONE continuous action only.
 - ONE camera behavior only, placed FIRST in its clause, using official vocabulary — say "arc shot" (never "orbit"), keep arcs under 45 degrees. If the camera should stay still, write "fixed camera, no camera movement" / "固定机位，镜头不移动" and no other camera verbs. Wan follows scene content well but camera commands only weakly — keep them simple, never stack them. NEVER use the word "cinematic" — it triggers the stylization branch; describe the look concretely instead.
 - Preserve every content word the user gave (subjects, colors, counts, actions) exactly; do not swap synonyms or drop any. Do NOT pad — over-expansion measurably harms motion and identity. No literary mood language, no quality-tag stacks, no invented style.
+- TIMING WORDS ARE PHYSICS: while/as = simultaneous, then/after/before = sequence, until = bounded. Preserve the user's temporal relations EXACTLY — never turn a sequence into simultaneity or vice versa — and when adding motion detail choose connectives deliberately: every 'while' clause must describe something physically compatible with its main action.
 - No dialogue or sound description (Wan is video-only).
 - Then a blank line, then exactly:
 Negative prompt: ${WAN_NEG}
@@ -493,6 +494,7 @@ Rules:
 - ONE continuous action. If the camera should stay still: "Static camera." / "固定机位。"
 - Do not change identity, wardrobe, layout, or lighting unless the user asked.
 - Preserve the user's content words exactly. No padding, no mood language.
+- TIMING WORDS ARE PHYSICS: while/as = simultaneous, then/after/before = sequence, until = bounded. Preserve the user's temporal relations EXACTLY — never turn a sequence into simultaneity or vice versa — and when adding motion detail choose connectives deliberately: every 'while' clause must describe something physically compatible with its main action.
 - LANGUAGE: match the user's language (Chinese in → Chinese out); obey any explicit preference.
 - Then a blank line, then exactly:
 Negative prompt: ${WAN_NEG}
@@ -515,6 +517,7 @@ Rules:
 - AUDIO IS NOT AUTOMATIC on LTX: explicitly name the dialogue (exact quoted words, speaker identity, delivery), ambience, effects, and music — or state "no music" / "no dialogue". Place each sound next to the action that produces it.
 - Negative prompts do not exist on the distilled path (CFG 1 skips them) — write every exclusion positively inside the paragraph.
 - Never invent characters, dialogue, or camera motion the user did not imply. Preserve the user's content words and any quoted speech verbatim (keep Chinese dialogue in Chinese).
+- TIMING WORDS ARE PHYSICS: while/as = simultaneous, then/after/before = sequence, until = bounded. Preserve the user's temporal relations EXACTLY — never turn a sequence into simultaneity or vice versa — and when adding motion detail choose connectives deliberately: every 'while' clause must describe something physically compatible with its main action.
 - No cuts or timestamps for 2.3; simple named cuts are allowed only if the user asked and is on 2.5.
 - Output ONLY the paragraph. No explanations, no markdown, no labels.
 
@@ -534,7 +537,7 @@ overall_soundscape: 1-4 sentences of ambient and physical sound for the whole vi
 
 non_diegetic_music: 1-3 sentences on audience-only score (instrumentation, tempo, dynamics — no mood words), or N/A.
 
-Beat budget (official): about 3-4 action beats for 5s, 5-7 for 10s, 6-9 for 15s — ONE primary action per beat. Default to ~6 seconds and 1-3 shots. NEVER use arrows (→), slashes, or plus signs as syntax — H3 may render them as on-screen text. There is no [CUT TO] syntax. Preserve the user's content words and any quoted dialogue verbatim; do not pad.
+Beat budget (official): about 3-4 action beats for 5s, 5-7 for 10s, 6-9 for 15s — ONE primary action per beat. Default to ~6 seconds and 1-3 shots. NEVER use arrows (→), slashes, or plus signs as syntax — H3 may render them as on-screen text. There is no [CUT TO] syntax. Preserve the user's content words and any quoted dialogue verbatim; do not pad. TIMING WORDS ARE PHYSICS: while/as = simultaneous, then/after/before = sequence, until = bounded. Preserve the user's temporal relations EXACTLY — never turn a sequence into simultaneity or vice versa — and when adding motion detail choose connectives deliberately: every 'while' clause must describe something physically compatible with its main action.
 
 Output ONLY the three fields.
 
@@ -550,7 +553,7 @@ non_diegetic_music: N/A`
     name:'H3 multi-ref', def:false, fmt:'full-reference: 6 sections · narrow roles per asset',
     system:`You prepare a full-reference mode prompt for MiniMax H3 (Hailuo 3.0), used when the user has reference images, videos, or audio (up to 9 images + 3 videos 15s total + 3 audio 15s total, 12 files max). The user should list assets in the request ("refs: picture 1 = ..., video 1 = ..., audio 1 = ..."); if none are listed, infer sensible ones and define them plainly.
 
-Core doctrine: define each reference's role NARROWLY — e.g. "<Video 1> supplies only the camera movement", "<Audio 1> is the voice-timbre reference". Broad roles cause leakage. Cite EVERY asset the user listed — an attached-but-unmentioned reference is still fed to the model and bleeds into the output uninstructed. Never suggest grid/contact-sheet images as references (their layout leaks into the output). Treat reference audio as a steer, not an exact copy.
+Core doctrine: TIMING WORDS ARE PHYSICS: while/as = simultaneous, then/after/before = sequence, until = bounded. Preserve the user's temporal relations EXACTLY — never turn a sequence into simultaneity or vice versa — and when adding motion detail choose connectives deliberately: every 'while' clause must describe something physically compatible with its main action. Define each reference's role NARROWLY — e.g. "<Video 1> supplies only the camera movement", "<Audio 1> is the voice-timbre reference". Broad roles cause leakage. Cite EVERY asset the user listed — an attached-but-unmentioned reference is still fed to the model and bleeds into the output uninstructed. Never suggest grid/contact-sheet images as references (their layout leaks into the output). Treat reference audio as a steer, not an exact copy.
 
 Output exactly six labeled sections in this order (plain text, no markdown):
 
@@ -795,6 +798,7 @@ Outputs land in ComfyUI/output/ (SaveImage/SaveVideo filename_prefix supports su
 
 == GENERAL CONCEPTS ==
 
+TEMPORAL CONNECTIVES ARE LOAD-BEARING PHYSICS (industry-practitioner guidance): while/as = simultaneous, then/after/before = sequence, until = bounded, causing/making = causal. Video models take these literally — swapping "then" for "while" rewrites the event structure and produces impossible motion; padding with decorative "while" clauses creates overlapping actions the model cannot stage. Rule: preserve the user's temporal relations exactly during rewriting; when adding detail, one simultaneous pairing per beat; the format checker cross-checks intent vs output for lost sequencing/simultaneity markers.
 BEST-EVIDENCED CROSS-MODEL RULE (Aug 2026): front-load the subject — word ORDER carries emphasis. A "bag of position-tagged words" (identity + order, no grammar) matched full prose embeddings on quality, attribute binding, spatial relations AND numeracy (MIT/Technion arXiv:2606.03715, image models), and four independent vendor guides converge on order-based emphasis. "Write prose because the encoder is an LLM" is now CONTESTED — what demonstrably matters is which words appear and where. Practical corollary: safe rewriting preserves the salient words AND their order; reordering is where rewriters do damage.
 Encoder decides dialect: CLIP (SDXL) reads keyword bags → tags win. LLM encoders (T5/Mistral in Flux, Gemma in LTX, Qwen3 in Z-Image, Qwen2.5-VL in Qwen-Image) parse sentences → specific relational prose wins and tag soup loses structure.
 Negatives only exist at CFG>1. HOST TRAP: several hosted APIs (fal, Segmind) expose a negative_prompt field on FLUX.2 and Z-Image that is architecturally DEAD — the pipelines have no string-to-negative path (open diffusers issue #13416) — a silently ignored input, not a feature; treat host /learn pages as SEO, not documentation. CFG-free/distilled: Flux dev/schnell + FLUX.2 dev/klein-distilled, Z-Image-Turbo, Qwen Lightning, LTX-2.5 distilled → negatives silently ignored; phrase positively. Negatives active: SDXL (CFG 5-8), Wan (official ZH list), Qwen-Image (official ZH list), Z-Image Base, FLUX.2 klein Base.
@@ -854,6 +858,7 @@ const GOTCHAS = [
   {t:'Speed', m:'Sparse attention and caching are free speed.', r:'They spend a prompt-adherence budget — and early denoising steps own adherence (late-step self-correction is under 1 percent). Start accelerators late; accelerator and negative-prompt nodes can patch the same blocks and silently disable each other.'},
   {t:'ComfyUI', m:'A red model dropdown means my install is broken.', r:'It stores a FILENAME as text — yours differs. Right folder for THAT loader (checkpoints/ vs diffusion_models/ vs text_encoders/), press R to refresh, pick your file. Modern models pull from three folders at once.'},
   {t:'ComfyUI', m:'Negative-looking output means the model is bad.', r:'Black frames have specific verified causes: --fp16-vae, wrong encoder pairing, CFG cranked on a distilled model, or the wrong VAE family (Krea 2 uses the QWEN-IMAGE VAE). Check the plumbing before blaming the model.'},
+  {t:'Timing', m:'Swapping "then" for "while" is just phrasing.', r:'It rewrites physics. while/as = simultaneous, then/after = sequence, until = bounded — video models take these literally, and flipping one turns "tips, then shatters" into shattering-while-tipping. The checker flags outputs that lose your timing words.'},
   {t:'Privacy', m:'Local AI still phones home somehow.', r:'Ollama and this app talk only to 127.0.0.1. After the one-time model download, everything works with Wi-Fi off — the cleanest demo is to try it.'}
 ];
 
@@ -1072,12 +1077,20 @@ function isHanDominant(t){ return hanCount(t) > enWords(t) * 2 && hanCount(t) > 
 const CAM_FIXED = /(fixed camera|static shot|static camera|no camera movement|固定机位|镜头不移动)/i;
 const CAM_MOVE  = /\b(pan(s|ning)?|tilt(s|ing)?|push(es)? in|pull(s)? (out|back)|orbit|truck|dolly|crane|zoom)\b|镜头(推进|后拉|左移|右移|上摇|下摇)|环绕运镜/i;
 
-function validate(key, text) {
+function validate(key, text, intent) {
   const issues = [];
   const t = (text || '').trim();
   if (!t) return ['empty output'];
   if (/^(here('s| is)|sure|below is|certainly)/i.test(t)) issues.push('starts with chat filler instead of the prompt');
   if (/(\*\*|##|```)/.test(t)) issues.push('contains markdown formatting');
+  const isVideoKey = ['wan','wanI2V','ltx','minimax','minimaxref','scail'].indexOf(key) !== -1;
+  if (isVideoKey && intent) {
+    const seqRe = /\b(then|after that|afterwards?|next,|followed by|before (he|she|it|they|the))\b|然后|接着|之后|先.+再/i;
+    const simRe = /\b(while|as (he|she|it|they|the)|at the same time|simultaneous|meanwhile)\b|同时|一边/i;
+    if (seqRe.test(intent) && !seqRe.test(t)) issues.push('the request SEQUENCES events (then/after) but the output has no sequencing words — verify the order of events survived (timing words are physics)');
+    if (simRe.test(intent) && !simRe.test(t)) issues.push('the request has SIMULTANEOUS actions (while/as) but the output lost the simultaneity marker — verify the timing survived');
+  }
+  if (isVideoKey && (t.match(/\bwhile\b/gi) || []).length > 2) issues.push('3+ "while" clauses — simultaneity soup; models render impossible overlapping motion, keep one simultaneous pairing per beat');
 
   if (key === 'wan' || key === 'wanI2V') {
     if (!t.includes('Negative prompt:')) issues.push('missing "Negative prompt:" block');
@@ -1232,7 +1245,7 @@ async function fixOutput(key) {
   busy = true;
   const pre = $('out-' + key);
   const prev = lastRun.outputs[key] || pre.textContent;
-  const issues = validate(key, prev);
+  const issues = validate(key, prev, lastRun.intent);
   $('chk-' + key).innerHTML = '<span class="warnb">fixing…</span>';
   const msg = 'Original request: "' + lastRun.intent + '"\n\n' +
     'Your previous output broke these format rules:\n- ' + issues.join('\n- ') + '\n\n' +
@@ -1250,7 +1263,7 @@ async function fixOutput(key) {
       lastRun.hist.outputs[key] = fixed || prev;
       try { localStorage.setItem('ps_history', JSON.stringify(history)); } catch(e) {}
     }
-    renderCheck(key, validate(key, fixed || prev));
+    renderCheck(key, validate(key, fixed || prev, lastRun.intent));
   } catch(e) {
     pre.textContent = prev;
     renderCheck(key, issues);
@@ -1286,7 +1299,7 @@ async function refine(key) {
       lastRun.hist.outputs[key] = revised || prev;
       try { localStorage.setItem('ps_history', JSON.stringify(history)); } catch(e) {}
     }
-    renderCheck(key, validate(key, revised || prev));
+    renderCheck(key, validate(key, revised || prev, lastRun.intent));
     input.value = '';
     toast('Revised — tweak again or copy it');
   } catch(e) {
@@ -1331,7 +1344,7 @@ async function generate() {
       });
       pre.textContent = final || '(empty — try again or switch models)';
       outputs[k] = final;
-      renderCheck(k, validate(k, final));
+      renderCheck(k, validate(k, final, intent));
     } catch(e) {
       pre.innerHTML = `<span style="color:var(--err)">✗ ${esc(e.message)} — is Ollama still running? Re-run the launcher.</span>`;
     }
@@ -2030,7 +2043,7 @@ function loadHist(i) {
       </div>
     </div>`).join('');
   lastRun = { intent: h.intent, outputs: h.outputs, hist: h };
-  Object.keys(h.outputs).forEach(k => renderCheck(k, validate(k, h.outputs[k])));
+  Object.keys(h.outputs).forEach(k => renderCheck(k, validate(k, h.outputs[k], h.intent)));
   toggleHist();
 }
 </script>
