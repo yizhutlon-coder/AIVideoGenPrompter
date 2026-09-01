@@ -1862,6 +1862,7 @@ function buildWorkflow(key, opts){
     const noteText = '## ⚠ LoRA checklist (Prompt Studio)\n\n' +
       '- **Adjust strength to the LoRA\'s own card** — the value set here is a starting point; character LoRAs often want 0.6-1.0, style LoRAs 0.4-0.8.\n' +
       '- **Trigger words belong in the prompt** (style/character LoRAs; speed LoRAs never have trigger words).\n' +
+      loras.filter(function(l){ return l.trig; }).map(function(l){ return '  - `' + l.name + '` → **' + l.trig + '**\n'; }).join('') +
       '- **Wrong-base LoRAs fail SILENTLY** — output looks identical to no-LoRA; the console logs "lora key not loaded".\n' +
       (distilled ? '- **Distilled/Turbo graph + LoRA = partial de-distillation** — raise steps' + (tplKey === 'krea' ? ' (Prompt Studio already bumped 8→12)' : ' (and CFG where real)') + ' if output turns mushy.\n' : '') +
       '- **Stack one LoRA at a time** — verify each works before adding the next.\n' +
@@ -1888,6 +1889,47 @@ const WF_RES = {
   krea:  [[1024,1024,'set aspect via Resolution Selector node in ComfyUI']],
   ltx:   [[960,544,'16:9 (first pass)'],[1280,720,'16:9 HD'],[544,960,'9:16']]
 };
+/* ---- LoRA trigger-word notebook (remembered per filename) ---- */
+function loraNotesGet(){ try { return JSON.parse(localStorage.getItem('ps_lora_notes') || '{}'); } catch(e){ return {}; } }
+function loraNoteKey(name){ return String(name || '').trim().toLowerCase().split(/[\\/]/).pop(); }
+function loraNoteFor(name){ const k = loraNoteKey(name); return k ? (loraNotesGet()[k] || null) : null; }
+function loraNoteSave(name, trig){
+  const k = loraNoteKey(name); if (!k) return;
+  const all = loraNotesGet();
+  trig = String(trig || '').trim();
+  if (trig) all[k] = Object.assign(all[k] || {}, { trig: trig }); else delete all[k];
+  try { localStorage.setItem('ps_lora_notes', JSON.stringify(all)); } catch(e){}
+}
+function wfTrigRowRender(i){
+  const el = $('wfLora' + i), row = $('wfTrigRow' + i);
+  if (!el || !row) return;
+  const name = el.value.trim();
+  if (!name) { row.innerHTML = ''; return; }
+  const n = loraNoteFor(name);
+  row.innerHTML = (n && n.trig)
+    ? '⚡ trigger words: <b>' + esc(n.trig) + '</b> <button onclick="wfTrigEdit(' + i + ')">✎ edit</button>'
+    : '⚡ no trigger words saved for this LoRA — <button onclick="wfTrigEdit(' + i + ')">add</button> <span style="opacity:.75">(copy them from its model card once; speed LoRAs have none)</span>';
+}
+function wfTrigEdit(i){
+  const el = $('wfLora' + i), row = $('wfTrigRow' + i);
+  if (!el || !row) return;
+  const n = loraNoteFor(el.value);
+  row.innerHTML = '<input type="text" id="wfTrigIn' + i + '" placeholder="trigger words, comma separated (blank = forget)" value="' + esc((n && n.trig) || '').replace(/"/g,'&quot;') + '" style="width:62%"> <button onclick="wfTrigSaveBtn(' + i + ')">Save</button>';
+  $('wfTrigIn' + i).focus();
+}
+function wfTrigSaveBtn(i){
+  loraNoteSave($('wfLora' + i).value, $('wfTrigIn' + i).value);
+  wfTrigRowRender(i);
+  wfTrigAddVis();
+  toast('Saved — remembered whenever this LoRA is used again');
+}
+function wfTrigAddVis(){
+  const w = $('wfTrigAddWrap'); if (!w) return;
+  let any = false;
+  for (let i = 0; i < 2; i++) { const el = $('wfLora' + i); const n = el && el.value.trim() && loraNoteFor(el.value); if (n && n.trig) any = true; }
+  w.style.display = any ? 'block' : 'none';
+}
+
 /* ---- installed-models link (c-lite): paste ComfyUI /object_info to real-ify model lists ---- */
 const COMFY_LOADERS = { CheckpointLoaderSimple:['ckpt_name','checkpoints'], LoraLoader:['lora_name','loras'], LoraLoaderModelOnly:['lora_name','loras'], VAELoader:['vae_name','vae'], UNETLoader:['unet_name','diffusion_models'], CLIPLoader:['clip_name','text_encoders'], DualCLIPLoader:['clip_name','text_encoders'], TripleCLIPLoader:['clip_name','text_encoders'] };
 const COMFY_FOLDERS = ['checkpoints','loras','vae','diffusion_models','text_encoders'];
@@ -1968,7 +2010,11 @@ function wfInstalledSection(tplKey){
 function wfLoraDatalist(){
   const d = comfyModelsGet();
   const ls = (d && d.folders && d.folders.loras) || [];
-  return ls.length ? '<datalist id="wfLoraDL">' + ls.map(function(x){ return '<option value="' + esc(String(x)).replace(/"/g,'&quot;') + '">'; }).join('') + '</datalist>' : '';
+  const notes = loraNotesGet();
+  return ls.length ? '<datalist id="wfLoraDL">' + ls.map(function(x){
+    const n = notes[loraNoteKey(x)];
+    return '<option value="' + esc(String(x)).replace(/"/g,'&quot;') + '"' + (n && n.trig ? ' label="⚡ ' + esc(n.trig).replace(/"/g,'&quot;') + '"' : '') + '>';
+  }).join('') + '</datalist>' : '';
 }
 function wfMdlRefreshUi(){ const w = $('wfMdlPasteWrap'); if (w) w.style.display = 'inline'; }
 function wfMdlClear(){ try { localStorage.removeItem('ps_comfy_models'); } catch(e){} openWf(wfKey); }
@@ -2005,10 +2051,15 @@ function wfLoraCheck(el){
   const d = comfyModelsGet();
   const ls = d && d.folders && d.folders.loras;
   const v = el.value.trim().toLowerCase();
-  if (!ls || !v) { el.style.borderColor = ''; el.removeAttribute('title'); return; }
-  const ok = ls.some(function(x){ return x.toLowerCase() === v || x.toLowerCase().split(/[\\/]/).pop() === v; });
-  el.style.borderColor = ok ? 'var(--green)' : 'var(--warn)';
-  el.title = ok ? 'Found in your loras folder ✓' : 'Not in your ComfyUI loras folder — a wrong LoRA filename fails silently (no error, no effect)';
+  if (!ls || !v) { el.style.borderColor = ''; el.removeAttribute('title'); }
+  else {
+    const ok = ls.some(function(x){ return x.toLowerCase() === v || x.toLowerCase().split(/[\\/]/).pop() === v; });
+    el.style.borderColor = ok ? 'var(--green)' : 'var(--warn)';
+    el.title = ok ? 'Found in your loras folder ✓' : 'Not in your ComfyUI loras folder — a wrong LoRA filename fails silently (no error, no effect)';
+  }
+  const kt = $('wfTrig');
+  if (kt) { const n = loraNoteFor(el.value); if (n && n.trig && !kt.value.trim()) { kt.value = n.trig; toast('Trigger words filled from your saved notes'); } }
+  else { wfTrigRowRender(+el.id.replace('wfLora','') || 0); wfTrigAddVis(); }
 }
 
 function openWf(key){
@@ -2027,7 +2078,8 @@ function openWf(key){
   if (tplKey === 'qwen') h += '<label style="margin-top:8px"><input type="checkbox" id="wfTurbo"> Lightning turbo mode (8 steps, CFG 1 — negatives become inert)</label>';
   if (loraMode === 'chain') {
     h += '<label style="margin-top:8px">LoRAs (exact filename from your models/loras folder; blank = none)</label>';
-    for (let i = 0; i < 2; i++) h += '<div class="row"><input type="text" id="wfLora' + i + '" list="wfLoraDL" oninput="wfLoraCheck(this)" placeholder="my_style_lora.safetensors" style="flex:3"><input type="number" id="wfLoraS' + i + '" step="0.05" value="0.8" title="strength" style="flex:1"></div>';
+    for (let i = 0; i < 2; i++) h += '<div class="row"><input type="text" id="wfLora' + i + '" list="wfLoraDL" oninput="wfLoraCheck(this)" placeholder="my_style_lora.safetensors" style="flex:3"><input type="number" id="wfLoraS' + i + '" step="0.05" value="0.8" title="strength" style="flex:1"></div>' + '<div class="hint" id="wfTrigRow' + i + '"></div>';
+    h += '<label id="wfTrigAddWrap" style="display:none;margin-top:4px"><input type="checkbox" id="wfTrigAdd" checked> Add the saved trigger words to the start of the prompt (recommended)</label>';
     h += '<label style="margin-top:4px"><input type="checkbox" id="wfRg"> Use rgthree Power Lora Loader — <span style="color:var(--warn)">experimental</span>: one node, needs the rgthree-comfy pack; may need manual re-wiring if it fails</label>';
     h += '<div class="hint" style="color:var(--warn)">Reminder: with any LoRA, adjust strength to its card, put its trigger words in the prompt, and on Turbo/distilled models raise steps/CFG (de-distillation). A checklist note is embedded in the exported workflow.</div>';
     h += '<details style="margin-top:6px"><summary style="font-size:12px;color:var(--accent);cursor:pointer">Using many LoRAs? Set up Lora Manager (recommended)</summary><div class="hint" style="margin-top:5px">' +
@@ -2065,7 +2117,7 @@ function downloadWf(){
   const loras = [];
   for (let i = 0; i < 2; i++) {
     const el = $('wfLora' + i);
-    if (el && el.value.trim()) loras.push({ name: el.value.trim(), strength: +($('wfLoraS' + i).value || 0.8) });
+    if (el && el.value.trim()) loras.push({ name: el.value.trim(), strength: +($('wfLoraS' + i).value || 0.8), trig: (loraNoteFor(el.value) || {}).trig || '' });
   }
   const opts = {
     text: (lastRun && lastRun.outputs[wfKey]) || ($('out-' + wfKey) && $('out-' + wfKey).textContent) || '',
@@ -2079,6 +2131,12 @@ function downloadWf(){
     trigger: $('wfTrig') ? $('wfTrig').value : '',
     loras: loras
   };
+  if ($('wfTrig') && $('wfLora0') && $('wfLora0').value.trim()) loraNoteSave($('wfLora0').value, $('wfTrig').value); /* krea: remember for next time */
+  if ($('wfTrigAdd') && $('wfTrigAdd').checked) {
+    const ts = [];
+    loras.forEach(function(l){ if (l.trig && opts.text.toLowerCase().indexOf(l.trig.toLowerCase()) < 0) ts.push(l.trig); });
+    if (ts.length) opts.text = ts.join(', ') + ', ' + opts.text;
+  }
   const wf = buildWorkflow(wfKey, opts);
   const blob = new Blob([JSON.stringify(wf, null, 1)], { type: 'application/json' });
   const a = document.createElement('a');
