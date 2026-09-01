@@ -294,7 +294,11 @@ if (PS_SPLIT) {
             <option value="auto">🌓 Auto</option><option value="dark">🌙 Dark</option><option value="light">☀️ Light</option>
           </select></label>
           <label>Output language<select id="langSel" title="Auto: each model picks EN or native Chinese by its own rules"><option value="auto">Auto</option><option value="en">EN</option><option value="zh">中文</option></select></label>
+          <label>Text size<select id="zoomSel" onchange="setZoom(this.value)">
+            <option value="90">Small</option><option value="100" selected>Normal</option><option value="115">Large</option><option value="135">Projector</option>
+          </select></label>
           <label>Rewriter LLM<select id="modelSel" title="Local LLM used for translation"></select></label>
+          <button class="ghost" onclick="toggleHelp()" title="Keyboard shortcuts">⌨ Shortcuts (?)</button>
         </div>
       </div>
     </div>
@@ -422,6 +426,18 @@ if (PS_SPLIT) {
 </div>
 
 <dialog id="wfDlg" style="max-width:520px;width:94vw"><div id="wfBody"></div></dialog>
+
+<dialog id="helpDlg" style="max-width:420px;width:92vw">
+  <h3 style="margin-top:0;font-family:var(--font-heading);text-transform:uppercase;letter-spacing:.8px">⌨ Keyboard shortcuts</h3>
+  <div style="font-size:13px;line-height:2">
+    <b>Ctrl+Enter</b> — Translate (same muscle as ComfyUI's Queue)<br>
+    <b>Esc</b> — close any panel, menu, or dialog<br>
+    <b>?</b> — this sheet<br>
+    <b>a</b> Ask tutor · <b>g</b> Gotchas · <b>p</b> Model Picker · <b>h</b> History · <b>m</b> Models · <b>l</b> Pins · <b>b</b> H3 Builder · <b>c</b> Clip Picker<br>
+    <span style="color:var(--dim);font-size:11.5px">Letter keys work when you're not typing in a field. Drop a ComfyUI PNG or workflow .json anywhere on this page to extract its prompt.</span>
+  </div>
+  <div style="text-align:right;margin-top:10px"><button onclick="$('helpDlg').close()">Close</button></div>
+</dialog>
 
 <div id="gotPanel">
   <div class="ap-head"><b>🧠 Gotchas — myths vs reality</b>
@@ -1947,6 +1963,118 @@ function downloadWf(){
   URL.revokeObjectURL(a.href);
   $('wfDlg').close();
   toast('Workflow saved — drag it onto the ComfyUI canvas');
+}
+
+/* ================= UX: zoom, keyboard, ComfyUI-file drop ================= */
+function setZoom(v){
+  try { localStorage.setItem('ps_zoom', v); } catch(e) {}
+  document.documentElement.style.zoom = (+v) / 100;
+  const sel = document.getElementById('zoomSel');
+  if (sel && sel.value !== String(v)) sel.value = String(v);
+}
+try { setZoom(localStorage.getItem('ps_zoom') || 100); } catch(e) {}
+
+function toggleHelp(){
+  const d = $('helpDlg');
+  if (d.open) d.close(); else d.showModal();
+}
+function closeAllPanels(){
+  closeMenus();
+  ['askPanel','gotPanel','pickPanel','mdlPanel','histPanel','clipPanel','h3bPanel'].forEach(function(id){
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('open');
+  });
+}
+document.addEventListener('keydown', function(e){
+  if (e.key === 'Escape') { closeAllPanels(); return; }
+  const tag = (e.target && e.target.tagName) || '';
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.key === '?') { toggleHelp(); return; }
+  const map = { a:'toggleAsk', g:'toggleGotchas', p:'togglePicker', h:'toggleHist', m:'toggleModels', l:'togglePins', b:'toggleH3B', c:'toggleClips' };
+  const fn = map[e.key.toLowerCase()];
+  if (fn && window[fn]) window[fn]();
+});
+
+/* drop a ComfyUI PNG (workflow-in-image) or workflow .json → extract prompts */
+function extractPromptsFromWorkflowJson(txt){
+  const found = [];
+  try {
+    const j = JSON.parse(txt);
+    const scan = function(nodes){
+      (nodes || []).forEach(function(nd){
+        if ((nd.type === 'CLIPTextEncode' || nd.class_type === 'CLIPTextEncode' || nd.type === 'PrimitiveStringMultiline') ) {
+          const wv = nd.widgets_values;
+          if (wv && typeof wv[0] === 'string' && wv[0].trim()) found.push(wv[0].trim());
+        }
+        if (nd.inputs && typeof nd.inputs.text === 'string' && nd.inputs.text.trim()) found.push(nd.inputs.text.trim());
+      });
+    };
+    if (Array.isArray(j.nodes)) scan(j.nodes);
+    if (j.definitions && j.definitions.subgraphs) j.definitions.subgraphs.forEach(function(sg){ scan(sg.nodes); });
+    if (!Array.isArray(j.nodes)) Object.keys(j).forEach(function(k){   // API format: {id:{class_type,inputs}}
+      const nd = j[k];
+      if (nd && nd.inputs && typeof nd.inputs.text === 'string' && nd.inputs.text.trim()) found.push(nd.inputs.text.trim());
+    });
+  } catch(e) { return []; }
+  return found;
+}
+function extractTextChunksFromPng(buf){
+  const dv = new DataView(buf), out = {};
+  if (dv.getUint32(0) !== 0x89504e47) return out;
+  let off = 8;
+  const dec = new TextDecoder('utf-8');
+  while (off + 8 <= buf.byteLength) {
+    const len = dv.getUint32(off);
+    const type = String.fromCharCode(dv.getUint8(off+4), dv.getUint8(off+5), dv.getUint8(off+6), dv.getUint8(off+7));
+    if (type === 'tEXt' || type === 'iTXt') {
+      const data = new Uint8Array(buf, off + 8, len);
+      let z = data.indexOf(0);
+      if (z > 0) {
+        const key = dec.decode(data.slice(0, z));
+        let body = data.slice(z + 1);
+        if (type === 'iTXt') {   // compFlag, compMethod, lang\0, translated\0
+          if (body[0] === 0) {
+            let i = 2, skips = 0;
+            while (i < body.length && skips < 2) { if (body[i] === 0) skips++; i++; }
+            body = body.slice(i);
+          } else body = new Uint8Array(0);   // compressed iTXt unsupported
+        }
+        if (body.length) out[key] = dec.decode(body);
+      }
+    }
+    if (type === 'IEND') break;
+    off += 12 + len;
+  }
+  return out;
+}
+function handleComfyDrop(file){
+  const done = function(prompts, src){
+    if (!prompts.length) { toast('No prompt text found in that ' + src); return; }
+    prompts.sort(function(a,b){ return b.length - a.length; });
+    $('intent').value = prompts[0];
+    $('intent').focus();
+    toast('Extracted prompt from ' + src + (prompts.length > 1 ? ' (' + prompts.length + ' text fields; longest loaded)' : '') + ' — edit and Translate');
+  };
+  if (/\.json$/i.test(file.name)) {
+    file.text().then(function(t){ done(extractPromptsFromWorkflowJson(t), 'workflow JSON'); });
+  } else if (/\.png$/i.test(file.name)) {
+    file.arrayBuffer().then(function(buf){
+      const chunks = extractTextChunksFromPng(buf);
+      let prompts = [];
+      if (chunks.prompt) prompts = prompts.concat(extractPromptsFromWorkflowJson(chunks.prompt));
+      if (chunks.workflow) prompts = prompts.concat(extractPromptsFromWorkflowJson(chunks.workflow));
+      if (chunks.parameters) prompts.push(String(chunks.parameters).split(/\nNegative prompt:/)[0].trim());  // A1111 PNGs too
+      prompts = prompts.filter(function(v,i,a){ return v && a.indexOf(v) === i; });
+      done(prompts, 'PNG metadata');
+    });
+  } else toast('Drop a ComfyUI .png or workflow .json');
+}
+if (!PS_SPLIT) {
+  document.addEventListener('dragover', function(e){ e.preventDefault(); });
+  document.addEventListener('drop', function(e){
+    e.preventDefault();
+    if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) handleComfyDrop(e.dataTransfer.files[0]);
+  });
 }
 
 /* ================= header menus ================= */

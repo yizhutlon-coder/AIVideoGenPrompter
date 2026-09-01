@@ -53,8 +53,12 @@
     var light = t === 'light' || (t === 'auto' && sysLight);
     document.documentElement.setAttribute('data-theme', light ? 'light' : 'dark');
   }
-  applyTheme();
-  window.addEventListener('storage', applyTheme);
+  function applyZoom(){
+    var z = 100; try { z = +(localStorage.getItem('ps_zoom') || 100); } catch(e){}
+    document.documentElement.style.zoom = z / 100;
+  }
+  applyTheme(); applyZoom();
+  window.addEventListener('storage', function(){ applyTheme(); applyZoom(); });
   if (window.matchMedia) { try { matchMedia('(prefers-color-scheme: light)').addEventListener('change', applyTheme); } catch(e){} }
 })();
 </script>
