@@ -356,7 +356,7 @@ if (PS_SPLIT) {
     <div id="tipLine"></div>
     <div style="margin-top:8px;font-size:10.5px;color:var(--dim);text-align:center;opacity:.65;line-height:1.6">
       Official source: <a href="https://github.com/yizhutlon-coder/AIVideoGenPrompter" style="color:var(--accent)">github.com/yizhutlon-coder/AIVideoGenPrompter</a> · Apache 2.0
-      · This file makes no network calls except 127.0.0.1 (Ollama) — audit any copy: search its source for "http", or watch DevTools → Network.
+      · This file makes no network calls except 127.0.0.1 (your own Ollama, and your own ComfyUI if you use the optional model-list fetch) — audit any copy: search its source for "http", or watch DevTools → Network.
     </div>
   </div>
 </div>
@@ -840,6 +840,7 @@ Missing/red nodes: the workflow uses a custom node pack you lack — the Manager
 Adding a node by hand: double-click empty canvas and type its name; or drag a link out of a socket and release — the menu offers only type-compatible nodes (best way to wire correctly); or the Node Library sidebar (N).
 Adding a LoRA by hand: insert "Load LoRA" between the model loader and the sampler. Checkpoint graphs (SDXL): use the model+CLIP variant and route CLIP through it into both text encodes. UNET graphs (Flux/Qwen/Z-Image/Krea/Wan/LTX): LoraLoaderModelOnly, model path only — CLIP bypasses. NOTE current display names flipped: "Load LoRA" = model-only; "Load LoRA (Model and CLIP)" = the CLIP-carrying one. Wrong-base-model LoRAs fail SILENTLY ("lora key not loaded" in console, output identical to no-LoRA).
 Model folders: each loader reads exactly one folder under models/ — checkpoints/ (Load Checkpoint), diffusion_models/ (Load Diffusion Model — legacy unet/ works), text_encoders/ (legacy clip/), vae/, loras/, controlnet/, embeddings/. Modern models (Flux, Qwen, Wan, Krea, Z-Image) ship as SEPARATE diffusion model + text encoder + VAE — three folders for one workflow. File in the wrong folder = empty dropdown. Already have models elsewhere (A1111)? extra_model_paths.yaml points ComfyUI at them (Desktop: extra_models_config.yaml in AppData — append, don't overwrite); restart after.
+Your installed models in Prompt Studio: the ⬇ WF export dialog has "🔗 Your installed models" — open 127.0.0.1:8188/object_info in a browser tab (with ComfyUI running), copy the whole page, paste it there. After that the LoRA boxes suggest your real filenames and flag typos, and exports warn when a template's default model isn't in your ComfyUI. Works with zero ComfyUI flags because YOU copy the page; the data never leaves your machine and persists in this browser.
 Red/empty model dropdown: the workflow stores a filename as text; your file's name differs. Check the right folder, press R (refresh — no restart needed for new files), pick your file in the dropdown, or rename to match.
 Black/blank output, verified causes: --fp16-vae (its own help text warns "might cause black images" — remove it or use --fp32-vae); wrong text encoder pairing (e.g. T5 in both DualCLIPLoader slots); xformers 0.0.18 bug; macOS 14.5+ bug; cranked CFG on distilled models (Krea/Z-Turbo/Lightning are trained CFG-off). Krea 2 uses the QWEN-IMAGE VAE (qwen_image_vae.safetensors) + Qwen3-VL encoder — a common mismatch. NOT ComfyUI things: "NaNs produced"/--disable-nan-check (that is A1111).
 Out of memory, in order: official fp8 build of the same model (about half the size; GGUF smaller still but needs ComfyUI-GGUF, and ComfyUI itself recommends native fp8 over GGUF when dynamic VRAM is on); lower resolution/batch; VAE Decode (Tiled) node; --reserve-vram 2 / --disable-smart-memory / --lowvram / --novram / --cpu (last resort). --normalvram NO LONGER EXISTS, and --lowvram is a no-op under dynamic VRAM. Offloading trades VRAM for system RAM — RAM-rich machines cope far better. fp8 needs a 40-series+ GPU (30-series: bf16; 20-series: fp16).
@@ -1092,7 +1093,7 @@ function toggleGroup(g) {
 }
 
 function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
-function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1400); }
+function toast(msg, ms){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), ms||1400); }
 function copyOut(key){
   navigator.clipboard.writeText($('out-'+key).textContent).then(()=>toast('Copied — paste it into ' + TARGETS[key].name));
 }
@@ -1887,12 +1888,136 @@ const WF_RES = {
   krea:  [[1024,1024,'set aspect via Resolution Selector node in ComfyUI']],
   ltx:   [[960,544,'16:9 (first pass)'],[1280,720,'16:9 HD'],[544,960,'9:16']]
 };
+/* ---- installed-models link (c-lite): paste ComfyUI /object_info to real-ify model lists ---- */
+const COMFY_LOADERS = { CheckpointLoaderSimple:['ckpt_name','checkpoints'], LoraLoader:['lora_name','loras'], LoraLoaderModelOnly:['lora_name','loras'], VAELoader:['vae_name','vae'], UNETLoader:['unet_name','diffusion_models'], CLIPLoader:['clip_name','text_encoders'], DualCLIPLoader:['clip_name','text_encoders'], TripleCLIPLoader:['clip_name','text_encoders'] };
+const COMFY_FOLDERS = ['checkpoints','loras','vae','diffusion_models','text_encoders'];
+function comfyModelsGet(){ try { return JSON.parse(localStorage.getItem('ps_comfy_models') || 'null'); } catch(e){ return null; } }
+function comboOptions(spec){
+  if (!Array.isArray(spec)) return null;
+  if (Array.isArray(spec[0])) return spec[0];                                        /* V1: [[files],{...}] */
+  if (spec[0] === 'COMBO' && spec[1] && Array.isArray(spec[1].options)) return spec[1].options; /* V3 */
+  return null;
+}
+function parseComfyModels(txt, folderHint){
+  let j; try { j = JSON.parse(txt); } catch(e){ return { err:'Not valid JSON — select the whole page (Ctrl+A), copy, and paste it unedited.' }; }
+  const folders = {};
+  if (Array.isArray(j)) {
+    if (!j.length || !j.every(function(x){ return typeof x === 'string'; })) return { err:'Unrecognized list format.' };
+    if (!folderHint) return { needFolder: true };
+    folders[folderHint] = j;
+  } else if (j && typeof j === 'object') {
+    Object.keys(COMFY_LOADERS).forEach(function(cls){
+      const node = j[cls]; if (!node || !node.input) return;
+      const inp = Object.assign({}, node.input.required || {}, node.input.optional || {});
+      const m = COMFY_LOADERS[cls];
+      const opts = comboOptions(inp[m[0]]);
+      if (opts && opts.length) folders[m[1]] = Array.from(new Set((folders[m[1]] || []).concat(opts.filter(function(x){ return typeof x === 'string'; }))));
+    });
+    if (!Object.keys(folders).length) return { err:'No model lists found in that JSON — paste the whole /object_info page (or a single /api/models/<folder> page).' };
+  } else return { err:'Unrecognized JSON.' };
+  return { folders: folders };
+}
+function comfyFileSet(){
+  const d = comfyModelsGet(); if (!d || !d.folders) return null;
+  const set = new Set();
+  Object.keys(d.folders).forEach(function(k){ d.folders[k].forEach(function(f){
+    set.add(String(f).toLowerCase()); set.add(String(f).toLowerCase().split(/[\\/]/).pop()); }); });
+  return set.size ? set : null;
+}
+function wfMissingFiles(wf){
+  const inst = comfyFileSet(); if (!inst) return [];
+  const miss = [];
+  wfNodesAll(wf).forEach(function(n){
+    if (n.mode === 4) return; /* bypassed nodes don't load anything */
+    (Array.isArray(n.widgets_values) ? n.widgets_values : []).forEach(function(v){
+      if (typeof v === 'string' && /\.(safetensors|sft|gguf|ckpt|pth?|bin)$/i.test(v.trim())) {
+        const lv = v.trim().toLowerCase();
+        if (!inst.has(lv) && !inst.has(lv.split(/[\\/]/).pop()) && miss.indexOf(v.trim()) < 0) miss.push(v.trim());
+      }
+    });
+  });
+  return miss;
+}
+function wfPasteUi(){
+  return '<textarea id="wfMdlPaste" placeholder="paste the JSON here" style="width:100%;height:52px;margin-top:5px"></textarea>' +
+    '<div class="row" id="wfMdlFolderRow" style="display:none"><label style="margin:0">Which folder is this list from?</label><select id="wfMdlFolder">' +
+    COMFY_FOLDERS.map(function(k){ return '<option value="' + k + '">' + k + '</option>'; }).join('') + '</select></div>' +
+    '<button onclick="wfMdlLoad()">Load</button>';
+}
+function wfInstalledSection(tplKey){
+  const d = comfyModelsGet();
+  let h = '<details style="margin:2px 0 8px"><summary style="font-size:12px;color:var(--accent);cursor:pointer">🔗 Your installed models (optional' + (d && d.folders ? ' — loaded ✓' : '') + ')</summary><div class="hint" style="margin-top:5px">';
+  if (d && d.folders) {
+    const parts = COMFY_FOLDERS.filter(function(k){ return d.folders[k]; }).map(function(k){ return d.folders[k].length + ' ' + k.replace(/_/g,' '); });
+    h += 'Loaded from your ComfyUI: <b>' + esc(parts.join(' · ')) + '</b>' + (d.ts ? ' (saved ' + new Date(d.ts).toLocaleDateString() + ')' : '') + '. LoRA boxes now suggest your real files and flag typos.<br>';
+    const miss = wfMissingFiles(WF_TEMPLATES[tplKey]);
+    h += miss.length
+      ? '<span style="color:var(--warn)">⚠ This template\'s default model files are not in your ComfyUI: ' + esc(miss.join(', ')) + ' — after import, pick your installed files in those loader dropdowns (press R to refresh), or download the defaults.</span><br>'
+      : '<span style="color:var(--green)">✓ This template\'s default model files are all installed — it should run as-is.</span><br>';
+    h += '<button onclick="wfMdlRefreshUi()">Update lists</button> <button onclick="wfMdlClear()">Clear</button>';
+    h += '<span id="wfMdlPasteWrap" style="display:none">' + wfPasteUi() + '</span>';
+  } else {
+    h += 'Teach this dialog which model files you actually have — it will suggest real LoRA filenames and warn when a template needs a model you haven\'t downloaded. (A wrong filename in ComfyUI fails <i>silently</i>: red node or no effect, no error.)<br>' +
+      '1️⃣ Start ComfyUI. 2️⃣ Open <b>127.0.0.1:8188/object_info</b> in a new browser tab <button onclick="if(navigator.clipboard)navigator.clipboard.writeText(\'http://127.0.0.1:8188/object_info\');toast(\'Address copied — paste it into a new tab\')">copy address</button> (change 8188 if you moved the port). 3️⃣ Select all (Ctrl+A), copy, paste below, press <b>Load</b>. Nothing leaves your machine — the page you copy is your own local ComfyUI.' +
+      wfPasteUi() +
+      '<div style="margin-top:4px">Or <button onclick="wfMdlFetch()">fetch automatically</button> — only works if ComfyUI runs with <b>--enable-cors-header</b>; the paste method needs no flags and no setup.</div>';
+  }
+  h += '<div id="wfMdlStat" style="color:var(--warn)"></div></div></details>';
+  return h;
+}
+function wfLoraDatalist(){
+  const d = comfyModelsGet();
+  const ls = (d && d.folders && d.folders.loras) || [];
+  return ls.length ? '<datalist id="wfLoraDL">' + ls.map(function(x){ return '<option value="' + esc(String(x)).replace(/"/g,'&quot;') + '">'; }).join('') + '</datalist>' : '';
+}
+function wfMdlRefreshUi(){ const w = $('wfMdlPasteWrap'); if (w) w.style.display = 'inline'; }
+function wfMdlClear(){ try { localStorage.removeItem('ps_comfy_models'); } catch(e){} openWf(wfKey); }
+function wfMdlApply(folders){
+  const cur = comfyModelsGet() || { folders: {} };
+  Object.keys(folders).forEach(function(k){ cur.folders[k] = folders[k]; });
+  cur.ts = Date.now();
+  try { localStorage.setItem('ps_comfy_models', JSON.stringify(cur)); } catch(e){}
+  openWf(wfKey);
+  toast('Installed model lists saved — they persist for future exports');
+}
+function wfMdlLoad(){
+  const el = $('wfMdlPaste');
+  const txt = el ? el.value.trim() : '';
+  if (!txt) { $('wfMdlStat').textContent = 'Paste the JSON first.'; return; }
+  const fr = $('wfMdlFolderRow');
+  const hint = (fr && fr.style.display !== 'none') ? $('wfMdlFolder').value : null;
+  const r = parseComfyModels(txt, hint);
+  if (r.needFolder) { fr.style.display = 'flex'; $('wfMdlStat').textContent = 'Single-folder list detected — pick which folder it came from, then press Load again.'; return; }
+  if (r.err) { $('wfMdlStat').textContent = '⚠ ' + r.err; return; }
+  wfMdlApply(r.folders);
+}
+function wfMdlFetch(){
+  $('wfMdlStat').textContent = 'Contacting 127.0.0.1:8188 …';
+  fetch('http://127.0.0.1:8188/object_info').then(function(r){ if (!r.ok) throw 0; return r.text(); }).then(function(t){
+    const r = parseComfyModels(t, null);
+    if (r.err) { $('wfMdlStat').textContent = '⚠ ' + r.err; return; }
+    wfMdlApply(r.folders);
+  }).catch(function(){
+    $('wfMdlStat').textContent = '⚠ Could not reach ComfyUI from here — its default settings block requests from other pages (good security, keep it). Use the copy-paste method above instead.';
+  });
+}
+function wfLoraCheck(el){
+  const d = comfyModelsGet();
+  const ls = d && d.folders && d.folders.loras;
+  const v = el.value.trim().toLowerCase();
+  if (!ls || !v) { el.style.borderColor = ''; el.removeAttribute('title'); return; }
+  const ok = ls.some(function(x){ return x.toLowerCase() === v || x.toLowerCase().split(/[\\/]/).pop() === v; });
+  el.style.borderColor = ok ? 'var(--green)' : 'var(--warn)';
+  el.title = ok ? 'Found in your loras folder ✓' : 'Not in your ComfyUI loras folder — a wrong LoRA filename fails silently (no error, no effect)';
+}
+
 function openWf(key){
   wfKey = key;
   const tplKey = WF_MAP[key];
   const isVideo = tplKey === 'wan5b' || tplKey === 'ltx';
   const loraMode = (tplKey === 'sdxl' || tplKey === 'wan5b') ? 'chain' : tplKey === 'krea' ? 'builtin' : 'none';
   let h = '<h3 style="margin-top:0">⬇ ComfyUI workflow — ' + esc(TARGETS[key].name) + '</h3>';
+  h += wfInstalledSection(tplKey) + wfLoraDatalist();
   h += '<label>Resolution</label><select id="wfRes">' + WF_RES[tplKey].map(function(r,i){
     return '<option value="' + i + '">' + r[0] + '×' + r[1] + ' (' + r[2] + ')</option>'; }).join('') + '</select>';
   if (isVideo) h += '<label>Duration (seconds)</label><input type="number" id="wfDur" min="1" max="' + (tplKey==='ltx'?10:5) + '" value="5">';
@@ -1902,7 +2027,7 @@ function openWf(key){
   if (tplKey === 'qwen') h += '<label style="margin-top:8px"><input type="checkbox" id="wfTurbo"> Lightning turbo mode (8 steps, CFG 1 — negatives become inert)</label>';
   if (loraMode === 'chain') {
     h += '<label style="margin-top:8px">LoRAs (exact filename from your models/loras folder; blank = none)</label>';
-    for (let i = 0; i < 2; i++) h += '<div class="row"><input type="text" id="wfLora' + i + '" placeholder="my_style_lora.safetensors" style="flex:3"><input type="number" id="wfLoraS' + i + '" step="0.05" value="0.8" title="strength" style="flex:1"></div>';
+    for (let i = 0; i < 2; i++) h += '<div class="row"><input type="text" id="wfLora' + i + '" list="wfLoraDL" oninput="wfLoraCheck(this)" placeholder="my_style_lora.safetensors" style="flex:3"><input type="number" id="wfLoraS' + i + '" step="0.05" value="0.8" title="strength" style="flex:1"></div>';
     h += '<label style="margin-top:4px"><input type="checkbox" id="wfRg"> Use rgthree Power Lora Loader — <span style="color:var(--warn)">experimental</span>: one node, needs the rgthree-comfy pack; may need manual re-wiring if it fails</label>';
     h += '<div class="hint" style="color:var(--warn)">Reminder: with any LoRA, adjust strength to its card, put its trigger words in the prompt, and on Turbo/distilled models raise steps/CFG (de-distillation). A checklist note is embedded in the exported workflow.</div>';
     h += '<details style="margin-top:6px"><summary style="font-size:12px;color:var(--accent);cursor:pointer">Using many LoRAs? Set up Lora Manager (recommended)</summary><div class="hint" style="margin-top:5px">' +
@@ -1914,7 +2039,7 @@ function openWf(key){
   }
   if (loraMode === 'builtin') {
     h += '<label style="margin-top:8px">Krea 2 LoRA (built-in slot; blank = none)</label>';
-    h += '<div class="row"><input type="text" id="wfLora0" placeholder="krea2_darkbrush.safetensors" style="flex:3"><input type="number" id="wfLoraS0" step="0.05" value="0.8" style="flex:1"></div>';
+    h += '<div class="row"><input type="text" id="wfLora0" list="wfLoraDL" oninput="wfLoraCheck(this)" placeholder="krea2_darkbrush.safetensors" style="flex:3"><input type="number" id="wfLoraS0" step="0.05" value="0.8" style="flex:1"></div>';
     h += '<label>Trigger words (added by the graph)</label><input type="text" id="wfTrig" placeholder="muted minimalist sketch style">';
     h += '<div class="hint">With a LoRA, steps auto-bump 8→12 (de-distillation rule).</div>';
     h += '<div class="hint" style="color:var(--warn)">Reminder: adjust strength to the LoRA card and keep its trigger words — a checklist note is embedded in the exported workflow.</div>';
@@ -1923,7 +2048,7 @@ function openWf(key){
   h += '<div class="hint" style="margin-top:8px">' + wfNotes(key, tplKey) + '</div>';
   h += '<div class="row" style="margin-top:10px"><button onclick="$(\'wfDlg\').close()">Cancel</button><button class="primary" onclick="downloadWf()">Download .json</button></div>';
   $('wfBody').innerHTML = h;
-  $('wfDlg').showModal();
+  if (!$('wfDlg').open) $('wfDlg').showModal();
 }
 function wfNotes(key, tplKey){
   const notes = ['Official Comfy-Org template' + (tplKey==='ltx' ? ' unavailable — this is the official Lightricks vendor workflow' : '') + ', edited only at documented points. Model filenames are the official defaults — pick your local files in the loader dropdowns after import (press R to refresh lists).'];
@@ -1962,7 +2087,9 @@ function downloadWf(){
   a.click();
   URL.revokeObjectURL(a.href);
   $('wfDlg').close();
-  toast('Workflow saved — drag it onto the ComfyUI canvas');
+  const miss = wfMissingFiles(wf);
+  if (miss.length) toast('Saved — ⚠ not in your ComfyUI: ' + miss.join(', ') + ' — pick installed files in those dropdowns after import (press R)', 6500);
+  else toast('Workflow saved — drag it onto the ComfyUI canvas');
 }
 
 /* ================= UX: zoom, keyboard, ComfyUI-file drop ================= */
