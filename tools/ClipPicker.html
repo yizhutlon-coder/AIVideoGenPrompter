@@ -5,40 +5,45 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Clip Picker — exact-second cuts for H3</title>
 <style>
-  :root{--bg:#0c0f14;--panel:#151a22;--panel2:#1c2330;--border:#2a3342;--text:#e9eef6;
-    --dim:#8f9cb0;--accent:#5eb1ff;--green:#6fdf9c;--warn:#ffb45e;--mono:ui-monospace,'Cascadia Code',Consolas,monospace;}
+  :root{--bg:#14161a;--panel:#1b1e24;--panel2:#232730;--border:#2f3540;--text:#e7eaee;
+    --dim:#99a2af;--accent:#7fa3c7;--green:#7cc494;--warn:#d8a75f;--accent-fg:#0f151c;--accent-tint:rgba(127,163,199,.12);--font-heading:'Barlow Condensed','Arial Narrow','Helvetica Neue Condensed',system-ui,sans-serif;--font-body:'Barlow',system-ui,'Segoe UI',sans-serif;--mono:ui-monospace,'Cascadia Code',Consolas,monospace;}
   [data-theme="light"]{
-    --bg:#f3f5f8; --panel:#ffffff; --panel2:#e9edf3; --border:#ccd5e0;
-    --text:#1c2534; --dim:#5b6779; --accent:#1f6fb8; --green:#1c7a44; --warn:#9c5f10; --err:#b23434;
+    --bg:#f2f2f3; --panel:#ffffff; --panel2:#ebecee; --border:#d3d6da;
+    --text:#1d1f20; --dim:#5b636d; --accent:#48708f; --green:#1f6f3f; --warn:#8a5a14; --err:#a83232;
+    --accent-fg:#ffffff; --accent-tint:rgba(72,112,143,.09);
   }
   [data-theme="light"] .chunk.sel{color:#fff;}
   [data-theme="light"] button.primary{color:#fff;}
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 system-ui,'Segoe UI',sans-serif;}
+  body{margin:0;background:var(--bg);color:var(--text);font:14px/1.55 var(--font-body);}
   .app{max-width:900px;margin:0 auto;padding:22px 20px 60px;}
-  h1{font-size:19px;margin:0 0 4px;}
+  h1{font-size:19px;margin:0 0 4px;font-family:var(--font-heading);letter-spacing:.4px;}
   .sub{color:var(--dim);font-size:13px;margin:0 0 16px;}
-  .drop{border:2px dashed var(--border);border-radius:12px;padding:36px;text-align:center;color:var(--dim);cursor:pointer;}
+  .drop{border:2px dashed var(--border);border-radius:4px;padding:36px;text-align:center;color:var(--dim);cursor:pointer;}
   .drop.over{border-color:var(--accent);color:var(--text);}
-  video{width:100%;border-radius:10px;background:#000;margin-top:14px;display:none;}
-  .panel{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px;margin-top:14px;display:none;}
+  video{width:100%;border-radius:4px;background:#000;margin-top:14px;display:none;}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:14px;margin-top:14px;display:none;}
   .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
-  button{background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:8px;
+  button{background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:4px;
     padding:8px 14px;font-size:13px;cursor:pointer;}
   button:hover{border-color:var(--accent);}
-  button.primary{background:var(--accent);color:#08111d;border:none;font-weight:700;}
-  select{background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:7px;padding:7px 10px;font-size:13px;}
+  button.primary{background:var(--accent);color:var(--accent-fg);border:none;font-weight:700;}
+  select{background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:7px 10px;font-size:13px;}
   .win{font-size:14px;}
   .win b{color:var(--green);}
   .chunks{display:flex;gap:5px;flex-wrap:wrap;margin-top:10px;}
-  .chunk{padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:var(--panel2);
+  .chunk{padding:5px 10px;border-radius:4px;border:1px solid var(--border);background:var(--panel2);
     font-size:12px;font-family:var(--mono);cursor:pointer;}
   .chunk:hover{border-color:var(--accent);}
-  .chunk.sel{background:var(--accent);color:#08111d;border-color:var(--accent);font-weight:700;}
-  pre{background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:12px;
+  .chunk.sel{background:var(--accent);color:var(--accent-fg);border-color:var(--accent);font-weight:700;}
+  pre{background:var(--panel2);border:1px solid var(--border);border-radius:4px;padding:12px;
     font-family:var(--mono);font-size:12px;white-space:pre-wrap;word-break:break-all;margin:10px 0 0;}
   .hint{font-size:12px;color:var(--dim);margin-top:8px;}
   .warn{color:var(--warn);}
+
+  /* design pass (Steel) */
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+  [data-theme="light"] button.primary{color:var(--accent-fg);}
 </style>
 <script>
 (function(){
