@@ -1,0 +1,1432 @@
+{
+ "_readme": "Labelled fixtures for PromptStudio.html validate(key, text, intent). expect: 'pass' = no messages at all; 'advisory' = only messages prefixed 'advisory:' (non-blocking); 'hard' = at least one blocking message (prefixed 'HARD:' or unprefixed). Placeholders {{WAN_NEG}} {{SDXL_NEG}} {{QWENIMG_NEG}} are expanded from the app's own constants by run.mjs. 'grade' mirrors the corpus evidence grade of the SOURCE the fixture is drawn from.",
+ "fixtures": [
+  {
+   "key": "wan",
+   "id": "wan-gold-p1-en",
+   "grade": "SYNTHESIS",
+   "source": "research/wan22.md §Few-shot gold Pair 1 (PROMPT-EN)",
+   "rule": "gold pair must not produce a blocking message",
+   "expect": "pass",
+   "intent": "Woman at a train window quietly looks up.",
+   "text": "Fixed medium close-up. A woman beside a rain-streaked train window keeps her body still, slowly lifts her gaze from a folded letter to the passing lights, blinks once, and exhales; only her reflection and the rain move. Cool side light, shallow depth of field.\n\nNegative prompt: {{WAN_NEG}}"
+  },
+  {
+   "key": "wan",
+   "id": "wan-gold-p1-zh",
+   "grade": "SYNTHESIS",
+   "source": "research/wan22.md §Few-shot gold Pair 1 (PROMPT-ZH)",
+   "rule": "Chinese prompt must not trip English word counts",
+   "expect": "advisory",
+   "intent": "列车窗边的女子抬头。",
+   "text": "固定机位，中近景。女子坐在布满雨痕的列车窗边，身体保持不动，视线从折叠的信纸缓慢抬向窗外灯影，轻眨一次眼后呼气；只有玻璃倒影与雨滴移动。冷色侧光，浅景深。\n\nNegative prompt: {{WAN_NEG}}"
+  },
+  {
+   "key": "wan",
+   "id": "wan-gold-p2-en",
+   "grade": "SYNTHESIS",
+   "source": "research/wan22.md §Few-shot gold Pair 2 (PROMPT-EN)",
+   "rule": "gold pair must not produce a blocking message",
+   "expect": "pass",
+   "intent": "A calm sunrise over rice terraces.",
+   "text": "Wide aerial shot at dawn over layered rice terraces. Thin mist drifts slowly through the valleys while water surfaces catch the first warm sunlight. The camera advances gently with small amplitude; no people, no abrupt movement, natural low-saturation color.\n\nNegative prompt: {{WAN_NEG}}"
+  },
+  {
+   "key": "wan",
+   "id": "wan-gold-p3-en",
+   "grade": "SYNTHESIS",
+   "source": "research/wan22.md §Few-shot gold Pair 3 (PROMPT-EN)",
+   "rule": "'without orbiting' must NOT error — FOLD-IN A3 deleted the orbit rule; verification #43 UNSUPPORTED",
+   "expect": "pass",
+   "intent": "A boxer dodges and counters.",
+   "text": "Single continuous ringside shot. The boxer in red slips left under one jab, pivots on his rear foot, then drives one compact right cross into the opponent's guard; sweat sprays at impact. The opponent only recoils one step. A low tracking camera follows laterally at fast speed without orbiting.\n\nNegative prompt: {{WAN_NEG}}"
+  },
+  {
+   "key": "wan",
+   "id": "wan-gold-p3-zh",
+   "grade": "SYNTHESIS",
+   "source": "research/wan22.md §Few-shot gold Pair 3 (PROMPT-ZH)",
+   "rule": "ZH gold pair; 不环绕 must not read as a camera move",
+   "expect": "pass",
+   "intent": "一个拳击手闪避后反击。",
+   "text": "一镜到底，拳台边低机位跟拍。红衣拳手先向左闪过一记直拳，后脚转轴，随即用紧凑的右直拳击中对手护架，撞击瞬间汗珠飞散；对手只后退一步。镜头快速横向跟随，不环绕。\n\nNegative prompt: {{WAN_NEG}}",
+   "relabelled": "relabelled 2026-09-10: no sourced rule fires on this pair (一镜到底 with no 固定机位 and no 运镜 token) — the original 'advisory' label was the harness author's prediction, not a rule"
+  },
+  {
+   "key": "wan",
+   "id": "wan-gold-p7-en",
+   "grade": "OFFICIAL-PATTERN",
+   "source": "research/wan22.md §Few-shot gold Pair 7 (PROMPT-EN) — official token order",
+   "rule": "one camera move ('pushes in') must not count as 'multiple camera moves'",
+   "expect": "pass",
+   "intent": "A girl on a stone step at dusk, one small camera move, photoreal.",
+   "text": "Edge lighting, medium close-up shot, warm colors, soft lighting, center composition. A girl of about twelve sits on a worn stone step, unwinding a red woollen thread from her wrist, then looking up once toward the lane. The camera pushes in slowly. Leaves drift across the ground behind her.\n\nNegative prompt: {{WAN_NEG}}",
+   "relabelled": "relabelled 2026-09-10: the AES_EN table counts 4 front-loaded aesthetic tokens here ('edge lighting' is not in the closed set, only 'edge light'), so the >4 advisory correctly does not fire; the pair's own NOTES count five by hand"
+  },
+  {
+   "key": "wan",
+   "id": "wan-gold-p7-zh",
+   "grade": "OFFICIAL-PATTERN",
+   "source": "research/wan22.md §Few-shot gold Pair 7 (PROMPT-ZH)",
+   "rule": "ZH allows up to ~10 front-loaded aesthetic tokens (ZH rewriter has no cap)",
+   "expect": "pass",
+   "intent": "黄昏石阶上的女孩，一个小幅运镜，写实。",
+   "text": "边缘光，中近景，暖色调，柔光，晴天光，侧光，中心构图，白天，一个约十二岁的女孩坐在磨损的石阶上，将手腕上的红色毛线一圈圈解开，随后抬头看向巷口一次。镜头缓慢前推。她身后的落叶被风带着掠过地面。\n\nNegative prompt: {{WAN_NEG}}"
+  },
+  {
+   "key": "wan",
+   "id": "wan-viol-noneg",
+   "grade": "OFFICIAL",
+   "source": "TARGETS.wan.system ('Then a blank line, then exactly: Negative prompt: …'); ModelScope card default negative",
+   "rule": "missing negative block is blocking for the wan target",
+   "expect": "hard",
+   "intent": "Woman at a train window quietly looks up.",
+   "text": "Fixed medium close-up. A woman beside a rain-streaked train window keeps her body still, slowly lifts her gaze from a folded letter to the passing lights, blinks once, and exhales; only her reflection and the rain move. Cool side light, shallow depth of field."
+  },
+  {
+   "key": "wan",
+   "id": "wan-viol-contradiction",
+   "grade": "OFFICIAL",
+   "source": "research/wan22.md §Validator suggestions ('If fixed camera|static shot|固定机位 appears, flag contradictory camera verbs')",
+   "rule": "fixed camera + camera-move verb is a contradiction",
+   "expect": "hard",
+   "intent": "A woman waits on a platform.",
+   "text": "Fixed camera, no camera movement. A woman in a grey coat waits at the platform edge, shifts her weight once, and looks down the track as a train approaches. The camera pans left across the platform and then pushes in on her face. Cool overcast light, medium shot, shallow depth of field.\n\nNegative prompt: {{WAN_NEG}}"
+  },
+  {
+   "key": "wan",
+   "id": "wan-viol-cinematic",
+   "grade": "OFFICIAL",
+   "source": "TARGETS.wan.system ('NEVER use the word cinematic — it triggers the stylization branch'); wan22.md system_prompt.py rule 5",
+   "rule": "'cinematic' is blocking on the wan T2V target",
+   "expect": "hard",
+   "intent": "A chef plates a dish.",
+   "text": "A chef in a white jacket sets three seared scallops onto a warm plate, wipes the rim once with a cloth, and pushes the plate forward across the pass. The camera pushes in slowly. Warm overhead light, medium close-up, cinematic look, shallow depth of field.\n\nNegative prompt: {{WAN_NEG}}"
+  },
+  {
+   "key": "wan",
+   "id": "wan-adv-aes-en",
+   "grade": "OFFICIAL, advisory only",
+   "source": "research/wan22.md §Validator changes #1; verification-2026-09.md #40 UNSUPPORTED (the vendor's own EN exemplar carries ten)",
+   "rule": ">4 front-loaded aesthetic tokens in English is advisory, never blocking",
+   "expect": "advisory",
+   "intent": "A girl reads on a step.",
+   "text": "Dawn, top lighting, high-angle shot, daylight, long lens shot, center composition, close-up shot, soft lighting, cool colors. A girl of about twelve sits on a worn stone step and slowly unwinds a red woollen thread from her wrist, then looks up once toward the lane. Leaves drift across the ground behind her.\n\nNegative prompt: {{WAN_NEG}}"
+  },
+  {
+   "key": "wan",
+   "id": "wan-adv-guwei",
+   "grade": "OFFICIAL",
+   "source": "research/wan22.md §Validator changes #3 ('Accept 固定机位 … but suggest the official token 固定镜头'); system-prompt-audit I1",
+   "rule": "固定机位 is a synonym — suggest 固定镜头, never block",
+   "expect": "advisory",
+   "intent": "一只猫在窗台上打盹。",
+   "text": "固定机位，中景。一只橘猫趴在木质窗台上，尾巴缓慢摆动两次，耳朵轻轻抖动，随后把头埋进前爪继续打盹。窗外树影缓慢移动，室内光线柔和。暖色调，浅景深，写实风格。\n\nNegative prompt: {{WAN_NEG}}"
+  },
+  {
+   "key": "wan",
+   "id": "wan-viol-bullets",
+   "grade": "OFFICIAL",
+   "source": "TARGETS.wan.system ('Comma/period-separated phrases'); wan22.md §Validator suggestions",
+   "rule": "bullet lists are not the Wan dialect",
+   "expect": "hard",
+   "intent": "A cyclist rides through fog.",
+   "text": "- A cyclist rides slowly through thick morning fog along a canal path.\n- The camera pushes in slowly at low height.\n- Cool diffused light, muted green and grey palette, medium shot, shallow depth of field, realistic style.\n\nNegative prompt: {{WAN_NEG}}"
+  },
+  {
+   "key": "wanI2V",
+   "id": "wanI2V-gold-p4-en",
+   "grade": "OFFICIAL-PATTERN",
+   "source": "research/wan22.md §Few-shot gold Pair 4 (PROMPT-EN) — official I2V motion-only style",
+   "rule": "motion-only I2V prompt must pass",
+   "expect": "pass",
+   "intent": "Animate my photo of a squirrel eating.",
+   "text": "The squirrel keeps eating with quick paw movements, pauses once to raise its head and look left, then resumes. Static camera; the branch remains still.\n\nNegative prompt: {{WAN_NEG}}"
+  },
+  {
+   "key": "wanI2V",
+   "id": "wanI2V-gold-p4-zh",
+   "grade": "OFFICIAL-PATTERN",
+   "source": "research/wan22.md §Few-shot gold Pair 4 (PROMPT-ZH)",
+   "rule": "ZH I2V under the 100-character cap must pass",
+   "expect": "pass",
+   "intent": "让我的松鼠照片动起来。",
+   "text": "小松鼠用前爪快速进食，停顿一次，抬头看向左侧后继续吃。固定机位，树枝保持静止。\n\nNegative prompt: {{WAN_NEG}}"
+  },
+  {
+   "key": "wanI2V",
+   "id": "wanI2V-gold-motion-en",
+   "grade": "OFFICIAL",
+   "source": "TARGETS.wanI2V.system ('15-70 words is usually right')",
+   "rule": "short motion-only English prompt must pass",
+   "expect": "pass",
+   "intent": "Animate the photo: the woman turns her head.",
+   "text": "The woman turns her head slowly to the left, blinks once, and lets her shoulders drop as she exhales. Her hair shifts slightly with the movement. Static camera; nothing else in the frame moves.\n\nNegative prompt: {{WAN_NEG}}"
+  },
+  {
+   "key": "wanI2V",
+   "id": "wanI2V-viol-over100",
+   "grade": "OFFICIAL",
+   "source": "research/wan22.md §Verbosity calibration ('I2V: ≤100 words [OFFICIAL]'); §Validator suggestions ('hard warning above 100 words')",
+   "rule": "English I2V over the official 100-word cap",
+   "expect": "hard",
+   "intent": "Animate the photo of the market.",
+   "text": "The vendor lifts the woven basket with both hands, turns a quarter step to his right, and sets it down onto the wooden counter, then straightens up and wipes his forehead once with the back of his wrist. Behind him a second vendor reaches up and tugs the canvas awning tighter, and the fabric ripples twice before settling. A cyclist crosses the frame from left to right at a steady pace without stopping, and two shoppers step aside to let the bicycle pass. Steam drifts upward from the pot on the near table and drifts to the left. Static camera; the stall frame and the hanging lanterns remain still throughout the whole shot.\n\nNegative prompt: {{WAN_NEG}}"
+  },
+  {
+   "key": "wanI2V",
+   "id": "wanI2V-viol-zh-over100",
+   "grade": "OFFICIAL",
+   "source": "TARGETS.wanI2V.system ('Hard cap 100 words in English, 100 characters in Chinese — the two official rewriters differ'); FOLD-IN A22",
+   "rule": "Chinese I2V over the official 100-character cap",
+   "expect": "hard",
+   "intent": "让照片里的市场动起来。",
+   "text": "摊主用双手抬起竹编篮子，向右侧转过四分之一步，把篮子放到木质柜台上，然后直起身，用手腕背面擦了一次额头。他身后另一名摊主伸手把帆布遮阳篷拉紧，布面起伏两次后归于平静。一位骑车人以稳定速度从画面左侧穿到右侧，两名顾客侧身让路。近处锅里的蒸汽向上升起并缓慢飘向左侧。固定机位，摊架与悬挂的灯笼始终保持静止。\n\nNegative prompt: {{WAN_NEG}}"
+  },
+  {
+   "key": "wanI2V",
+   "id": "wanI2V-viol-static-restate",
+   "grade": "OFFICIAL",
+   "source": "TARGETS.wanI2V.system ('Do NOT restate what the image already shows'); research/wan22.md §Verbosity calibration ('Noise: … static I2V restatement')",
+   "rule": "restating wardrobe/scene wastes the motion budget",
+   "expect": "hard",
+   "intent": "Animate the portrait.",
+   "text": "A woman wearing a red silk dress stands in a sunlit kitchen. She turns her head slowly toward the window and blinks once. Static camera.\n\nNegative prompt: {{WAN_NEG}}"
+  },
+  {
+   "key": "wanI2V",
+   "id": "wanI2V-viol-noneg",
+   "grade": "OFFICIAL",
+   "source": "TARGETS.wanI2V.system ('Then a blank line, then exactly: Negative prompt: …')",
+   "rule": "missing negative block",
+   "expect": "hard",
+   "intent": "Animate my photo of a squirrel eating.",
+   "text": "The squirrel keeps eating with quick paw movements, pauses once to raise its head and look left, then resumes. Static camera; the branch remains still."
+  },
+  {
+   "key": "wanI2V",
+   "id": "wanI2V-viol-contradiction",
+   "grade": "OFFICIAL",
+   "source": "research/wan22.md §Validator suggestions (contradictory camera verbs)",
+   "rule": "static camera + camera-move verb",
+   "expect": "hard",
+   "intent": "Animate the photo of the dog.",
+   "text": "The dog lifts its head, looks left, and settles again. Static camera, no camera movement, and the camera pushes in slowly toward the dog's face at the same time.\n\nNegative prompt: {{WAN_NEG}}"
+  },
+  {
+   "key": "ltx",
+   "id": "ltx-gold-p1",
+   "grade": "SYNTHESIS",
+   "source": "research/ltx23.md §Few-shot gold Pair 1",
+   "rule": "single-shot LTX paragraph with named audio must pass",
+   "expect": "pass",
+   "intent": "Musician starts a quiet guitar performance.",
+   "text": "A gray-haired man seated on a wooden stool draws one slow breath, places his left hand on the red electric guitar's fretboard, and plays a soft descending phrase while his right foot keeps time. A medium shot pushes in slightly; warm practical lamps glow behind him. Finger slides, amplifier hum, and the quiet room tone remain audible."
+  },
+  {
+   "key": "ltx",
+   "id": "ltx-gold-p2",
+   "grade": "SYNTHESIS",
+   "source": "research/ltx23.md §Few-shot gold Pair 2",
+   "rule": "'No music.' satisfies the audio requirement",
+   "expect": "pass",
+   "intent": "Storm arrives over a salt flat.",
+   "text": "Wind drives a thin sheet of dust across a white salt flat as a dark storm front advances from the horizon. The camera remains locked in a wide shot; distant lightning flashes once, then rain begins to stipple the foreground. Low wind rises into a heavy gust, followed three seconds later by a muted thunder roll. No music."
+  },
+  {
+   "key": "ltx",
+   "id": "ltx-gold-p3",
+   "grade": "SYNTHESIS",
+   "source": "research/ltx23.md §Few-shot gold Pair 3",
+   "rule": "action-first single shot",
+   "expect": "pass",
+   "intent": "Cyclist jumps a stair set.",
+   "text": "A cyclist accelerates toward a six-step concrete stair set, compresses low over the handlebars, pulls both wheels clear of the top step, and lands rear wheel then front wheel on the pavement. A low tracking shot moves parallel at fast speed and stops after the landing. Chain rattle, tire hiss, one sharp landing impact, and a brief exhale; no dialogue."
+  },
+  {
+   "key": "ltx",
+   "id": "ltx-gold-p4",
+   "grade": "SYNTHESIS",
+   "source": "research/ltx23.md §Few-shot gold Pair 4; also TARGETS.ltx.system's own worked example",
+   "rule": "quoted dialogue with curly quotes must satisfy the audio check",
+   "expect": "pass",
+   "intent": "Two friends whisper during a blackout.",
+   "text": "A woman holds a flashlight beneath her chin while her friend closes the apartment door behind them. In a static medium two-shot she whispers, “Did you hear that?” Her friend turns toward the dark hallway and answers quietly, “It came from upstairs.” The flashlight trembles slightly. Rain taps the windows, the refrigerator hum has stopped, and floorboards creak above them; no background music."
+  },
+  {
+   "key": "ltx",
+   "id": "ltx-gold-p5-25single",
+   "grade": "SYNTHESIS (written to the 2.5 rules)",
+   "source": "research/ltx23.md §Few-shot gold Pair 5",
+   "rule": "LTX-2.5 single shot, 8 sentences, no word cap",
+   "expect": "pass",
+   "intent": "Two colleagues exchange one line in a rain-lit stairwell; locked framing, ambience carries the beat.",
+   "text": "Style: cinematic-realistic. A woman in her late twenties, dark hair pulled back, wearing a grey wool coat, stops on a concrete stairwell landing and turns her head toward the door above her as rain drums on the skylight. A static medium shot holds her at frame left; a caged bulb throws soft overhead light across the wet steps. She lifts a set of keys, then lowers them again as a second woman in a navy raincoat climbs into frame behind her, breathing hard. The first woman speaks quietly, in a low, careful voice, \"You said you locked it.\" The second answers, flatly, \"I did.\" A beat of silence. Rain on the skylight continues throughout, the keys chime once against each other, footsteps scuff on grit, and a fluorescent ballast hums faintly above them; no music."
+  },
+  {
+   "key": "ltx",
+   "id": "ltx-gold-p6-multishot",
+   "grade": "SYNTHESIS (built to the official multishot checklist)",
+   "source": "research/ltx23.md §Few-shot gold Pair 6; §Validator changes V11",
+   "rule": "LTX-2.5 named cuts are ALLOWED — three shots, named transitions, audio continuity",
+   "expect": "pass",
+   "intent": "Establish, then detail, then reaction across two named cuts.",
+   "text": "Style: cinematic-realistic. Initially, a wide shot frames a long workbench in a dim instrument-repair shop at dusk, brass shavings scattered across the wood, a single desk lamp pooling warm light at the centre. A grey-bearded man in a leather apron leans over a disassembled trumpet, turning a valve slowly between finger and thumb; low street traffic and the faint hiss of a radiator fill the room. The view cuts to a close-up of his hands, the same leather apron visible at the edge of frame, as he seats the valve and it clicks home; the traffic drops away and only the radiator hiss and a soft metallic click remain. A moment later, a hard cut transitions to a medium shot of the grey-bearded man from the front, the desk lamp now behind his shoulder, as he raises the trumpet, blows one short test note, and lets a slow smile spread. He says, warmly, \"There you are.\" The radiator hiss continues across the cut, the single trumpet note rings and decays, and the street traffic fades back up underneath; no music.",
+   "relabelled": "relabelled 2026-09-10: at 200 words the 2.5 advisory does not fire, and after the seq-vocabulary widening ('Initially…', 'A moment later…') nothing else does either"
+  },
+  {
+   "key": "ltx",
+   "id": "ltx-gold-p7-dubit",
+   "grade": "OFFICIAL template",
+   "source": "research/ltx23.md §Few-shot gold Pair 7; §Validator changes V14 ('Recognise the [Speaker] is speaking [Language/Accent], saying: \"[Dialogue]\" template and validate it separately')",
+   "rule": "the Dub-It slot form is official and must not be judged by the paragraph length rules",
+   "expect": "advisory",
+   "intent": "Dub-It: replace the English line in my clip with Spanish.",
+   "text": "A woman speaking in Spanish with a Madrid accent, saying: \"No pienso firmar nada hasta que lo lea entero.\"",
+   "relabelled": "relabelled 2026-09-10: the new Dub-It recognizer emits one informational advisory by design (route to 2.3, match syllable timing)"
+  },
+  {
+   "key": "ltx",
+   "id": "ltx-viol-negative",
+   "grade": "OFFICIAL",
+   "source": "TARGETS.ltx.system ('Never require a negative prompt'); research/ltx23.md §Validator changes V5",
+   "rule": "a negative prompt block on the LTX target",
+   "expect": "hard",
+   "intent": "A candle burns down in an empty room.",
+   "text": "A single candle burns on a bare wooden table in an empty room as the flame leans once toward a draught and steadies again. A static wide shot holds the table at centre frame; the wax runs down the side and pools on the wood. Floorboards settle, a clock ticks slowly, and wind presses at the shutters; no music. Negative prompt: blurry, low quality, subtitles"
+  },
+  {
+   "key": "ltx",
+   "id": "ltx-viol-linebreaks",
+   "grade": "OFFICIAL",
+   "source": "TARGETS.ltx.system ('ONE flowing present-tense paragraph'); research/ltx23.md §Validator changes V4 (paragraph rule scoped to single-shot)",
+   "rule": "single-shot LTX output must be one paragraph",
+   "expect": "hard",
+   "intent": "A candle burns down in an empty room.",
+   "text": "A single candle burns on a bare wooden table in an empty room.\nThe flame leans once toward a draught and steadies again.\nA static wide shot holds the table at centre frame.\nFloorboards settle, a clock ticks slowly, and wind presses at the shutters; no music."
+  },
+  {
+   "key": "ltx",
+   "id": "ltx-viol-noaudio",
+   "grade": "OFFICIAL",
+   "source": "research/ltx23.md §Validator changes V2/V3 ('Six official prompt elements still end with Describe the Audio')",
+   "rule": "LTX audio is not automatic — name it or say 'no music'",
+   "expect": "hard",
+   "intent": "A woman walks through a greenhouse.",
+   "text": "A woman in a linen shirt walks slowly along the central aisle of a glass greenhouse, brushing the leaves of a tomato vine with her fingertips as she passes. She stops at the far bench, lifts a terracotta pot, turns it once to inspect the roots, and sets it back down. A slow tracking shot follows her from behind at waist height, then holds as she stops. Late afternoon light falls through the misted glass and pools on the gravel floor."
+  },
+  {
+   "key": "ltx",
+   "id": "ltx-viol-23-toolong",
+   "grade": "OFFICIAL",
+   "source": "research/ltx23.md §Validator changes V6 ('2.3 targets: keep 40-150 / soft 151-200'); LTX-2 README 'Keep within 200 words'",
+   "rule": "LTX-2.3 hard word figure is 200",
+   "expect": "hard",
+   "intent": "Write this for LTX 2.3 please.",
+   "text": "A watchmaker in a grey cardigan lowers a loupe over his right eye and lifts a movement from the bench with a pair of brass tweezers, turning it slowly under the lamp so the escapement catches the light. He sets it into a holder, breathes out once, and reaches for a fine screwdriver from the tray at his left elbow. A static medium close-up frames his hands and the movement; the lamp throws a hard pool of light onto the green cutting mat and leaves the rest of the bench in shadow. He seats the screw, checks the balance wheel with a fingertip, and lets it swing. Behind him a wall of cased clocks ticks out of phase, one striking a single soft note partway through. He turns the movement over, inspects the reverse, lifts the loupe away from his eye, and rubs the bridge of his nose. Then he leans back in, sets the loupe again, and continues. The bench light hums faintly, the tweezers clink once against the metal tray, a drawer slides open and closed, and the clocks continue behind him; no music plays and nobody speaks throughout the entire shot, which holds the same framing from the first frame to the last."
+  },
+  {
+   "key": "ltx",
+   "id": "ltx-viol-cut-no-audio-continuity",
+   "grade": "OFFICIAL",
+   "source": "research/ltx23.md §Validator changes V11; FOLD-IN B12 ('the four per-cut requirements')",
+   "rule": "a named cut with no audio-continuity clause",
+   "expect": "hard",
+   "intent": "Two shots: the workshop, then the hands.",
+   "text": "A wide shot frames a long workbench in a dim repair shop at dusk, brass shavings scattered across the wood, a single desk lamp pooling warm light at the centre. A grey-bearded man in a leather apron leans over a disassembled trumpet and turns a valve slowly between finger and thumb. The view cuts to a close-up of his hands as he seats the valve and it clicks home. Street traffic and a radiator hiss fill the room; no music."
+  },
+  {
+   "key": "ltx",
+   "id": "ltx-viol-oner-with-cut",
+   "grade": "OFFICIAL",
+   "source": "research/ltx23.md §Validator changes V11 ('if the user asked for a single continuous take, warn on any cut language')",
+   "rule": "requested oner but the prompt names a cut",
+   "expect": "hard",
+   "intent": "One continuous shot, no cuts, of a man crossing a bridge.",
+   "text": "A man in a long coat walks steadily across a stone footbridge at dawn, one hand on the parapet, mist lying flat on the water below him. A slow tracking shot follows him from the side at walking pace. A hard cut transitions to a close-up of his hand on the wet stone. River sound continues underneath, gulls call twice, and his footsteps stay audible; no music."
+  },
+  {
+   "key": "minimax",
+   "id": "mm-gold-p1-en",
+   "grade": "SYNTHESIS + app's own worked example",
+   "source": "research/minimax-h3.md §Few-shot gold Pair 1 (PROMPT-EN); TARGETS.minimax.system example",
+   "rule": "three official fields, [Shot 1] with no timestamp",
+   "expect": "pass",
+   "intent": "A baker opens before sunrise and speaks.",
+   "text": "integrated_multimodal_description: [Shot 1] Live-action, medium-wide shot. A middle-aged baker opens the wooden shutters before sunrise, crosses to the counter, and places a warm loaf beneath the pendant light. The camera pushes in with small amplitude at slow speed. The baker (S1), speaking in a calm raspy voice, says: <d>[English] First batch of the morning.</d>\n\noverall_soundscape: Shutters scrape, trays clink, and a knife cuts the crust while the quiet street remains audible outside.\n\nnon_diegetic_music: N/A"
+  },
+  {
+   "key": "minimax",
+   "id": "mm-gold-p1-zh",
+   "grade": "SYNTHESIS",
+   "source": "research/minimax-h3.md §Few-shot gold Pair 1 (PROMPT-ZH)",
+   "rule": "Chinese dialogue inside <d>[Chinese] …</d> must not trip English word counts",
+   "expect": "pass",
+   "intent": "面包师在日出前开门并说话。",
+   "text": "integrated_multimodal_description: [Shot 1] 写实电影风，中远景。黎明前，中年面包师推开木质百叶窗，走到柜台，把一条温热的面包放在吊灯下。镜头小幅缓慢推进。面包师(S1)用平静而略带沙哑的声音说：<d>[Chinese] 今天的第一炉。</d>\n\noverall_soundscape: 百叶窗摩擦声、烤盘轻碰声与切开面包外壳的脆响，窗外街道保持安静。\n\nnon_diegetic_music: N/A"
+  },
+  {
+   "key": "minimax",
+   "id": "mm-gold-p2",
+   "grade": "SYNTHESIS",
+   "source": "research/minimax-h3.md §Few-shot gold Pair 2",
+   "rule": "static shot, no dialogue, all three fields",
+   "expect": "pass",
+   "intent": "Fog clears from a mountain lake.",
+   "text": "integrated_multimodal_description: [Shot 1] A static ultra-wide shot frames a mountain lake before sunrise. Fog moves slowly from right to left, revealing a dark pine shoreline; the first orange light reaches the summit and its reflection gradually lengthens across still water. No people or boats enter the frame.\n\noverall_soundscape: Light wind passes through pines, small waves touch the stones, and one distant bird calls.\n\nnon_diegetic_music: Sparse low strings sustain quietly and fade as the summit brightens."
+  },
+  {
+   "key": "minimax",
+   "id": "mm-gold-p3",
+   "grade": "SYNTHESIS",
+   "source": "research/minimax-h3.md §Few-shot gold Pair 3",
+   "rule": "camera motion as type + amplitude + speed in prose",
+   "expect": "pass",
+   "intent": "A courier leaps between rooftops.",
+   "text": "integrated_multimodal_description: [Shot 1] A low tracking shot follows a courier in a yellow jacket sprinting toward the roof edge. The camera tracks at fast speed as she plants her left foot, jumps across the narrow alley, pulls both knees upward, and lands in a crouch on the opposite roof; loose gravel skids behind her. The camera stops and holds as she regains balance.\n\noverall_soundscape: Rapid footsteps, fabric snaps in the wind, one heavy landing, and scattering gravel.\n\nnon_diegetic_music: Fast muted percussion stops on the landing."
+  },
+  {
+   "key": "minimax",
+   "id": "mm-gold-h3-p5-vo",
+   "grade": "OFFICIAL-PATTERN",
+   "source": "research/_addenda/h3-deep-dive.md §Few-shot gold Pair 5 (voiceover with lip lock)",
+   "rule": "off-screen voiceover with a lips-closed clause",
+   "expect": "pass",
+   "intent": "Narrated memory over a driving shot; character must not appear to speak.",
+   "text": "integrated_multimodal_description: [Shot 1] Live-action, cinematic, a medium shot frames a man in his fifties in the driver's seat of a stationary car at dusk, both hands resting on the wheel. The camera pushes in with small amplitude at slow speed as he looks through the windshield toward an unlit road. The man, with a low, weathered voice (S1), says in an off-screen voiceover: <d>[English] I still remember that road.</d> while his lips remain completely closed. He exhales once and lowers his gaze to the dashboard.\n\noverall_soundscape: Faint engine idle and a slow ventilation hum continue under distant wind. Fabric shifts as he moves, and one long exhale is audible.\n\nnon_diegetic_music: N/A"
+  },
+  {
+   "key": "minimax",
+   "id": "mm-gold-h3-p6-cut",
+   "grade": "OFFICIAL-PATTERN",
+   "source": "research/_addenda/h3-deep-dive.md §Few-shot gold Pair 6 (dialogue crossing a cut)",
+   "rule": "[Shot 2] carries a timestamp; <scenetrans> at both connection points",
+   "expect": "pass",
+   "intent": "One line spans a cut, with the mouth stopping cleanly.",
+   "text": "integrated_multimodal_description: [Shot 1] Live-action, cinematic, a medium two-shot frames a young woman in a grey coat and an older woman across a kitchen table. The camera holds a static shot. The young woman with a clear, level voice (S1) begins: <d>[English] I found the letters in the attic,<scenetrans></d> and her jaw is still moving as the shot ends. [Shot 2] At 00:04.000, the shot cuts to a close-up of the older woman's hands stilling on a teacup while <scenetrans> the same line continues uninterrupted into the next shot: <d>[English] and I read every one.</d> Exactly as the voice stops, the speaking motion ends and the older woman's fingers tighten on the handle.\n\noverall_soundscape: Quiet kitchen room tone with a low refrigerator hum. A spoon touches ceramic once and a chair creaks softly.\n\nnon_diegetic_music: A single sustained low string tone enters at the cut and holds without swelling."
+  },
+  {
+   "key": "minimax",
+   "id": "mm-gold-h3-p7-ad",
+   "grade": "OFFICIAL-PATTERN, derived",
+   "source": "research/_addenda/h3-deep-dive.md §Few-shot gold Pair 7 (beat-budgeted product ad)",
+   "rule": "on-screen copy quoted verbatim; two shots with a cut time",
+   "expect": "pass",
+   "intent": "Product film with legible typography, from a locked reference.",
+   "text": "integrated_multimodal_description: [Shot 1] Live-action, cinematic, a clean white studio space with generous negative space. A matte purple wireless earbud case rests centred on a seamless white surface, its true purple body and satin texture unchanged. The camera pushes in with small amplitude at slow speed as the lid rotates open thirty degrees and an internal highlight appears along the hinge. The single line \"Color Meets Sound\" fades in to the right of the case in a semibold sans-serif, on one line, the first half in dark charcoal and the second half in the case's purple. [Shot 2] At 00:06.000, the shot cuts to a wider frame of the closed case at rest, full-frame and centred, with the same single line of text held steady and legible until the final frame. No other text appears anywhere in the video.\n\noverall_soundscape: A soft magnetic click as the lid rotates open, a faint surface contact when the case settles, and quiet studio room tone throughout.\n\nnon_diegetic_music: A pluck-led electronic figure near 100 BPM over a sub-bass pulse and woodblock percussion, cutting off within half a second at the end and leaving only the pluck tail decaying."
+  },
+  {
+   "key": "minimax",
+   "id": "mm-gold-p9-two-speakers",
+   "grade": "OFFICIAL-PATTERN",
+   "source": "research/minimax-h3.md §Few-shot gold Pair 9 (T2VA, two speakers)",
+   "rule": "two stable speaker IDs across a cut",
+   "expect": "pass",
+   "intent": "A late-night radio host takes a caller; both voices must be distinct.",
+   "text": "integrated_multimodal_description: [Shot 1] Live-action, cinematic, a medium shot frames a radio host in her forties alone in a small broadcast booth after midnight, headphones on, one hand resting on a fader. The camera holds a static shot. The host, with a low, warm, unhurried voice (S1), leans toward the microphone and says: <d>[English] You're on the air. Where are you calling from?</d> Her lips stop moving immediately after the last word and she watches the level meter. A younger man (S2), heard only through the monitor speakers and never shown, answers in a thin, tired voice from an off-screen telephone line: <d>[English] A parking lot outside town. I couldn't sleep either.</d> [Shot 2] At 00:06.000, the shot cuts to a close-up of the host's hand easing the fader down two millimetres while the caller's line stays audible across the transition. The host (S1) answers quietly: <d>[English] Then we'll stay up together.</d> and her jaw settles closed as the meter falls.\n\noverall_soundscape: A low console hum and the hiss of a slightly overdriven phone line continue throughout. Foam scrapes against the microphone once, a chair creaks, and the fader travels with a soft mechanical slide.\n\nnon_diegetic_music: A single sustained electric-piano chord at a slow tempo, repeating twice and decreasing in volume before the second shot ends."
+  },
+  {
+   "key": "minimax",
+   "id": "mm-viol-arrow",
+   "grade": "OFFICIAL",
+   "source": "TARGETS.minimax.system ('NEVER use arrows (→), slashes, or plus signs as syntax'); research/minimax-h3.md §Validator changes",
+   "rule": "arrows may render as on-screen text",
+   "expect": "hard",
+   "intent": "A seed grows into a tree.",
+   "text": "integrated_multimodal_description: [Shot 1] Live-action, a macro shot of a seed in dark soil → a sprout pushes through → a sapling rises. The camera pushes in with small amplitude at slow speed.\n\noverall_soundscape: Soil shifts, roots creak faintly, and a light breeze passes.\n\nnon_diegetic_music: N/A"
+  },
+  {
+   "key": "minimax",
+   "id": "mm-viol-noshot1",
+   "grade": "OFFICIAL",
+   "source": "MiniMax base guide §4.2 via research/minimax-h3.md item 8; TARGETS.minimax.system",
+   "rule": "the timeline body must open with [Shot 1]",
+   "expect": "hard",
+   "intent": "A baker opens before sunrise.",
+   "text": "integrated_multimodal_description: Live-action, medium-wide shot. A middle-aged baker opens the wooden shutters before sunrise and places a warm loaf beneath the pendant light. The camera pushes in with small amplitude at slow speed.\n\noverall_soundscape: Shutters scrape and trays clink.\n\nnon_diegetic_music: N/A"
+  },
+  {
+   "key": "minimax",
+   "id": "mm-viol-shot1-timestamp",
+   "grade": "OFFICIAL",
+   "source": "MiniMax base guide §4.2 verbatim 'Do not add a timestamp to the first shot'; research/minimax-h3.md §Validator changes #9",
+   "rule": "no timestamp on [Shot 1]",
+   "expect": "hard",
+   "intent": "A baker opens before sunrise.",
+   "text": "integrated_multimodal_description: [Shot 1] At 00:00.000, Live-action, medium-wide shot. A middle-aged baker opens the wooden shutters before sunrise and places a warm loaf beneath the pendant light.\n\noverall_soundscape: Shutters scrape and trays clink.\n\nnon_diegetic_music: N/A"
+  },
+  {
+   "key": "minimax",
+   "id": "mm-viol-cutto",
+   "grade": "OFFICIAL",
+   "source": "TARGETS.minimax.system ('There is no [CUT TO] syntax')",
+   "rule": "[CUT TO] is not H3 syntax",
+   "expect": "hard",
+   "intent": "Two shots of a kitchen.",
+   "text": "integrated_multimodal_description: [Shot 1] Live-action, a wide shot of a quiet kitchen at dawn. [CUT TO] a close-up of the kettle as steam rises.\n\noverall_soundscape: A kettle ticks as it heats and water begins to move.\n\nnon_diegetic_music: N/A"
+  },
+  {
+   "key": "minimax",
+   "id": "mm-viol-weights",
+   "grade": "OFFICIAL, code-level",
+   "source": "research/minimax-h3.md item 3 (tokenize_with_weights(..., disable_weights=True) in comfy/text_encoders/minimax.py@e5a38e3); §Validator changes #1 ('error, not warning')",
+   "rule": "(word:1.2) is inert AND the parentheses can render on-screen",
+   "expect": "hard",
+   "intent": "A neon sign flickers.",
+   "text": "integrated_multimodal_description: [Shot 1] Live-action, a medium shot of a (neon sign:1.4) flickering above a wet alley. The camera holds a static shot as the sign stutters twice and steadies.\n\noverall_soundscape: Rain falls on metal, the sign buzzes, and a distant car passes.\n\nnon_diegetic_music: N/A"
+  },
+  {
+   "key": "minimax",
+   "id": "mm-viol-wildcard",
+   "grade": "OFFICIAL, code-level",
+   "source": "research/minimax-h3.md §Contradicts #6 (ComfyUI's dynamic_prompts=True eats {a|b}); §Validator changes #2",
+   "rule": "{a|b} is expanded by ComfyUI before the model sees it",
+   "expect": "hard",
+   "intent": "A dog on a beach.",
+   "text": "integrated_multimodal_description: [Shot 1] Live-action, a wide shot of a {golden retriever|border collie} running along a wet beach at sunset. The camera tracks left at medium speed beside the dog.\n\noverall_soundscape: Surf breaks steadily, paws splash through shallow water, and gulls call twice.\n\nnon_diegetic_music: N/A"
+  },
+  {
+   "key": "minimaxref",
+   "id": "mmref-gold-p4",
+   "grade": "OFFICIAL-PATTERN",
+   "source": "research/minimax-h3.md §Few-shot gold Pair 4 (six-section Ref2VA)",
+   "rule": "all six sections, narrow reference roles, no ordinal gaps",
+   "expect": "advisory",
+   "intent": "Use a reference camera move, singer, and voice. refs: picture 1 = singer photo, video 1 = dolly zoom clip, audio 1 = voice sample",
+   "text": "subject_definitions:\n<Subject 1> is the singer from <Picture 1>; preserve identity, hairstyle, and clothing.\n<Video 1> supplies only the slow Hitchcock dolly-zoom camera movement.\n<Audio 1> is the voice-timbre reference for <Subject 1> (S1).\n\nsummary:\n[reference generation + audio reference] <Subject 1> sings while the camera movement follows <Video 1> and the vocal timbre references <Audio 1>.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): fully_preserved - identity, hair, and clothing remain unchanged.\n<Video 1> (applies in [Shot 1]): attribute_transfer - only camera movement is transferred.\n<Audio 1>: reference - timbre guides the performance without copying the signal.\n\ndetailed_description:\nThe target video uses realistic concert photography with cool stage light.\n[Shot 1] <Subject 1> (S1) stands center stage and begins singing <d>[Chinese] 别让夜色带走你的名字。</d> in the clear vocal timbre referenced from <Audio 1>. The camera performs the slow dolly zoom from <Video 1> with small amplitude while the singer and stage geometry remain stable.\n\noverall_soundscape:\nLow audience room tone and soft stage-monitor hum continue beneath the voice.\n\nnon_diegetic_music:\nN/A"
+  },
+  {
+   "key": "minimaxref",
+   "id": "mmref-gold-app-example",
+   "grade": "app's own worked example",
+   "source": "TARGETS.minimaxref.system example output",
+   "rule": "the app's own few-shot example must not produce a blocking message",
+   "expect": "advisory",
+   "intent": "the singer from my photo performs with the camera move from my clip, voice like my audio. refs: picture 1 = singer photo, video 1 = dolly zoom clip, audio 1 = voice sample",
+   "text": "subject_definitions:\n<Subject 1> is the singer from <Picture 1>; preserve identity, hairstyle, and clothing.\n<Video 1> supplies only the slow dolly-zoom camera movement.\n<Audio 1> is the voice-timbre reference for <Subject 1> (S1).\n\nsummary:\n[reference generation + audio reference] <Subject 1> sings on a concert stage while the camera movement follows <Video 1> and the vocal timbre references <Audio 1>.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): fully_preserved - identity, hair, and clothing remain unchanged.\n<Video 1> (applies in [Shot 1]): attribute_transfer - only the camera movement is transferred.\n<Audio 1>: reference - timbre guides the performance without copying the signal.\n\ndetailed_description:\nThe target video uses realistic concert photography with cool stage light.\n[Shot 1] <Subject 1> (S1) stands center stage in a single spotlight and begins singing <d>[Chinese] 别让夜色带走你的名字。</d> in the clear vocal timbre referenced from <Audio 1>. The camera performs the slow dolly zoom from <Video 1> with small amplitude while the singer and the stage geometry remain stable; haze drifts slowly through the beam and the microphone cable sways once against the stand.\n\noverall_soundscape:\nLow audience room tone and soft stage-monitor hum continue beneath the voice.\n\nnon_diegetic_music:\nN/A"
+  },
+  {
+   "key": "minimaxref",
+   "id": "mmref-gold-p10-mixed",
+   "grade": "OFFICIAL-PATTERN",
+   "source": "research/minimax-h3.md §Few-shot gold Pair 10 (mixed media, declared conflict winner)",
+   "rule": "soundtrack ordinal precedes its video; every supplied label appears",
+   "expect": "advisory",
+   "intent": "Two characters from separate stills, a camera rhythm from a reference clip, that clip's soundtrack, and one standalone voice reference.",
+   "text": "subject_definitions:\n<Subject 1> is the luthier from <Picture 1>: grey braided hair, wire-rimmed glasses, a canvas apron over a dark green shirt, and a small burn scar on the back of the left hand.\n<Subject 2> is the workshop interior from <Picture 2>: a long maple bench under two north-facing windows, hand planes on a wall rail, and pale shavings on a plank floor.\n<Audio 1> is the soundtrack of <Video 1> and supplies only its tempo and accent placement; none of its instruments, room tone or dialogue are used.\n<Video 1> supplies only the camera rhythm — the timing and length of its slow arc around the bench; its subject, location, colour grade and grain are not used.\n<Audio 2> is the voice-timbre reference for <Subject 1> (S1); its words are not carried into the target video.\n\nsummary:\n[reference generation + audio reference] <Subject 1> works at the bench inside <Subject 2> while the camera follows the arc timing of <Video 1>, the cutting accents fall on the tempo of <Audio 1>, and the spoken line uses the timbre of <Audio 2>. Where <Video 1> and the written lighting direction conflict, the written lighting direction wins.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): fully_preserved - braided grey hair, wire-rimmed glasses, canvas apron and the left-hand scar remain unchanged.\n<Subject 2> (appears in [Shot 1]): fully_preserved - the maple bench, wall rail of planes and the two north windows remain unchanged.\n<Video 1> (applies in [Shot 1]): attribute_transfer - only the arc timing and duration of the camera movement transfer; the colour grade, grain, lighting, subject and location of <Video 1> are not transferred.\n<Audio 1>: weak_reference - only tempo and accent placement guide the timing of the physical action.\n<Audio 2>: reference - timbre, pitch and speaking rate guide the delivery; the original words are not used.\n\ndetailed_description:\nThe target video is in realistic photographic style with cool, even north-window daylight and no warm practical sources.\n[Shot 1] A slow arc shot moves left around the bench with small amplitude at slow speed, matching the arc timing of <Video 1>, while cool daylight stays flat across the shavings and the wall of planes. <Subject 1> (S1) draws a plane along a spruce top in three even strokes, each stroke landing on an accent of <Audio 1>, then lifts the plane, blows the shaving clear, and says in the timbre referenced from <Audio 2>: <d>[English] Two more passes and it will sing.</d> Her lips stop moving immediately after the last word and she tilts the top toward the window to read the light on the surface. The camera completes the arc and holds.\n\noverall_soundscape:\nThree long plane strokes cut across the grain, a shaving curls and drops to the floor, and a single breath clears the surface. A wide quiet room tone with faint street traffic continues outside the windows.\n\nnon_diegetic_music:\nN/A"
+  },
+  {
+   "key": "minimaxref",
+   "id": "mmref-gold-h3p8",
+   "grade": "OFFICIAL-PATTERN, derived",
+   "source": "research/_addenda/h3-deep-dive.md §Few-shot gold Pair 8 (explicit conflict resolution)",
+   "rule": "two pictures, one video, no audio references",
+   "expect": "advisory",
+   "intent": "Character from an image, choreography from a video, deliberate lighting change. refs: picture 1 = dancer, picture 2 = market, video 1 = routine",
+   "text": "subject_definitions:\n<Subject 1> is the dancer whose appearance comes from <Picture 1>: short black hair, a small scar above the right eyebrow, a faded indigo work jacket with sleeves rolled to the elbow.\n<Subject 2> is the empty covered market interior in <Picture 2>, with a steel-framed skylight, lowered shutters, and a bare concrete floor.\n<Video 1> supplies only the choreography and body mechanics of the routine; its own subject, location, grade and grain are not used.\n\nsummary:\n[reference generation] <Subject 1> performs the routine from <Video 1> inside <Subject 2> under cold overhead daylight. Identity comes from <Picture 1>, the environment from <Picture 2>, and only the movement from <Video 1>.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): fully_preserved - hair, scar, and indigo jacket are unchanged.\n<Subject 2> (appears in [Shot 1]): fully_preserved - skylight, shutters, and concrete floor are unchanged.\n<Video 1> (applies in [Shot 1]): attribute_transfer - only the choreography and body mechanics transfer to <Subject 1>; the colour grade, grain, lighting and location of <Video 1> are not transferred.\n\ndetailed_description:\nThe target video is in realistic photographic style with cold, clean overhead daylight.\n[Shot 1] A static wide shot establishes <Subject 2>, the empty covered market, with hard daylight falling through the steel-framed skylight onto bare concrete. <Subject 1> stands at centre frame in the indigo work jacket and begins the routine from <Video 1>, planting the left foot, dropping the right shoulder, and turning through a full rotation before settling into a low stance. The camera holds a static shot throughout while the daylight stays even and cold across the floor.\n\noverall_soundscape:\nShoe soles squeak and scrape on concrete, fabric snaps on each turn, and a wide empty-hall reverb continues throughout.\n\nnon_diegetic_music:\nN/A"
+  },
+  {
+   "key": "minimaxref",
+   "id": "mmref-viol-missing-section",
+   "grade": "OFFICIAL",
+   "source": "research/minimax-h3.md §Validator changes #7 (six field names in order)",
+   "rule": "retention_analysis missing",
+   "expect": "hard",
+   "intent": "refs: picture 1 = singer photo",
+   "text": "subject_definitions:\n<Subject 1> is the singer from <Picture 1>; preserve identity, hairstyle, and clothing.\n\nsummary:\n[reference generation] <Subject 1> sings on a concert stage under a single spotlight.\n\ndetailed_description:\nThe target video uses realistic concert photography with cool stage light.\n[Shot 1] <Subject 1> stands center stage and begins singing while the camera holds a static shot.\n\noverall_soundscape:\nLow audience room tone and soft stage-monitor hum continue beneath the voice.\n\nnon_diegetic_music:\nN/A"
+  },
+  {
+   "key": "minimaxref",
+   "id": "mmref-viol-ordinal-gap",
+   "grade": "OFFICIAL",
+   "source": "research/minimax-h3.md §Validator changes #6 (ordinals number the SUPPLIED assets 1-based per type, with no gaps)",
+   "rule": "<Picture 3> used while <Picture 2> is never referenced",
+   "expect": "hard",
+   "intent": "refs: picture 1 = dancer, picture 3 = market",
+   "text": "subject_definitions:\n<Subject 1> is the dancer from <Picture 1>: short black hair and a faded indigo work jacket.\n<Subject 2> is the covered market interior in <Picture 3>, with a steel-framed skylight and a bare concrete floor.\n\nsummary:\n[reference generation] <Subject 1> dances inside <Subject 2> under cold overhead daylight.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): fully_preserved - hair and jacket are unchanged.\n<Subject 2> (appears in [Shot 1]): fully_preserved - skylight and floor are unchanged.\n\ndetailed_description:\nThe target video is in realistic photographic style with cold overhead daylight.\n[Shot 1] A static wide shot establishes <Subject 2> while <Subject 1> stands at centre frame and begins the routine, planting the left foot, dropping the right shoulder, and turning through a full rotation before settling into a low stance. The camera holds throughout.\n\noverall_soundscape:\nShoe soles scrape on concrete and a wide empty-hall reverb continues.\n\nnon_diegetic_music:\nN/A"
+  },
+  {
+   "key": "minimaxref",
+   "id": "mmref-viol-cap",
+   "grade": "OFFICIAL",
+   "source": "research/minimax-h3.md §Validator changes #6 (local caps 9 images / 3 videos / 6 audio ordinals)",
+   "rule": "<Video 4> exceeds the local cap of 3",
+   "expect": "hard",
+   "intent": "refs: video 1-4",
+   "text": "subject_definitions:\n<Subject 1> is the dancer from <Picture 1>: short black hair and an indigo jacket.\n<Video 1> supplies only the choreography.\n<Video 2> supplies only the camera rhythm.\n<Video 3> supplies only the lighting change.\n<Video 4> supplies only the ending pose.\n\nsummary:\n[reference generation] <Subject 1> performs the routine assembled from the four reference clips.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): fully_preserved - hair and jacket unchanged.\n<Video 1> (applies in [Shot 1]): attribute_transfer - only choreography transfers.\n<Video 2> (applies in [Shot 1]): attribute_transfer - only camera rhythm transfers.\n<Video 3> (applies in [Shot 1]): attribute_transfer - only the lighting change transfers.\n<Video 4> (applies in [Shot 1]): attribute_transfer - only the ending pose transfers.\n\ndetailed_description:\nThe target video is in realistic photographic style with cold overhead daylight.\n[Shot 1] <Subject 1> stands at centre frame and begins the routine, planting the left foot, dropping the right shoulder, and turning through a full rotation before settling into a low stance while the camera holds.\n\noverall_soundscape:\nShoe soles scrape on concrete and a wide empty-hall reverb continues.\n\nnon_diegetic_music:\nN/A"
+  },
+  {
+   "key": "minimaxref",
+   "id": "mmref-viol-no-markers",
+   "grade": "OFFICIAL",
+   "source": "research/minimax-h3.md §Validator suggestions ('at least one definition/retention line per referenced asset')",
+   "rule": "retention_analysis without relationship markers",
+   "expect": "hard",
+   "intent": "refs: picture 1 = singer photo",
+   "text": "subject_definitions:\n<Subject 1> is the singer from <Picture 1>; preserve identity, hairstyle, and clothing.\n\nsummary:\n[reference generation] <Subject 1> sings on a concert stage under a single spotlight.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): identity, hair, and clothing stay the same as in the photo.\n\ndetailed_description:\nThe target video uses realistic concert photography with cool stage light.\n[Shot 1] <Subject 1> stands center stage and begins singing while the camera holds a static shot and haze drifts slowly through the beam.\n\noverall_soundscape:\nLow audience room tone and soft stage-monitor hum continue beneath the voice.\n\nnon_diegetic_music:\nN/A"
+  },
+  {
+   "key": "minimaxref",
+   "id": "mmref-viol-weights",
+   "grade": "OFFICIAL, code-level",
+   "source": "research/minimax-h3.md item 3 (disable_weights=True); §Validator changes #1",
+   "rule": "(word:1.2) on any H3 prompt",
+   "expect": "hard",
+   "intent": "refs: picture 1 = singer photo",
+   "text": "subject_definitions:\n<Subject 1> is the (singer:1.3) from <Picture 1>; preserve identity, hairstyle, and clothing.\n\nsummary:\n[reference generation] <Subject 1> sings on a concert stage under a single spotlight.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): fully_preserved - identity, hair, and clothing remain unchanged.\n\ndetailed_description:\nThe target video uses realistic concert photography with cool stage light.\n[Shot 1] <Subject 1> stands center stage and begins singing while the camera holds a static shot and haze drifts slowly through the beam.\n\noverall_soundscape:\nLow audience room tone and soft stage-monitor hum continue beneath the voice.\n\nnon_diegetic_music:\nN/A"
+  },
+  {
+   "key": "scail",
+   "id": "scail-gold-p1",
+   "grade": "SYNTHESIS",
+   "source": "research/scail2.md §Few-shot gold Pair 1 (animation)",
+   "rule": "final-video description with no edit verbs",
+   "expect": "advisory",
+   "intent": "Animate a girl dancing from a drive video.",
+   "text": "PROMPT: A young woman in a blue pleated dress performs the driving video's dance on the studio floor, maintaining the reference character's face, hairstyle, clothing, and body proportions while following the original timing and full-body movement.\nMODE: Animation — the reference character performs the driving video's motion on her own background.\nYOU STILL NEED: reference image (clean, front-facing), driving video with the desired motion, 704p for pose-driven work, dimensions divisible by 32."
+  },
+  {
+   "key": "scail",
+   "id": "scail-gold-p2",
+   "grade": "OFFICIAL-PATTERN",
+   "source": "research/scail2.md §Few-shot gold Pair 2; also TARGETS.scail.system's own example",
+   "rule": "replacement described as a final video",
+   "expect": "advisory",
+   "intent": "Replace a street violinist with the reference man.",
+   "text": "PROMPT: A blond white man wearing a fitted black suit, black trousers, and leather shoes plays a brown violin on the street. He holds the violin beneath his chin and draws the bow across the strings while pedestrians pass behind him. The original street, daylight, camera framing, and motion trajectory remain unchanged.\nMODE: Replacement — the reference character takes the street performer's place inside the driving video's scene.\nYOU STILL NEED: reference image of the violinist character, the street-performance driving video, a subject mask for Replacement (white background = keep scene), 704p output recommended, dimensions divisible by 32."
+  },
+  {
+   "key": "scail",
+   "id": "scail-gold-p3",
+   "grade": "SYNTHESIS",
+   "source": "research/scail2.md §Few-shot gold Pair 3 (object interaction)",
+   "rule": "tool/hand relationship named; no banned verbs",
+   "expect": "pass",
+   "intent": "Replace a mechanic but preserve work with a wrench.",
+   "text": "PROMPT: A middle-aged East Asian woman with short black hair, orange coveralls, gray gloves, and work boots kneels beside the motorcycle and turns the same steel wrench on the rear axle. She keeps both hands aligned with the tool throughout the source motion. The garage bench, motorcycle, overhead fluorescent light, camera angle, and passing workers remain as in the driving video.\nMODE: Replacement — the reference character takes the mechanic's place inside the driving video's garage.\nYOU STILL NEED: reference image of the mechanic character, the garage driving video, a subject mask for Replacement (white background = keep scene), 704p output recommended, dimensions divisible by 32."
+  },
+  {
+   "key": "scail",
+   "id": "scail-gold-p5-official",
+   "grade": "OFFICIAL",
+   "source": "research/scail2.md §Few-shot gold Pair 5 — verbatim from the official template's CLIPTextEncode (video_wan21_scail2_character_replacement.json node 3)",
+   "rule": "the vendor's own shipped prompt must pass",
+   "expect": "pass",
+   "intent": "Replace the dancer in the coastal driving video with my streetwear reference character.",
+   "text": "PROMPT: A young woman with dark hair tied in a neat high bun, with a few loose strands framing her face, is dancing outdoors on a sunny coastal hillside. She has a normal-sized head and a slim face, with no hat, no headwear, and no oversized hair volume. She wears a fitted black long-sleeve crop top with a shoulder cutout, extremely baggy black cargo pants with straps and pockets, and chunky black combat boots. She performs energetic dance moves with one leg lifted and arms extended, moving naturally in front of a large tree, a small white stone house with a terracotta roof, and a bright blue sea under a clear sky with light clouds.\nMODE: Replacement — the reference character takes the dancer's place inside the driving video's coastal scene.\nYOU STILL NEED: reference image (clean, front-facing), the coastal dance driving video, subject masks for Replacement (white background = keep scene), 704p for pose-driven work, dimensions divisible by 32."
+  },
+  {
+   "key": "scail",
+   "id": "scail-gold-p6-anim-long",
+   "grade": "SYNTHESIS",
+   "source": "research/scail2.md §Few-shot gold Pair 6 (97 words, animation on a clean background)",
+   "rule": "one 90-140 band for BOTH modes (FOLD-IN A19)",
+   "expect": "pass",
+   "intent": "Animate my stylised reference character performing this dance on her own white studio background.",
+   "text": "PROMPT: A young woman with long straight black hair and a blunt fringe performs an energetic dance routine on a seamless white studio floor. Her head is normal-sized and her face is slim, with no hat and no extra hair volume. She wears a fitted sky-blue pleated dress with short sleeves, white ankle socks, and white canvas sneakers. She steps forward, lifts her right knee, extends both arms overhead and turns once on the spot, the pleated skirt swinging with the motion. The plain white backdrop stays clean and evenly lit throughout, the static camera holds a full-body frame, and no other people or objects enter the shot.\nMODE: Animation — the reference character performs the driving motion on her own clean background.\nYOU STILL NEED: reference image (clean, front-facing), driving video with the desired motion, driving mask black and reference mask white for Animation, 704p for pose-driven work, dimensions divisible by 32."
+  },
+  {
+   "key": "scail",
+   "id": "scail-gold-p7-bg-anchor",
+   "grade": "SYNTHESIS + USER-VERIFIED mitigation",
+   "source": "research/scail2.md §Few-shot gold Pair 7 (110 words, concrete background nouns)",
+   "rule": "concrete background nouns defeat Replacement-mode drift",
+   "expect": "pass",
+   "intent": "Replace the walking pedestrian in my street footage with my reference character.",
+   "text": "PROMPT: A bearded South Asian man in his forties wearing a charcoal wool overcoat, a burgundy scarf, dark jeans, and brown leather boots walks along a wet cobblestone street at dusk. He carries a brown leather satchel in his left hand and keeps his right hand in his coat pocket. Behind him a row of shuttered brick shopfronts, a green cast-iron lamppost, a red postbox, and two parked bicycles line the pavement, with warm shop light reflecting in the puddles. The handheld camera tracks him from the left at chest height, and the overcast dusk lighting, the street layout, and his walking trajectory stay exactly as in the source footage.\nMODE: Replacement — the reference character takes the pedestrian's place inside the driving video's street.\nYOU STILL NEED: reference image (clean, front-facing), the street driving video, subject masks for Replacement (driving white, reference black), 704p for pose-driven work, dimensions divisible by 32."
+  },
+  {
+   "key": "scail",
+   "id": "scail-viol-editverb",
+   "grade": "OFFICIAL",
+   "source": "research/scail2.md §Validator suggestions ('reject/strongly warn on replace|swap|edit|mask|segmentation|替换|蒙版'); TARGETS.scail.system ABSOLUTELY BANNED words",
+   "rule": "edit instructions instead of a final-state description",
+   "expect": "hard",
+   "intent": "Swap the dancer for my character.",
+   "text": "PROMPT: Replace the dancer in the driving video with the reference character, then swap her outfit for a blue pleated dress and mask out the original background so only the new character remains visible in the final result.\nMODE: Replacement — the reference character takes the dancer's place.\nYOU STILL NEED: reference image, driving video, subject masks, 704p, dimensions divisible by 32."
+  },
+  {
+   "key": "scail",
+   "id": "scail-viol-banlist-official",
+   "grade": "OFFICIAL",
+   "source": "research/scail2.md §Validator changes #3 ('Extend ban list to the official one … the task is, Gemini, editing software, Photoshop, inpaint, prompt, 分割, 抠图, 修图')",
+   "rule": "the official enhancer's own banned vocabulary",
+   "expect": "hard",
+   "intent": "Put my character into the clip.",
+   "text": "PROMPT: The task is to inpaint the reference character into the driving footage using editing software so that the final frame shows a young woman in a blue pleated dress dancing on the studio floor while the original lighting and camera framing stay the same throughout the clip.\nMODE: Replacement — the reference character takes the dancer's place.\nYOU STILL NEED: reference image, driving video, subject masks, 704p, dimensions divisible by 32."
+  },
+  {
+   "key": "scail",
+   "id": "scail-viol-chinese",
+   "grade": "OFFICIAL",
+   "source": "TARGETS.scail.system ('Always English — the official enhancer outputs English regardless of input language')",
+   "rule": "SCAIL-2 prompt must be English",
+   "expect": "hard",
+   "intent": "把我的角色放进这段街头视频里。",
+   "text": "PROMPT: 一名金发白人男子身穿合体黑色西装、黑色长裤和皮鞋，在街头演奏棕色小提琴。他把琴托在下巴下方，拉弓演奏，行人从身后经过。原视频的街景、日光、机位构图与动作轨迹保持不变。\nMODE: Replacement — the reference character takes the street performer's place.\nYOU STILL NEED: reference image, driving video, subject masks, 704p, dimensions divisible by 32."
+  },
+  {
+   "key": "scail",
+   "id": "scail-viol-toolong",
+   "grade": "OFFICIAL",
+   "source": "research/scail2.md §Validator changes #1 ('warn over ~160 words')",
+   "rule": "PROMPT far past the 90-140 band",
+   "expect": "advisory",
+   "intent": "Replace the performer with my character.",
+   "text": "PROMPT: A bearded South Asian man in his forties wearing a charcoal wool overcoat with wide notched lapels, a burgundy cable-knit scarf wound twice around his neck, dark indigo jeans with a faded crease, and brown leather boots with worn welts walks along a wet cobblestone street at dusk. He carries a brown leather satchel with a brass buckle in his left hand and keeps his right hand deep in his coat pocket. Behind him a long row of shuttered brick shopfronts with painted signage, a green cast-iron lamppost with a fluted base, a red postbox with a black door, two parked bicycles with wicker baskets, and a folded café awning line the pavement, with warm shop light reflecting in the shallow puddles between the stones. A handheld camera tracks him from the left at chest height with a slight sway, and the overcast dusk lighting, the street layout, the reflections in the puddles, and his walking trajectory all stay exactly as they appear in the source footage from the first frame to the last frame of the clip.\nMODE: Replacement — the reference character takes the pedestrian's place.\nYOU STILL NEED: reference image, driving video, subject masks, 704p, dimensions divisible by 32.",
+   "relabelled": "relabelled 2026-09-10: scail2.md §Validator changes #1 says 'WARN over ~160 words'; the blocking tier for SCAIL-2 length is the 512-token text_len cap (#2, 'Block, don't warn'), covered by scail-viol-over512"
+  },
+  {
+   "key": "scail",
+   "id": "scail-viol-nomode",
+   "grade": "OFFICIAL",
+   "source": "TARGETS.scail.system (three labelled parts)",
+   "rule": "MODE: field missing",
+   "expect": "hard",
+   "intent": "Replace a street violinist with the reference man.",
+   "text": "PROMPT: A blond white man wearing a fitted black suit, black trousers, and leather shoes plays a brown violin on the street. He holds the violin beneath his chin and draws the bow across the strings while pedestrians pass behind him. The original street, daylight, camera framing, and motion trajectory remain unchanged.\nYOU STILL NEED: reference image of the violinist character, the street-performance driving video, a subject mask, 704p output recommended."
+  },
+  {
+   "key": "sdxl",
+   "id": "sdxl-gold-p1",
+   "grade": "SYNTHESIS",
+   "source": "research/sdxl.md §Few-shot gold Pair 1; also TARGETS.sdxl.system's own example",
+   "rule": "front-loaded comma keywords under ~60 words plus the generic negative",
+   "expect": "pass",
+   "intent": "Editorial portrait in a cafe.",
+   "text": "Medium portrait of a 38-year-old woman with short auburn curls reading beside a café window, cream wool coat, left hand holding the book, gaze lowered, natural skin texture, warm window side-light, 50mm lens at f/2, muted brown and teal palette, candid editorial photography\n\nNegative prompt: {{SDXL_NEG}}"
+  },
+  {
+   "key": "sdxl",
+   "id": "sdxl-gold-p2",
+   "grade": "SYNTHESIS",
+   "source": "research/sdxl.md §Few-shot gold Pair 2",
+   "rule": "landscape keyword run",
+   "expect": "pass",
+   "intent": "A dramatic desert observatory.",
+   "text": "Wide establishing view of a white astronomical observatory on a red desert ridge, tiny service road in the foreground, layered mesas in the distance, dusk, first stars visible, cool dome light against warm horizon, crisp architectural photography, 24mm lens, balanced negative space\n\nNegative prompt: {{SDXL_NEG}}"
+  },
+  {
+   "key": "sdxl",
+   "id": "sdxl-gold-p3",
+   "grade": "SYNTHESIS",
+   "source": "research/sdxl.md §Few-shot gold Pair 3",
+   "rule": "action/composition keyword run",
+   "expect": "pass",
+   "intent": "Skateboarder above stairs.",
+   "text": "Low-angle full-body photograph of one skateboarder at the peak of a kickflip above a concrete stair set, board fully separated and rotating beneath both feet, arms extended for balance, feet and board visible, crowd confined to soft-focus background, hard afternoon side light, 1/1000-second sports photography\n\nNegative prompt: {{SDXL_NEG}}"
+  },
+  {
+   "key": "sdxl",
+   "id": "sdxl-gold-p4-text",
+   "grade": "SYNTHESIS",
+   "source": "research/sdxl.md §Few-shot gold Pair 4 (text-in-image)",
+   "rule": "quoted exact copy plus layout",
+   "expect": "pass",
+   "intent": "Minimal coffee poster saying OPEN LATE.",
+   "text": "Minimal vertical coffee-shop poster, centered steaming black cup on warm cream paper, large two-line headline “OPEN LATE” at the top in bold condensed dark-green sans serif, small red circle at bottom right, clean Swiss graphic design, generous negative space, no other text\n\nNegative prompt: {{SDXL_NEG}}"
+  },
+  {
+   "key": "sdxl",
+   "id": "sdxl-gold-p6-ragnarok",
+   "grade": "CREATOR-DIALECT",
+   "source": "research/sdxl.md §Few-shot gold Pair 6 (Juggernaut XIII Ragnarok)",
+   "rule": "author's own recipe with its own short negative",
+   "expect": "pass",
+   "intent": "A SFW editorial portrait of an older woman on a Juggernaut XIII Ragnarok checkpoint.",
+   "text": "Photograph of an elderly woman seated by a workshop window, deep wrinkles highlighted by hard side light, wearing a heavy charcoal wool cardigan and a linen collared shirt, hands resting on a worn leather apron, strong shadows across her features, intense and somber mood, detailed skin, realistic texture, mid shot, high resolution\n\nNegative prompt: bad eyes, bad hands, flat lighting, cartoon, low detail, smooth skin, overexposed, deformed, nudity, naked"
+  },
+  {
+   "key": "sdxl",
+   "id": "sdxl-gold-juggernaut-noneg",
+   "grade": "CREATOR (author-stated)",
+   "source": "TARGETS.sdxl.system ('Juggernaut XI / XIII Ragnarok: emit NO negative block'); research/sdxl.md §Verbatim blocks",
+   "rule": "an absent negative is CORRECT for Juggernaut — must not be flagged",
+   "expect": "pass",
+   "intent": "Portrait of a bearded fisherman on Juggernaut XI.",
+   "text": "Close-up portrait of a weathered fisherman in his sixties, salt-crusted beard, yellow oilskin jacket, hands gripping a coiled rope, harbour wall behind him, overcast north light, natural skin texture with visible pores, 85mm lens at f/2.8, muted blue and ochre palette, documentary photography"
+  },
+  {
+   "key": "sdxl",
+   "id": "sdxl-viol-prose",
+   "grade": "OFFICIAL/CREATOR",
+   "source": "TARGETS.sdxl.system ('Comma-separated keywords and short phrases'); research/sdxl.md §Validator suggestions",
+   "rule": "prose instead of a front-loaded keyword run",
+   "expect": "hard",
+   "intent": "A woman reading in a cafe.",
+   "text": "A woman in her late thirties is sitting beside the window of a quiet cafe and reading a hardback book while the afternoon light falls across her shoulder and the room stays warm and softly lit around her.\n\nNegative prompt: {{SDXL_NEG}}"
+  },
+  {
+   "key": "sdxl",
+   "id": "sdxl-viol-toolong",
+   "grade": "CREATOR (Juggernaut author) + OFFICIAL (CLIP chunking)",
+   "source": "TARGETS.sdxl.system ('Keep it under ~60 words (≈75 CLIP tokens)'); research/sdxl.md §Validator suggestions ('Juggernaut: warn above ~75 CLIP tokens')",
+   "rule": "past ~75 tokens the prompt is encoded in non-attending chunks",
+   "expect": "hard",
+   "intent": "A busy market scene.",
+   "text": "Wide documentary photograph of a crowded morning fish market, one vendor in a blue apron weighing mackerel on a brass scale, a second vendor stacking crushed ice, a customer in a red raincoat pointing at the counter, hanging bulbs above the stalls, wet concrete floor with reflections, crates of squid and clams in the foreground, a chalkboard price list on the left, steam rising from a soup pot at the right edge, cold overhead fluorescent light mixed with warm bulb light, 35mm lens at f/4, muted blue and silver palette, crisp photojournalism, natural skin texture, candid expressions, layered depth from foreground to background\n\nNegative prompt: {{SDXL_NEG}}"
+  },
+  {
+   "key": "sdxl",
+   "id": "sdxl-viol-qualitypile",
+   "grade": "OFFICIAL/CREATOR",
+   "source": "TARGETS.sdxl.system ('At most 2 quality words total'); research/sdxl.md §Validator suggestions ('>4 generic quality aliases')",
+   "rule": "quality-tag pile on photoreal SDXL",
+   "expect": "hard",
+   "intent": "A portrait, very high quality.",
+   "text": "masterpiece, best quality, 8k, ultra hd, highly detailed, portrait of a woman with short auburn curls beside a cafe window, cream wool coat, warm side light, 50mm lens\n\nNegative prompt: {{SDXL_NEG}}"
+  },
+  {
+   "key": "sdxl",
+   "id": "sdxl-viol-weights",
+   "grade": "OFFICIAL",
+   "source": "TARGETS.sdxl.system ('At most 1-2 weights … weights are a UI feature and behave differently across A1111/ComfyUI')",
+   "rule": "more than two (word:1.x) weights",
+   "expect": "hard",
+   "intent": "A steaming cup on a table.",
+   "text": "Close-up of a (steaming ceramic cup:1.3) on a dark oak table, (steam rising:1.2), (morning light:1.4), (shallow depth of field:1.2), muted brown palette, 100mm macro lens, natural product photography\n\nNegative prompt: {{SDXL_NEG}}"
+  },
+  {
+   "key": "sdxlAnime",
+   "id": "anime-gold-p5-pony",
+   "grade": "CREATOR-DIALECT",
+   "source": "research/sdxl.md §Few-shot gold Pair 5 (Pony V6)",
+   "rule": "score ladder + exactly one source_* tag, no negative block",
+   "expect": "pass",
+   "intent": "Anime swordswoman on a rooftop, Pony Diffusion V6.",
+   "text": "score_9, score_8_up, score_7_up, source_anime, 1girl, solo, black hair, red eyes, rooftop, holding katana, wind, school uniform, full moon, low angle, dynamic pose, detailed background"
+  },
+  {
+   "key": "sdxlAnime",
+   "id": "anime-gold-p7-noobai",
+   "grade": "CREATOR-DIALECT",
+   "source": "research/sdxl.md §Few-shot gold Pair 7 (NoobAI-XL V-Pred 1.0) — the card's exact prefix and exact negative",
+   "rule": "NoobAI prefix + card negative",
+   "expect": "pass",
+   "intent": "Anime swordswoman on a rooftop, on a NoobAI-XL v-pred checkpoint.",
+   "text": "masterpiece, best quality, newest, absurdres, highres, safe, 1girl, solo, black hair, red eyes, school uniform, holding katana, standing on roof, wind, full moon, night, from below, dynamic pose, detailed background\n\nNegative prompt: nsfw, worst quality, old, early, low quality, lowres, signature, username, logo, bad hands, mutated hands, mammal, anthro, furry, ambiguous form, feral, semi-anthro"
+  },
+  {
+   "key": "sdxlAnime",
+   "id": "anime-gold-p8-illustrious",
+   "grade": "CREATOR-DIALECT ([LORE] prefix, labelled)",
+   "source": "research/sdxl.md §Few-shot gold Pair 8 (Illustrious v3.5-vpred colour control)",
+   "rule": "the masterpiece/best-quality prefix is third-party LORE on Illustrious — a labelled suggestion, not an error",
+   "expect": "advisory",
+   "intent": "Two characters, colour-separated left/right, on Illustrious v3.5-vpred.",
+   "text": "masterpiece, best quality, amazing quality, very aesthetic, newest, safe, 2girls, the girl on the left has long red hair and yellow eyes wearing a blue skirt, the girl on the right has short silver hair and blue pupils wearing a silver dress, standing side by side, rooftop at dusk, high contrast, vibrant colors, very sharp, absurdres, highres\n\nNegative prompt: lowres, bad quality, worst quality, bad anatomy, sketch, jpeg artifacts, ugly, poorly drawn, censor, blurry, watermark, artistic failure, artistic error, bad proportions, bad perspective, displeasing, very displeasing, oldest, child, childish, traditional media"
+  },
+  {
+   "key": "sdxlAnime",
+   "id": "anime-gold-animagine",
+   "grade": "OFFICIAL (Animagine 4.0 card structure)",
+   "source": "TARGETS.sdxlAnime.system ('Animagine 4.0: count tag FIRST … quality tags at the END'); research/sdxl.md §Validator changes (Animagine block)",
+   "rule": "count tag first, quality words last, card negative present",
+   "expect": "pass",
+   "intent": "Anime swordswoman on a rooftop, Animagine XL 4.0.",
+   "text": "1girl, solo, black hair, red eyes, school uniform, holding katana, standing on roof, wind, full moon, night sky, from below, dynamic pose, detailed background, masterpiece, high score, great score, absurdres\n\nNegative prompt: lowres, bad anatomy, bad hands, text, error, missing finger, extra digits, fewer digits, cropped, worst quality, low quality, low score, bad score, average score, signature, watermark, username, blurry"
+  },
+  {
+   "key": "sdxlAnime",
+   "id": "anime-adv-nofamily",
+   "grade": "OFFICIAL (FOLD-IN D1 risk note)",
+   "source": "docs/CHANGELOG-2026-09-10.md deviation 10 ('When no family is detected, every family rule is skipped and a single advisory says so — per the brief, no hard errors on an unknown family')",
+   "rule": "unknown checkpoint family must never produce a blocking message",
+   "expect": "advisory",
+   "intent": "Anime girl on a rooftop at night.",
+   "text": "1girl, solo, silver hair, blue eyes, rooftop, night sky, city lights, school uniform, wind, looking at viewer, from below, detailed background"
+  },
+  {
+   "key": "sdxlAnime",
+   "id": "anime-adv-pony-no-chain",
+   "grade": "CREATOR (card wording is 'much weaker effect', not 'broken')",
+   "source": "research/sdxl.md §Validator changes (Pony V6 block); Pony V6 card ('trained on a combination of natural language prompts and tags')",
+   "rule": "an absent score chain is a quality-scheme miss, not a format error — advisory, not blocking",
+   "expect": "advisory",
+   "intent": "Anime swordswoman on a rooftop, Pony Diffusion V6.",
+   "text": "source_anime, 1girl, solo, black hair, red eyes, rooftop, holding katana, wind, school uniform, full moon, low angle, dynamic pose, detailed background"
+  },
+  {
+   "key": "sdxlAnime",
+   "id": "anime-viol-pony-quality",
+   "grade": "CREATOR (card verbatim)",
+   "source": "Pony V6 card ('does not need other quality modifiers'); research/sdxl.md §Validator changes ('Reject masterpiece|best quality|hd|8k|amazing quality|high score|great score in the positive')",
+   "rule": "cross-family quality vocabulary on Pony V6",
+   "expect": "hard",
+   "intent": "Anime swordswoman, Pony Diffusion V6.",
+   "text": "score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up, source_anime, masterpiece, best quality, 8k, 1girl, solo, black hair, red eyes, rooftop, holding katana, full moon, dynamic pose"
+  },
+  {
+   "key": "sdxlAnime",
+   "id": "anime-viol-pony-two-source",
+   "grade": "CREATOR (card verbatim)",
+   "source": "research/sdxl.md §Validator changes ('Positive MUST contain exactly one source_(anime|furry|pony|cartoon)')",
+   "rule": "two source_* tags",
+   "expect": "hard",
+   "intent": "Anime swordswoman, Pony Diffusion V6.",
+   "text": "score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up, source_anime, source_cartoon, 1girl, solo, black hair, red eyes, rooftop, holding katana, full moon, dynamic pose, detailed background"
+  },
+  {
+   "key": "sdxlAnime",
+   "id": "anime-viol-noobai-prefix",
+   "grade": "CREATOR (card verbatim)",
+   "source": "TARGETS.sdxlAnime.system (NoobAI prefix); research/sdxl.md §Validator changes (NoobAI eps block)",
+   "rule": "NoobAI without its card prefix",
+   "expect": "hard",
+   "intent": "Anime swordswoman on a rooftop, NoobAI-XL eps.",
+   "text": "1girl, solo, black hair, red eyes, school uniform, holding katana, standing on roof, wind, full moon, night, from below, dynamic pose, detailed background\n\nNegative prompt: nsfw, worst quality, old, early, low quality, lowres, signature, username, logo, bad hands, mutated hands, mammal, anthro, furry, ambiguous form, feral, semi-anthro"
+  },
+  {
+   "key": "sdxlAnime",
+   "id": "anime-viol-animagine-order",
+   "grade": "CREATOR (card verbatim)",
+   "source": "research/sdxl.md §Validator changes ('Quality words MUST be at the END: error if masterpiece|high score|great score|absurdres appears before the last third')",
+   "rule": "Animagine quality words front-loaded",
+   "expect": "hard",
+   "intent": "Anime swordswoman on a rooftop, Animagine XL 4.0.",
+   "text": "masterpiece, high score, great score, absurdres, 1girl, solo, black hair, red eyes, school uniform, holding katana, standing on roof, wind, full moon, night sky, from below, dynamic pose, detailed background\n\nNegative prompt: lowres, bad anatomy, bad hands, text, error, missing finger, extra digits, fewer digits, cropped, worst quality, low quality, low score, bad score, average score, signature, watermark, username, blurry"
+  },
+  {
+   "key": "sdxlAnime",
+   "id": "anime-viol-vpred-karras",
+   "grade": "CREATOR (card verbatim, 'error' per the corpus)",
+   "source": "research/sdxl.md §Validator changes (NoobAI v-pred block: 'Scheduler MUST NOT be karras — error, cite the card'); FOLD-IN D4",
+   "rule": "a Karras schedule requested on a v-pred checkpoint",
+   "expect": "hard",
+   "intent": "Anime swordswoman on NoobAI-XL v-pred 1.0, DPM++ 2M Karras, 30 steps.",
+   "text": "masterpiece, best quality, newest, absurdres, highres, safe, 1girl, solo, black hair, red eyes, school uniform, holding katana, standing on roof, wind, full moon, night, from below, dynamic pose, detailed background\n\nNegative prompt: nsfw, worst quality, old, early, low quality, lowres, signature, username, logo, bad hands, mutated hands, mammal, anthro, furry, ambiguous form, feral, semi-anthro"
+  },
+  {
+   "key": "sdxlAnime",
+   "id": "anime-viol-ponyv7-text",
+   "grade": "CREATOR (card verbatim)",
+   "source": "research/sdxl.md §Validator changes (Pony V7 block: 'Reject any request for rendered text in the image')",
+   "rule": "rendered text is out of scope for Pony V7",
+   "expect": "hard",
+   "intent": "Pony V7 poster with a slogan.",
+   "text": "score_9, 1girl, solo, holding a banner that reads \"SPRING FESTIVAL\", rooftop, night sky, school uniform, dynamic pose, detailed background"
+  },
+  {
+   "key": "flux",
+   "id": "flux-gold-p1-en",
+   "grade": "SYNTHESIS",
+   "source": "research/flux.md §Few-shot gold Pair 1 (EN); also TARGETS.flux.system's own example",
+   "rule": "subject+action first, 30-80 words, no negatives",
+   "expect": "pass",
+   "intent": "Analog portrait of a florist.",
+   "text": "A florist in her early forties trims eucalyptus stems at a narrow workbench, candid three-quarter portrait, sage apron over a white linen shirt, buckets of wildflowers behind her, soft north-window light, shot on Kodak Portra 400 with a 50mm lens, natural grain and restrained color."
+  },
+  {
+   "key": "flux",
+   "id": "flux-gold-p1-zh",
+   "grade": "SYNTHESIS",
+   "source": "research/flux.md §Few-shot gold Pair 1 (ZH); TARGETS.flux.system ('native Chinese prose for Chinese scenes is officially encouraged')",
+   "rule": "Chinese prose must not trip the English word band",
+   "expect": "pass",
+   "intent": "花艺师的胶片质感肖像。",
+   "text": "一位四十岁左右的花艺师在狭窄工作台前修剪尤加利枝，三分之四身纪实肖像，鼠尾草绿色围裙配白色亚麻衬衫，身后摆放几桶野花，北窗柔光，柯达 Portra 400 胶片质感，50mm 镜头，自然颗粒与克制色彩。"
+  },
+  {
+   "key": "flux",
+   "id": "flux-gold-p2",
+   "grade": "SYNTHESIS",
+   "source": "research/flux.md §Few-shot gold Pair 2",
+   "rule": "front-loaded subject/action with an explicit split composition",
+   "expect": "pass",
+   "intent": "Whale seen half above and below water.",
+   "text": "A humpback whale dives beside a small research boat, cinematic long shot with the camera exactly half underwater and half above the surface; sunlit waves and boat occupy the upper third, the whale's full body descends through clear deep-blue water below, natural caustics, wide-angle underwater photography."
+  },
+  {
+   "key": "flux",
+   "id": "flux-gold-p3",
+   "grade": "SYNTHESIS",
+   "source": "research/flux.md §Few-shot gold Pair 3",
+   "rule": "local attribute binding, positive background control",
+   "expect": "pass",
+   "intent": "Chef tossing noodles in a wok.",
+   "text": "A street-food chef tosses noodles high above a black steel wok, orange flame curling around the pan, one hand gripping the handle and the other holding a long ladle, low three-quarter camera at counter height, customers only in the softly blurred background, crisp frozen motion, humid night market, warm tungsten and cyan sign light."
+  },
+  {
+   "key": "flux",
+   "id": "flux-gold-p4-text",
+   "grade": "OFFICIAL-PATTERN",
+   "source": "research/flux.md §Few-shot gold Pair 4; TARGETS.flux.system ('The exact phrase \"no other text\" is allowed for text layouts')",
+   "rule": "'no other text' must NOT trip the negative-phrasing rule",
+   "expect": "pass",
+   "intent": "Branded opening-hours sign.",
+   "text": "Minimal cream storefront sign. The large headline text “OPEN LATE” appears centered in bold condensed serif lettering, color #C43A2F. Directly below, small text reads “FRI—SUN · 6 PM—1 AM” in dark charcoal. Thin #1F6B55 border, even spacing, straight-on product photograph, no other text."
+  },
+  {
+   "key": "flux",
+   "id": "flux-gold-p5-klein",
+   "grade": "OFFICIAL-PATTERN",
+   "source": "research/flux.md §Few-shot gold Pair 5 (klein slot template, 62 words)",
+   "rule": "slot-ordered comma run for a single subject",
+   "expect": "pass",
+   "intent": "A directed portrait on klein 4B.",
+   "text": "Portrait, a lighthouse keeper in her sixties with deep crow's feet and cropped grey hair, on a wet basalt jetty at the end of a storm, documentary editorial photography, 85mm lens at f/2, hard low sun breaking through cloud from camera right, palette of slate grey, oxidised copper and pale sea green, fine salt spray and film grain, wind-flattened oilskin collar and gulls low behind her."
+  },
+  {
+   "key": "flux",
+   "id": "flux-gold-p6-kleinbase",
+   "grade": "OFFICIAL-PATTERN",
+   "source": "research/flux.md §Few-shot gold Pair 6 (klein Base, relational sentences)",
+   "rule": "relational sentences with positive exclusions",
+   "expect": "pass",
+   "intent": "A multi-object spatial scene on klein Base 4B.",
+   "text": "A brass orrery stands on a walnut desk beside a half-drunk cup of tea, its rings tilted so the small gilt sun sits directly above the cup. Behind the desk, tall sash windows throw long parallel shadows across the floorboards toward the viewer, and a folded map lies on the left edge of the desk with one corner hanging over the side. Late afternoon light, warm brass and cool blue-grey shadows, sharp focus throughout, clean uncluttered surfaces, muted period-accurate interior photography."
+  },
+  {
+   "key": "flux",
+   "id": "flux-viol-negative",
+   "grade": "OFFICIAL",
+   "source": "TARGETS.flux.system ('NO negative prompt of any kind'); research/flux.md §Validator changes ('Negative handling, split by variant')",
+   "rule": "distilled Flux runs CFG-free",
+   "expect": "hard",
+   "intent": "A quiet street at dawn.",
+   "text": "An empty cobbled street at dawn with mist between the buildings, a single lit bakery window on the left, wet stones reflecting the warm glow, shot on 35mm film with natural grain.\n\nNegative prompt: people, cars, blurry, watermark"
+  },
+  {
+   "key": "flux",
+   "id": "flux-viol-weights",
+   "grade": "OFFICIAL",
+   "source": "TARGETS.flux.system ('NEVER use weighting syntax like (word:1.3) — not parsed')",
+   "rule": "weighting syntax on Flux",
+   "expect": "hard",
+   "intent": "A red door in a white wall.",
+   "text": "A weathered (red door:1.4) set into a whitewashed stone wall, brass handle catching the late sun, a terracotta pot of rosemary on the step beside it, straight-on architectural photograph with soft shadows and natural color."
+  },
+  {
+   "key": "flux",
+   "id": "flux-viol-qualitytags",
+   "grade": "OFFICIAL",
+   "source": "TARGETS.flux.system ('NEVER use quality meta-tags (masterpiece, best quality, 8k) — pure noise')",
+   "rule": "quality meta-tags on Flux",
+   "expect": "hard",
+   "intent": "A mountain lake, very detailed.",
+   "text": "masterpiece, best quality, 8k, a still alpine lake at first light with pine shadows on the far shore, a wooden jetty running out from the near bank, thin mist over the water, wide landscape photograph with natural color and fine detail."
+  },
+  {
+   "key": "flux",
+   "id": "flux-viol-negphrase",
+   "grade": "OFFICIAL",
+   "source": "TARGETS.flux.system ('Phrase exclusions positively: \"an empty street\", \"a clean background\"'); research/flux.md §Validator suggestions",
+   "rule": "negative phrasing ('no/without') outside the 'no other text' carve-out",
+   "expect": "hard",
+   "intent": "A tidy desk.",
+   "text": "A walnut desk under a window with no clutter and without any papers, a single brass lamp at the left edge, an open notebook at the centre, warm late-afternoon light across the grain, straight-on interior photograph with muted color."
+  },
+  {
+   "key": "flux",
+   "id": "flux-viol-blocks",
+   "grade": "OFFICIAL",
+   "source": "TARGETS.flux.system ('Output ONLY the paragraph'); research/flux.md §Validator suggestions (one flowing paragraph)",
+   "rule": "multiple blocks instead of one paragraph",
+   "expect": "hard",
+   "intent": "A florist at work.",
+   "text": "A florist in her early forties trims eucalyptus stems at a narrow workbench, candid three-quarter portrait, sage apron over a white linen shirt.\n\nBuckets of wildflowers behind her, soft north-window light, shot on Kodak Portra 400 with a 50mm lens, natural grain and restrained color."
+  },
+  {
+   "key": "zimage",
+   "id": "zimg-gold-p1-en",
+   "grade": "OFFICIAL-PATTERN",
+   "source": "research/z-image.md §Few-shot gold Pair 1 (EN)",
+   "rule": "concrete relational description",
+   "expect": "pass",
+   "intent": "Chinese woman in Hanfu holding a fan, neon lightning above her palm.",
+   "text": "A young Chinese woman wears deep-red Hanfu with intricate gold embroidery and holds a round folding fan painted with a lady, trees, and a bird. Her elaborate high bun carries a gold phoenix headdress, red flowers, and hanging beads. A bright yellow lightning-bolt neon lamp floats above her extended left palm. Soft night lighting, blurred colored lights, and the silhouetted Xi'an Giant Wild Goose Pagoda behind her; sharp face and textile detail."
+  },
+  {
+   "key": "zimage",
+   "id": "zimg-gold-p1-zh",
+   "grade": "OFFICIAL-PATTERN",
+   "source": "research/z-image.md §Few-shot gold Pair 1 (ZH); also TARGETS.zimage.system's own example",
+   "rule": "Chinese prose must not trip English word counts",
+   "expect": "pass",
+   "intent": "汉服女子手持团扇，掌上悬浮霓虹闪电。",
+   "text": "一名年轻中国女子身穿深红色汉服，金线刺绣细密，手持一把绘有仕女、树木与飞鸟的圆形团扇。高髻上佩戴金色凤凰头饰、红花与垂珠。她伸出的左手掌上方悬浮一盏明亮的黄色闪电形霓虹灯。夜间柔光，远处彩灯虚化，西安大雁塔呈剪影；面部与织物细节清晰。"
+  },
+  {
+   "key": "zimage",
+   "id": "zimg-gold-p2-en",
+   "grade": "SYNTHESIS",
+   "source": "research/z-image.md §Few-shot gold Pair 2 (EN) — 47 words",
+   "rule": "a short gold pair must not be blocked; the 80-300 band is craft guidance, not a documented error",
+   "expect": "advisory",
+   "intent": "Chinese ink landscape in album format.",
+   "text": "Song-dynasty-inspired album-leaf landscape on aged silk, layered blue-green mountains rising from large areas of blank mist, one narrow waterfall, a single dark wooden skiff on the lower-left river, mineral pigments with fine gongbi outlines, restrained ink texture, square composition, no people and no text."
+  },
+  {
+   "key": "zimage",
+   "id": "zimg-gold-p3-en",
+   "grade": "SYNTHESIS",
+   "source": "research/z-image.md §Few-shot gold Pair 3 (EN)",
+   "rule": "exact count, anatomy, bounded blur",
+   "expect": "pass",
+   "intent": "Dancer with fabric frozen in motion.",
+   "text": "One contemporary dancer turns counterclockwise at center stage, right foot planted and left leg extended, a cobalt silk ribbon forming one complete arc from her raised right hand to the floor. Low frontal camera, full body and both feet visible, empty black stage, hard white side light from camera left, crisp fabric texture with slight motion blur only at the ribbon tip."
+  },
+  {
+   "key": "zimage",
+   "id": "zimg-gold-p4-zh",
+   "grade": "SYNTHESIS",
+   "source": "research/z-image.md §Few-shot gold Pair 4 (ZH)",
+   "rule": "native glyphs and layout in Chinese",
+   "expect": "advisory",
+   "intent": "中文书店海报。",
+   "text": "暖象牙色纸张上的竖版书店海报。顶部中央以大号朱红色宋体清晰写“春日书市”，下方较小的黑字写“四月二十日 · 城南旧书店”。一片绿色银杏叶压住左下边框。活版印刷质感，留白充足，无其他文字、标志或水印。",
+   "relabelled": "relabelled 2026-09-10: 84 Han characters is under the 120-450 craft band, so the (now advisory) thin note is correct behaviour"
+  },
+  {
+   "key": "zimage",
+   "id": "zimg-gold-p5-zh",
+   "grade": "OFFICIAL-PATTERN",
+   "source": "research/z-image.md §Few-shot gold Pair 5 (ZH) — the vendor's own Base anti-bleed pattern",
+   "rule": "per-subject clause form, ~250 Han characters",
+   "expect": "pass",
+   "intent": "两名年轻男性并肩站在旧书店门前，服装不同，不要属性串味。",
+   "text": "两名年轻男性并肩站在旧书店门前，背景为深绿色木质门框与磨旧的黄铜门把手。左侧男性戴细框圆形眼镜，留短寸头，身穿灰蓝色粗针毛衣，内搭白色圆领衫，下身深棕色灯芯绒长裤；左手夹着一本厚精装书，右手插在口袋里。右侧男性未戴眼镜，留中长卷发扎于脑后，身穿砖红色工装夹克，内搭米白色条纹衬衫，下身水洗蓝牛仔裤；双手各提一只帆布袋。两人均侧身面向镜头微笑。照片，午后侧逆光，柔和阴影，以灰蓝、砖红、米白为主的中性色调，纪实人像摄影，中等景深，两人面部同时清晰对焦，无其他人物出现在画面中。"
+  },
+  {
+   "key": "zimage",
+   "id": "zimg-gold-p5-en",
+   "grade": "OFFICIAL-PATTERN",
+   "source": "research/z-image.md §Few-shot gold Pair 5 (EN)",
+   "rule": "multi-subject anti-bleed in English",
+   "expect": "pass",
+   "intent": "Two young men, distinct outfits, no attribute swap.",
+   "text": "Two young men stand shoulder to shoulder in front of an old bookshop, against a dark-green wooden door frame with a worn brass handle. The man on the left wears thin round glasses and a short crew cut, a grey-blue chunky knit sweater over a white crew-neck tee, dark brown corduroy trousers; a thick hardback book is tucked under his left arm and his right hand is in his pocket. The man on the right wears no glasses, mid-length curly hair tied back, a brick-red work jacket over an off-white striped shirt, washed blue jeans; he carries one canvas tote in each hand. Both are turned three-quarters toward the camera, smiling. Photograph, late-afternoon side-backlight, soft shadows, a neutral palette of grey-blue, brick red and off-white, documentary portraiture, medium depth of field, both faces in sharp focus at once, no other people in the frame."
+  },
+  {
+   "key": "zimage",
+   "id": "zimg-gold-p6-positive",
+   "grade": "LORE-PATTERN (positive half is plain Z-Image prose)",
+   "source": "research/z-image.md §Few-shot gold Pair 6 (positive only — the NegPiP negative goes into a node socket, never into the prompt)",
+   "rule": "positive-rephrase anti-gloss route",
+   "expect": "advisory",
+   "intent": "Suppress a plastic-render look on Turbo.",
+   "text": "A weathered fisherman mends a green nylon net on a concrete quay at dawn, thick knuckles and split fingernails visible, salt-stained yellow oilskin bibs, low horizontal light from the right, matte skin with visible pores, documentary photograph, 50mm, medium depth of field."
+  },
+  {
+   "key": "zimage",
+   "id": "zimg-viol-negative",
+   "grade": "OFFICIAL",
+   "source": "TARGETS.zimage.system ('Turbo: guidance 0.0, NO negative prompt — guidance 0 skips the negative branch entirely')",
+   "rule": "negative prompt on Z-Image Turbo",
+   "expect": "hard",
+   "intent": "A fisherman on a quay.",
+   "text": "A weathered fisherman mends a green nylon net on a concrete quay at dawn, thick knuckles and split fingernails visible, salt-stained yellow oilskin bibs, low horizontal light from the right, matte skin with visible pores, documentary photograph, 50mm, medium depth of field.\n\nNegative prompt: 多余的人物, 面部变形, 手部畸形, 文字, 水印"
+  },
+  {
+   "key": "zimage",
+   "id": "zimg-viol-metatags",
+   "grade": "OFFICIAL",
+   "source": "TARGETS.zimage.system ('STRICTLY BANNED: quality meta-tags (\"8K\", \"masterpiece\", \"ultra HD\", \"best quality\")'); research/z-image.md prompt guide",
+   "rule": "meta-tags are officially banned in Z-Image's prompt guide",
+   "expect": "hard",
+   "intent": "A very high quality portrait.",
+   "text": "8K masterpiece, ultra HD portrait of a young woman in a grey linen shirt seated at a wooden table beside a window, both hands resting around a white ceramic cup, north light from the left across her face, shelves of books softly out of focus behind her, muted grey-green palette, documentary photography."
+  },
+  {
+   "key": "zimage",
+   "id": "zimg-viol-zh-toolong",
+   "grade": "OFFICIAL + STAFF",
+   "source": "research/z-image.md §Validator changes ('warn above 480 tokens … ~450 Han characters'); staff remedy max_sequence_length=1024",
+   "rule": "past ~450 Han characters the 512-token default truncates the tail silently",
+   "expect": "hard",
+   "intent": "一幅极其详细的市集长卷。",
+   "text": "清晨的南方老街市集，青石板路面被夜雨打湿，反射出摊位上悬挂的暖黄灯泡的光。画面左侧是一间豆腐摊，木质案板上码着三排白色嫩豆腐，旁边的铝盆里泡着黄豆，摊主是一名五十岁上下的男性，穿深蓝色围裙，双手正把一块豆腐切成方块。画面中景是一位卖鱼的中年女性，穿墨绿色胶皮围裙和长筒雨靴，站在两只蓝色塑料盆之间，盆里游着鲫鱼和草鱼，水面不断被鱼尾搅动。她左手扶着秤杆，右手把一条鱼放进红色塑料袋。画面右侧有一辆三轮车，车斗里装满带泥的白萝卜和青翠的小葱，车把上挂着一杆老式弹簧秤和一叠折好的编织袋。远处是两排两层高的砖木老屋，屋檐下挂着腊肉和干辣椒串，二楼的木窗半开，晾衣绳上挂着蓝白格子的床单。地面上散落着几片菜叶和一个压扁的纸箱，一只黄狸猫沿着墙根小跑。整体光线为清晨侧逆光，色调偏冷灰而摊位灯光偏暖，写实纪实摄影风格，中等景深，前景摊位清晰，远处屋檐轻微虚化，画面中没有出现任何文字招牌以外的标语。画面最左端还有一间竹编器具铺，门口斜靠着六只大小不一的圆形竹筛，筛面泛着旧竹的黄褐色，旁边的木架上挂着十余只竹编提篮和两把新扎的扫帚，店主是一位穿灰色对襟布衫的老年男性，正低头用篾刀削一根细长的竹条，脚边散落着一小堆竹屑。他身后的墙上钉着一排铁钉，钉上挂着卷尺、麻绳和一顶褪色的草帽。"
+  },
+  {
+   "key": "qwenimg",
+   "id": "qwen-gold-p1-en",
+   "grade": "SYNTHESIS",
+   "source": "research/qwen-image.md §Few-shot gold Pair 1 (EN); also TARGETS.qwenimg.system's own example",
+   "rule": "the app's own worked portrait example must not be blocked for lacking the no-text sentinel",
+   "expect": "advisory",
+   "intent": "Portrait of a ceramic artist.",
+   "text": "A 34-year-old East Asian woman, ceramic artist, with an oval face, warm brown almond-shaped eyes, light freckles, and black hair in a loose low bun. She wears an indigo linen work shirt, clay-stained beige apron, small silver studs, and no other jewelry. Seated upright at a pottery wheel, she looks down and cups a wet white bowl with both hands. North-window light from camera left reveals natural skin and damp clay texture; shelves of unfired vessels remain softly focused behind her.\n\nNegative prompt: {{QWENIMG_NEG}}"
+  },
+  {
+   "key": "qwenimg",
+   "id": "qwen-gold-p1-zh",
+   "grade": "SYNTHESIS",
+   "source": "research/qwen-image.md §Few-shot gold Pair 1 (ZH)",
+   "rule": "Chinese portrait prose must not trip English word counts",
+   "expect": "advisory",
+   "intent": "陶艺师肖像。",
+   "text": "一名34岁的东亚女性陶艺师，椭圆脸，暖棕色杏眼，面颊有浅淡雀斑，黑发松松挽成低髻。她身穿靛蓝色亚麻工作衫和沾有陶泥的米色围裙，只戴小巧银色耳钉。她端坐在拉坯机前，低头注视双手捧住的湿润白色陶碗。画面左侧北窗光呈现自然肤质与潮湿陶泥纹理，身后未烧制器皿的置物架柔和虚化。\n\nNegative prompt: {{QWENIMG_NEG}}"
+  },
+  {
+   "key": "qwenimg",
+   "id": "qwen-gold-p2-en",
+   "grade": "SYNTHESIS",
+   "source": "research/qwen-image.md §Few-shot gold Pair 2 (EN)",
+   "rule": "'no people and no text' satisfies the no-text requirement",
+   "expect": "pass",
+   "intent": "Rainy old Beijing bookstore street.",
+   "text": "A rainy winter lane in old Beijing, two adjacent shops with blue-gray tiled roofs and vermilion walls, warm paper lanterns under the eaves, damp cobblestones reflecting soft overcast light. The left shop is a bookstore with dark wooden shelves visible through the window; the right is a flower shop with red camellias. Eye-level wide composition, restrained gray-red palette, realistic architectural photography, the image contains no recognizable text.\n\nNegative prompt: {{QWENIMG_NEG}}"
+  },
+  {
+   "key": "qwenimg",
+   "id": "qwen-gold-p4-zh-text",
+   "grade": "OFFICIAL-PATTERN",
+   "source": "research/qwen-image.md §Few-shot gold Pair 4 (ZH); also TARGETS.qwenimg.system's own second example",
+   "rule": "every visible string quoted verbatim in Chinese",
+   "expect": "pass",
+   "intent": "寻猫启事海报。",
+   "text": "一张贴在浅蓝色风化木墙上的撕边寻猫海报。顶部中央以粗黑体写“寻猫启事”。灰色公猫照片居中，照片下方两行文字分别为“名字：灰仔”和“右耳缺角，走路微跛”。底部红字写“如有见到，请联系：138-0000-0000”。左下角手写日期“4月5日”。层级清晰，纸张纤维真实，无其他文字。\n\nNegative prompt: {{QWENIMG_NEG}}"
+  },
+  {
+   "key": "qwenimg",
+   "id": "qwen-gold-p6-zh-infographic",
+   "grade": "OFFICIAL-PATTERN",
+   "source": "research/qwen-image.md §Few-shot gold Pair 6 (ZH); X4 sentinel 图像中未出现其他文字。",
+   "rule": "the official ZH no-text sentinel must be accepted",
+   "expect": "pass",
+   "intent": "葡萄酒酒标讲解幻灯片。",
+   "text": "一张现代风格的演示幻灯片，采用深藏青色渐变背景。顶部居中以白色无衬线粗体写着“如何看懂葡萄酒酒标”。下方左侧是一只写实的葡萄酒瓶，呈四分之三侧视，米白色纸质酒标被左上方柔和的方向光照亮。四条细青色引线从酒标连向右侧竖排的四个圆角矩形，框内各一行白色文字，从上到下依次写着：“1. 酒庄——博蒙城堡”“2. 产区——上梅多克”“3. 年份——2019”“4. 酒精度——13.5% vol”。底部居中有一行灰色小字：“仅为正标；背标因市场而异。”版式干净，留白充足，藏青与青色配色克制，图像中未出现其他文字。\n\nNegative prompt: {{QWENIMG_NEG}}"
+  },
+  {
+   "key": "qwenimg",
+   "id": "qwen-gold-p6-en-infographic",
+   "grade": "OFFICIAL-PATTERN",
+   "source": "research/qwen-image.md §Few-shot gold Pair 6 (EN); §Validator changes #1 ('text|general → no upper bound')",
+   "rule": "a dense-text prompt must not be blocked for length",
+   "expect": "pass",
+   "intent": "A one-slide how-to-read-a-wine-label explainer with real copy.",
+   "text": "A modern presentation slide on a deep navy gradient background. Centered at the top, bold white sans-serif text reads \"How to Read a Wine Label\". Below it, a photorealistic bottle stands on the left at three-quarter view, its cream paper label lit by soft directional light from the upper left. Four thin cyan leader lines run from the label to four rounded rectangles stacked on the right, each holding one line of white text: \"1. Producer — Château Beaumont\", \"2. Appellation — Haut-Médoc\", \"3. Vintage — 2019\", \"4. Alcohol — 13.5% vol\". A single line of small grey text sits centered at the bottom: \"Front label only; back labels vary by market.\" Clean layout, generous margins, restrained navy-and-cyan palette, no other text.\n\nNegative prompt: {{QWENIMG_NEG}}"
+  },
+  {
+   "key": "qwenimg",
+   "id": "qwen-gold-p8-en-antiai",
+   "grade": "OFFICIAL-PATTERN",
+   "source": "research/qwen-image.md §Few-shot gold Pair 8 (EN) — 2512's own anti-AI-look idiom",
+   "rule": "ends with the official English sentinel",
+   "expect": "pass",
+   "intent": "A believable candid photo of an older tradesman, not a glossy render.",
+   "text": "A 62-year-old Portuguese man, a boat carpenter, broad-shouldered, with a square face, deep crow's feet, a grey stubbled beard, sun-weathered olive skin with visible pores and a healed scar on his left thumb. He wears a faded blue cotton work shirt with rolled sleeves and a canvas apron dusted with sawdust. He stands at a bench in an open boatshed, one hand resting on a half-planed cedar plank, head turned slightly toward the doorway, mouth closed in a plain, unposed expression. Lighting is ordinary overcast daylight from the open doors — no staged lighting, no rim light — and the image resembles a casual phone snapshot: unpretentious composition, natural colour, high clarity. The image contains no recognizable text.\n\nNegative prompt: {{QWENIMG_NEG}}"
+  },
+  {
+   "key": "qwenimg",
+   "id": "qwen-gold-p7-edit",
+   "grade": "OFFICIAL-PATTERN + STAFF-PATTERN",
+   "source": "research/qwen-image.md §Few-shot gold Pair 7 (Edit-2511 text replacement); §Validator changes #7 (edit-prompt structure)",
+   "rule": "an edit prompt carries no negative block and is judged as an edit",
+   "expect": "pass",
+   "intent": "Edit this photo: change the shop sign from BAKERY to 面包坊, keep everything else.",
+   "text": "Replace the text \"BAKERY\" on the shop awning with \"面包坊\". Keep the original serif letterforms' weight and the same warm cream color, keep the text centered on the awning at the same size, and keep the awning's stripes, the shopfront, the window display, the pavement and the daylight exactly as they are. Change nothing else in the image."
+  },
+  {
+   "key": "qwenimg",
+   "id": "qwen-gold-p5-edit-multi",
+   "grade": "OFFICIAL-PATTERN",
+   "source": "research/qwen-image.md §Few-shot gold Pair 5 (multi-image edit); §Validator suggestions ('Edit: require operation + target + result')",
+   "rule": "one role per indexed image, explicit preservation",
+   "expect": "pass",
+   "intent": "Edit: put the dress from image 2 on the woman in image 1 and use the pose from image 3.",
+   "text": "Dress the woman from image 1 in the black silk dress from image 2 and place her in the seated pose from image 3. Preserve her face, age, hairstyle, skin tone, and the background and lighting of image 1. Keep the dress's neckline, long sleeves, fabric sheen, and ankle length exactly as shown in image 2; maintain natural anatomy and contact with the chair."
+  },
+  {
+   "key": "qwenimg",
+   "id": "qwen-viol-noneg",
+   "grade": "OFFICIAL",
+   "source": "TARGETS.qwenimg.system ('Then a blank line, then exactly: Negative prompt: …'); research/qwen-image.md (2512's official anti-AI-look negative list)",
+   "rule": "missing the official negative block on a T2I prompt",
+   "expect": "hard",
+   "intent": "Portrait of a ceramic artist.",
+   "text": "A 34-year-old East Asian woman, ceramic artist, with an oval face, warm brown almond-shaped eyes, light freckles, and black hair in a loose low bun. She wears an indigo linen work shirt and a clay-stained beige apron. Seated upright at a pottery wheel, she looks down and cups a wet white bowl with both hands. The image contains no recognizable text."
+  },
+  {
+   "key": "qwenimg",
+   "id": "qwen-viol-magicsuffix",
+   "grade": "OFFICIAL",
+   "source": "TARGETS.qwenimg.system ('Do NOT append \"Ultra HD, 4K, cinematic composition\" — that suffix is officially retired'); research/qwen-image.md §Validator changes #5 (gate to 2512)",
+   "rule": "the retired magic suffix on a 2512 prompt",
+   "expect": "hard",
+   "intent": "Portrait of a ceramic artist on Qwen-Image 2512.",
+   "text": "A 34-year-old East Asian woman, ceramic artist, seated upright at a pottery wheel, she looks down and cups a wet white bowl with both hands. North-window light from camera left reveals natural skin and damp clay texture. The image contains no recognizable text. Ultra HD, 4K, cinematic composition\n\nNegative prompt: {{QWENIMG_NEG}}"
+  },
+  {
+   "key": "qwenimg",
+   "id": "qwen-viol-text-placeholder",
+   "grade": "OFFICIAL",
+   "source": "TARGETS.qwenimg.system ('never use placeholders like \"a list of features\"'); research/qwen-image.md §Validator suggestions ('reject vague placeholders')",
+   "rule": "text requested but no exact string quoted",
+   "expect": "hard",
+   "intent": "A cafe menu board with the day's specials written on it.",
+   "text": "A dark slate menu board propped beside a cafe door, with a list of the day's specials written across it in white chalk lettering, a small chalk drawing of a coffee cup at the bottom, warm morning light from the left, shallow depth of field, documentary photograph.\n\nNegative prompt: {{QWENIMG_NEG}}"
+  },
+  {
+   "key": "qwenimg",
+   "id": "qwen-viol-wrongneg",
+   "grade": "OFFICIAL",
+   "source": "TARGETS.qwenimg.system (the negative must be the official anti-AI-look Chinese list)",
+   "rule": "a substituted negative list",
+   "expect": "hard",
+   "intent": "Portrait of a ceramic artist.",
+   "text": "A 34-year-old East Asian woman, ceramic artist, seated upright at a pottery wheel, she looks down and cups a wet white bowl with both hands. North-window light from camera left reveals natural skin and damp clay texture. The image contains no recognizable text.\n\nNegative prompt: lowres, bad hands, watermark, blurry"
+  },
+  {
+   "key": "krea2",
+   "id": "krea-gold-p5-charart",
+   "grade": "OFFICIAL-PATTERN",
+   "source": "research/_addenda/krea-character-art.md §Few-shot gold Pair 5 (descriptor-slot order, ~135 words)",
+   "rule": "medium-first character art on a locked flat background",
+   "expect": "advisory",
+   "intent": "Painterly full-body game character on a keyable flat background.",
+   "text": "A stylized digital painting of one village herbalist, full-body, facing the viewer. Muted sage green, dust ochre and oxblood: a faded sage-green wool coat over a dust-ochre tunic, scuffed oxblood leather boots. The silhouette is tall and narrow, the coat squared at the shoulders and flaring below the hip. Matte, dry pigment texture with expressive thick brushstrokes and a subtle paper grain, no specular highlights on the skin. One figure only, no text anywhere in the image. She stands straight and symmetrical, arms relaxed and held slightly away from the body, palms forward, feet shoulder-width apart, the whole figure from head to boots inside the frame with clear margin above and below. A worn leather satchel hangs at her right hip. Behind her, a solid flat magenta background, uniform bright magenta filling the entire frame, no environment, no floor line, no cast shadow, even flat lighting across the character.",
+   "relabelled": "relabelled 2026-09-10: 149 words is outside the 80-140 craft band, so the (now advisory) length note is correct behaviour"
+  },
+  {
+   "key": "krea2",
+   "id": "krea-gold-p7-official25",
+   "grade": "OFFICIAL",
+   "source": "research/_addenda/krea-character-art.md §Few-shot gold Pair 7 — verbatim prompt #25 of the vendor's 36 widget pairs (60 words)",
+   "rule": "a 60-word vendor prompt is inside the official distribution (median 101.5, min 10) — length is craft guidance, not a rule",
+   "expect": "advisory",
+   "intent": "A single expressive character isolated on a flat solid colour.",
+   "text": "A dynamic digital painting of a joyful girl in a sailor uniform stretching her arms high against a solid vibrant blue background. She has short dark windblown hair, amber eyes, and a bright smile. She wears a white shirt, striped blue collar, flowing red neckerchief, and a billowing blue pleated skirt. Expressive thick brushstrokes and bold shading emphasize energetic motion."
+  },
+  {
+   "key": "krea2",
+   "id": "krea-gold-p8-familyA",
+   "grade": "OFFICIAL",
+   "source": "research/_addenda/krea-character-art.md §Few-shot gold Pair 8 — verbatim prompt #6 of 36 (199 words, medium disclosed at 64%, trailing style tail)",
+   "rule": "the vendor's family-A format falsifies 'LEAD WITH THE MEDIUM' and the 80-140 band simultaneously (X1, X2, X6)",
+   "expect": "advisory",
+   "intent": "Describe the finished image, style request appended as a tail.",
+   "text": "A young woman with fair skin and blonde hair styled in curls sits on the floor of a vast, empty opera hall. She is dressed in a fluffy, light pink tutu and a white lace shawl draped over her shoulders. Her legs are extended forward, and her hands rest on her lap. The opera hall features rows of empty, plush red velvet seats arranged in a circular pattern around a central floor area. Ornate balconies with decorative railings line the upper levels, and large, elaborate chandeliers hang from the high ceiling, casting a soft glow. The image has a soft, romantic, and slightly ethereal aesthetic, with a sense of grandeur and emptiness. The composition is centered on the woman, with the vastness of the opera hall surrounding her. The medium appears to be a painting, rendered with visible brushstrokes and a soft focus. The camera angle is a medium shot, slightly elevated, looking down towards the woman. The color palette is dominated by pastels, especially pinks, whites, and creams, with touches of deep red from the seats and gold from the chandeliers and ceiling. The lighting is soft and diffused, creating gentle shadows and highlights., impressionist painting, visible brushstrokes"
+  },
+  {
+   "key": "krea2",
+   "id": "krea-gold-p9-flatcolour",
+   "grade": "OFFICIAL",
+   "source": "research/_addenda/krea-character-art.md §Few-shot gold Pair 9 — verbatim prompt #21 of 36 (122 words)",
+   "rule": "medium leads, negative space stated as a positive compositional fact",
+   "expect": "pass",
+   "intent": "Matte print-like flatness with deliberate empty space.",
+   "text": "A minimalist flat-color illustration of a person wading through expansive shallow ocean waves beneath a pale peach sky. The dark-skinned figure, wearing an orange swim cap, light blue top, and bright green shorts, steps carefully through knee-deep water. The ocean is rendered in muted mint green with delicate, thin black linework detailing the continuous ripples and gentle whitecaps. Soft pinkish-peach reflections echo the sky on the water's surface. A dark, jagged rock rests in the lower left foreground near a pale grey shoreline. The horizon features a solid purplish-blue landmass and a stylized, layered yellow and blue cloud. The high-angle wide perspective emphasizes the vast negative space of the water, utilizing a clean ligne claire drawing aesthetic with a subtle paper texture."
+  },
+  {
+   "key": "krea2",
+   "id": "krea-gold-official17-short",
+   "grade": "OFFICIAL",
+   "source": "research/_addenda/krea-character-art.md §2026-09-10 harvest, prompt #17 of 36 — the vendor's shortest published prompt (10 words)",
+   "rule": "a ten-word official prompt must not be blocked",
+   "expect": "advisory",
+   "intent": "Extreme close-up of a rocket exhaust plume.",
+   "text": "immense rocket launch exhaust as seen from extremely close up"
+  },
+  {
+   "key": "krea2",
+   "id": "krea-gold-official30-pitchblack",
+   "grade": "OFFICIAL",
+   "source": "research/_addenda/krea-character-art.md §2026-09-10 harvest, prompt #30 of 36",
+   "rule": "'pitch-black background' is the vendor's own background lock wording",
+   "expect": "advisory",
+   "intent": "Extreme close-up macro editorial portrait with gold ribbons.",
+   "text": "An extreme close-up portrait featuring pale, freckled skin and a single blue eye wrapped in reflective metallic gold ribbons. Thin gold strips crisscross diagonally over the cheek and forehead, casting sharp, hard shadows onto the face. Strands of copper hair frame the top edge while the left ear softly blurs out of focus. Harsh, direct lighting highlights intricate skin pores and bright golden reflections, isolating the brightly lit features against a pitch-black background in a bold, high-contrast macro editorial style."
+  },
+  {
+   "key": "krea2",
+   "id": "krea-gold-official31-long",
+   "grade": "OFFICIAL",
+   "source": "research/_addenda/krea-character-art.md §2026-09-10 harvest, prompt #31 of 36 (193 words)",
+   "rule": "a 193-word official prompt is inside the vendor's published spread (max 230)",
+   "expect": "advisory",
+   "intent": "A menacing jester in a stylized digital painting.",
+   "text": "Stylized digital painting of a menacing jester figure rendered with bold, expressive brushstrokes and a vibrant, almost psychedelic color palette against a pitch-black background. Dynamic low-angle perspective forces a dramatic, imposing composition as the character leans forward, one leg raised high. The jester wears a classic multi-pointed hat with bells, a ruffled collar, puffed sleeves, harlequin-patterned shorts in muted gold and dark brown, and striped tights in alternating shades of purple, blue, and chartreuse. A heavily textured, flowing cape billows outward to the left, decorated with abstract, fluid patterns of saturated purples, greens, and iridescent hues resembling oil slicks or marbled paper. The figure's face is completely obscured, appearing as a smooth, faceless, pale mauve mask with a single, glowing bright white point of light in the center. In its right hand, clad in a grey-blue gauntlet, the jester grips a massive, ornate sword with a wide, glowing, ethereal white blade, its crossguard intricately sculpted. Lighting is dramatic and theatrical, casting strong shadows and highlighting the painterly texture, giving the artwork a dark fantasy, surreal aesthetic reminiscent of concept art."
+  },
+  {
+   "key": "krea2",
+   "id": "krea-gold-official23-crimson",
+   "grade": "OFFICIAL",
+   "source": "research/_addenda/krea-character-art.md §2026-09-10 harvest, prompt #23 of 36 (77 words, no medium word)",
+   "rule": "4 of 36 official prompts never name a medium at all (X2)",
+   "expect": "advisory",
+   "intent": "Close-up portrait on a solid crimson background.",
+   "text": "A close-up portrait of a young East Asian woman with straight black hair, loose strands sweeping across her fair skin, and an intense gaze. She wears a light grey collared shirt with a black tie. A vibrant bouquet of pink and orange lilies with lush green leaves sits in the blurred right foreground. The background is a solid, striking crimson red. Soft, directional studio lighting highlights her facial features, creating a high-contrast composition with a shallow depth of field."
+  },
+  {
+   "key": "krea2",
+   "id": "krea-viol-negative",
+   "grade": "OFFICIAL",
+   "source": "TARGETS.krea2.system ('NO negative prompt'); research/_addenda/krea-character-art.md §2.4",
+   "rule": "a negative prompt on Krea 2",
+   "expect": "hard",
+   "intent": "A painterly knight character.",
+   "text": "A stylized digital painting of a young knight standing upright in a relaxed neutral pose, arms slightly away from her body, feet shoulder-width apart, both boots fully visible in frame. She wears a forest-green belted tunic over olive-brown trousers and tall oxblood leather boots. Solid flat magenta background, flat graphic design.\n\nNegative prompt: blurry, extra fingers, watermark"
+  },
+  {
+   "key": "krea2",
+   "id": "krea-viol-weights",
+   "grade": "OFFICIAL, code-level",
+   "source": "TARGETS.krea2.system ('the stock Krea 2 tokenizer does not parse it at all, so \"(red:1.3)\" lands in the prompt as LITERAL TEXT'); FOLD-IN A28",
+   "rule": "weighting syntax lands as literal text",
+   "expect": "hard",
+   "intent": "A painterly knight character with a very red cloak.",
+   "text": "A stylized digital painting of a young knight standing upright in a relaxed neutral pose, arms slightly away from her body, feet shoulder-width apart, both boots fully visible in frame. She wears a forest-green belted tunic, tall oxblood leather boots, and a (deep red cloak:1.3) hanging from her left shoulder. Solid flat magenta background, flat graphic design; the figure floats with no cast shadow."
+  },
+  {
+   "key": "krea2",
+   "id": "krea-viol-qualitytags",
+   "grade": "OFFICIAL",
+   "source": "TARGETS.krea2.system ('No quality meta-tags'); krea-character-art.md C5 ('Zero occurrences of masterpiece, best quality, 8k … across all 36')",
+   "rule": "quality meta-tags are absent from every official Krea prompt",
+   "expect": "hard",
+   "intent": "A painterly knight, best quality.",
+   "text": "A stylized digital painting, masterpiece, best quality, 8k, of a young knight standing upright in a relaxed neutral pose, arms slightly away from her body, feet shoulder-width apart, both boots fully visible in frame. She wears a forest-green belted tunic over olive-brown trousers. Solid flat magenta background, flat graphic design."
+  },
+  {
+   "key": "krea2",
+   "id": "krea-viol-over512",
+   "grade": "OFFICIAL (encoder.py max_length = 512) + TESTED (cliff at 576-640)",
+   "source": "research/_addenda/krea-character-art.md §Validator changes ('>512 = error, not warning … no tokenizer available → warn above 2,500 characters'); FOLD-IN D5",
+   "rule": "past the 512 conditioning positions Krea's own encoder truncates and ComfyUI does not",
+   "expect": "hard",
+   "intent": "An extremely long painterly scene description.",
+   "text": "A stylized digital painting with visible brushstrokes and a matte, dry pigment finish of a crowded harbour market at first light, rendered in muted sage green, dust ochre, oxblood and bone-white. On the left, a fishmonger in a sage-green oilskin apron leans over a shallow wooden tray of silver sardines, his sleeves rolled to the elbow and his forearms streaked with brine. Beside him a boy in a dust-ochre jersey holds a bucket in both hands, his knuckles pale where he grips the handle, and a grey cat sits on the crate behind him with its tail curled around its feet. In the middle distance three fishing boats are tied along the quay, their hulls oxblood below the waterline and bone-white above it, ropes slack against the bollards, nets heaped on the foredecks in loose coils. A woman in a bone-white headscarf walks between the stalls carrying a flat basket of bread on her hip, and two gulls stand on the roof of the nearest awning watching the trays. Further back, a low stone wall runs the length of the quay, broken by a flight of worn steps that drops to the water, and beyond it the harbour mouth opens onto a flat grey sea under a pale, even sky. The stalls are roofed with faded canvas in alternating stripes, their poles lashed with twine, and beneath them the ground is wet and littered with scales, ice and torn paper. Crates of mussels, whelks and langoustines are stacked three deep along the front of each stall, each crate labelled with a chalk scrawl, and a set of brass scales hangs from a hook above the central table with a copper pan swinging slightly. The light is early and low, coming from the right, catching the wet stone and the edges of the trays and leaving the interiors of the stalls in soft shadow. Matte surface, no specular highlights, dry pigment finish, subtle paper texture, visible brushstrokes throughout, expressive thick marks on the figures and thinner washes on the water and the sky, a readable silhouette for every figure, and a muted earthy palette held to sage green, dust ochre, oxblood and bone-white with a single cool grey for the sea and the sky. The palette is held to four names throughout and every surface is described by its mark-making rather than by its finish: the water is thin washes with a dry-brush edge where it meets the stone, the canvas awnings are flat blocks with a single darker stripe scumbled across each one, the crates are built from short square strokes, the fish are struck in with one loaded stroke each and a bone-white highlight dragged along the flank, the gulls are two marks apiece, and the figures are laid in with broad opaque strokes over a warm ground that stays visible at every edge. No specular highlights anywhere, no glass, no chrome, no lens flare, no bloom, and no smooth gradients; the sky is a single flat wash broken only by the paper grain showing through."
+  },
+  {
+   "key": "krea2",
+   "id": "krea-adv-reference",
+   "grade": "OFFICIAL (encoder cost) + SYNTHESIS (the arithmetic)",
+   "source": "research/_addenda/krea-character-art.md §Validator changes ('Reference-image budget … (h/32)·(w/32)+2 tokens per reference'); FOLD-IN B5",
+   "rule": "a reference image spends the same 512-position budget — advisory, because the harness cannot see attachments",
+   "expect": "advisory",
+   "intent": "Use my reference image of the character and keep the same outfit.",
+   "text": "A stylized digital painting of the same village herbalist from the reference image, full-body, facing the viewer, in a faded sage-green wool coat over a dust-ochre tunic and scuffed oxblood leather boots. Matte, dry pigment texture with expressive thick brushstrokes and a subtle paper grain. She stands straight and symmetrical, arms relaxed and held slightly away from the body, feet shoulder-width apart, the whole figure inside the frame. Behind her, a solid flat magenta background with no cast shadow and no ground plane."
+  },
+  {
+   "key": "scail",
+   "id": "scail-viol-over512",
+   "grade": "OFFICIAL (text_len = 512 UMT5 tokens)",
+   "source": "research/scail2.md §Validator changes #2 ('Hard cap: 512 UMT5 tokens (text_len = 512). Block, don't warn, above it')",
+   "rule": "past the encoder's text_len the tail is silently truncated",
+   "expect": "hard",
+   "intent": "Replace the pedestrian with my character.",
+   "text": "PROMPT: A bearded South Asian man in his forties wearing a charcoal wool overcoat with wide notched lapels, a burgundy cable-knit scarf wound twice around his neck, dark indigo jeans and brown leather boots walks along a wet cobblestone street at dusk, passing a row of shuttered brick shopfronts, a green cast-iron lamppost, a red postbox and two parked bicycles. A bearded South Asian man in his forties wearing a charcoal wool overcoat with wide notched lapels, a burgundy cable-knit scarf wound twice around his neck, dark indigo jeans and brown leather boots walks along a wet cobblestone street at dusk, passing a row of shuttered brick shopfronts, a green cast-iron lamppost, a red postbox and two parked bicycles. A bearded South Asian man in his forties wearing a charcoal wool overcoat with wide notched lapels, a burgundy cable-knit scarf wound twice around his neck, dark indigo jeans and brown leather boots walks along a wet cobblestone street at dusk, passing a row of shuttered brick shopfronts, a green cast-iron lamppost, a red postbox and two parked bicycles. A bearded South Asian man in his forties wearing a charcoal wool overcoat with wide notched lapels, a burgundy cable-knit scarf wound twice around his neck, dark indigo jeans and brown leather boots walks along a wet cobblestone street at dusk, passing a row of shuttered brick shopfronts, a green cast-iron lamppost, a red postbox and two parked bicycles. A bearded South Asian man in his forties wearing a charcoal wool overcoat with wide notched lapels, a burgundy cable-knit scarf wound twice around his neck, dark indigo jeans and brown leather boots walks along a wet cobblestone street at dusk, passing a row of shuttered brick shopfronts, a green cast-iron lamppost, a red postbox and two parked bicycles. A bearded South Asian man in his forties wearing a charcoal wool overcoat with wide notched lapels, a burgundy cable-knit scarf wound twice around his neck, dark indigo jeans and brown leather boots walks along a wet cobblestone street at dusk, passing a row of shuttered brick shopfronts, a green cast-iron lamppost, a red postbox and two parked bicycles. A bearded South Asian man in his forties wearing a charcoal wool overcoat with wide notched lapels, a burgundy cable-knit scarf wound twice around his neck, dark indigo jeans and brown leather boots walks along a wet cobblestone street at dusk, passing a row of shuttered brick shopfronts, a green cast-iron lamppost, a red postbox and two parked bicycles. A bearded South Asian man in his forties wearing a charcoal wool overcoat with wide notched lapels, a burgundy cable-knit scarf wound twice around his neck, dark indigo jeans and brown leather boots walks along a wet cobblestone street at dusk, passing a row of shuttered brick shopfronts, a green cast-iron lamppost, a red postbox and two parked bicycles. \nMODE: Replacement — the reference character takes the pedestrian's place.\nYOU STILL NEED: reference image, driving video, subject masks, 704p, dimensions divisible by 32."
+  },
+  {
+   "key": "flux",
+   "id": "flux-adv-complex-scene",
+   "grade": "OFFICIAL (BFL band) + arXiv 2606.03715 (relational structure)",
+   "source": "research/flux.md §Validator changes ('Word-band targets stay 30-80 (medium) with 80-300 allowed for genuinely complex scenes')",
+   "rule": "a genuinely complex multi-object scene above 80 words must not be blocked",
+   "expect": "pass",
+   "intent": "A complex market scene with many bound attributes.",
+   "text": "A copper-domed bandstand stands at the centre of a evening market square, and eight stalls radiate from it in two curved rows. The nearest stall on the left sells cut flowers, its zinc buckets holding white peonies and pale blue delphiniums, and the vendor in a green canvas apron ties a bunch with brown twine. Directly opposite, a baker in a white coat stacks dark rye loaves into a wicker basket, and a small chalkboard leans against the basket's foot. Behind the bandstand, four brass players face inward under a string of warm bulbs, and their shadows fall long across the wet flagstones toward the viewer. Late blue hour light, warm bulb light against cool sky, shallow depth of field on the flower stall, documentary photography on 35mm film with fine grain and restrained colour."
+  },
+  {
+   "key": "flux",
+   "id": "flux-viol-past-encoder-cap",
+   "grade": "OFFICIAL (diffusers/ComfyUI max_sequence_length=512)",
+   "source": "research/flux.md §Validator changes ('Warn above 480 tokens; the diffusers/ComfyUI default is max_sequence_length=512 with silent truncation')",
+   "rule": "past ~480 tokens the tail is truncated silently",
+   "expect": "hard",
+   "intent": "An extremely long scene description.",
+   "text": "A copper-domed bandstand stands at the centre of a evening market square, and eight stalls radiate from it in two curved rows. The nearest stall on the left sells cut flowers, its zinc buckets holding white peonies and pale blue delphiniums, and the vendor in a green canvas apron ties a bunch with brown twine. Directly opposite, a baker in a white coat stacks dark rye loaves into a wicker basket, and a small chalkboard leans against the basket's foot. Behind the bandstand, four brass players face inward under a string of warm bulbs, and their shadows fall long across the wet flagstones toward the viewer. Late blue hour light, warm bulb light against cool sky, shallow depth of field on the flower stall, documentary photography on 35mm film with fine grain and restrained colour. The stall at the far right sells preserved lemons in glass jars, each jar labelled in a small round hand, and a grey cat sleeps on the crate beside them. The stall at the far right sells preserved lemons in glass jars, each jar labelled in a small round hand, and a grey cat sleeps on the crate beside them. The stall at the far right sells preserved lemons in glass jars, each jar labelled in a small round hand, and a grey cat sleeps on the crate beside them. The stall at the far right sells preserved lemons in glass jars, each jar labelled in a small round hand, and a grey cat sleeps on the crate beside them. The stall at the far right sells preserved lemons in glass jars, each jar labelled in a small round hand, and a grey cat sleeps on the crate beside them. The stall at the far right sells preserved lemons in glass jars, each jar labelled in a small round hand, and a grey cat sleeps on the crate beside them. The stall at the far right sells preserved lemons in glass jars, each jar labelled in a small round hand, and a grey cat sleeps on the crate beside them. The stall at the far right sells preserved lemons in glass jars, each jar labelled in a small round hand, and a grey cat sleeps on the crate beside them. The stall at the far right sells preserved lemons in glass jars, each jar labelled in a small round hand, and a grey cat sleeps on the crate beside them. The stall at the far right sells preserved lemons in glass jars, each jar labelled in a small round hand, and a grey cat sleeps on the crate beside them. The stall at the far right sells preserved lemons in glass jars, each jar labelled in a small round hand, and a grey cat sleeps on the crate beside them. The stall at the far right sells preserved lemons in glass jars, each jar labelled in a small round hand, and a grey cat sleeps on the crate beside them. The stall at the far right sells preserved lemons in glass jars, each jar labelled in a small round hand, and a grey cat sleeps on the crate beside them. The stall at the far right sells preserved lemons in glass jars, each jar labelled in a small round hand, and a grey cat sleeps on the crate beside them. "
+  }
+ ]
+}
