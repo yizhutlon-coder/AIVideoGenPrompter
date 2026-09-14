@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meta Inspector — read the recipe inside a ComfyUI output</title>
+<style>
+  :root{--bg:#14161a;--panel:#1b1e24;--panel2:#232730;--border:#2f3540;--text:#e7eaee;
+    --dim:#99a2af;--accent:#7fa3c7;--green:#7cc494;--warn:#d8a75f;--err:#e07a7a;--accent-fg:#0f151c;--accent-tint:rgba(127,163,199,.12);
+    --font-heading:'Barlow Condensed','Arial Narrow','Helvetica Neue Condensed',system-ui,sans-serif;
+    --font-body:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;--mono:ui-monospace,Consolas,'SF Mono',Menlo,monospace;}
+  [data-theme="light"]{
+    --bg:#f2f2f3; --panel:#ffffff; --panel2:#ebecee; --border:#d3d6da;
+    --text:#1d1f20; --dim:#5b636d; --accent:#48708f; --green:#1f6f3f; --warn:#8a5a14; --err:#a83232;
+    --accent-fg:#ffffff; --accent-tint:rgba(72,112,143,.09);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:14px/1.55 var(--font-body);}
+  .app{max-width:980px;margin:0 auto;padding:22px 20px 60px;}
+  h1{font-size:19px;margin:0 0 4px;font-family:var(--font-heading);letter-spacing:.4px;}
+  h2{font-size:12px;margin:0 0 8px;font-family:var(--font-heading);text-transform:uppercase;letter-spacing:1.2px;color:var(--dim);}
+  .sub{color:var(--dim);font-size:13px;margin:0 0 16px;}
+  .uses,.limits{background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:12px 16px 10px;margin:0 0 12px;font-size:12.5px;line-height:1.55;}
+  .uses{border-left:3px solid var(--green);} .limits{border-left:3px solid var(--warn);margin-bottom:16px;}
+  .uses b,.limits b{color:var(--text);}
+  .uses>b,.limits>b{font-family:var(--font-heading);text-transform:uppercase;letter-spacing:.8px;font-size:12px;}
+  .uses ul,.limits ul{margin:6px 0 0;padding-left:18px;color:var(--dim);}
+  .uses li,.limits li{margin:3px 0;}
+  .uses code,.limits code{font-family:var(--mono);font-size:11px;background:var(--panel2);padding:0 4px;border-radius:3px;}
+  .drop{display:block;border:2px dashed var(--border);border-radius:4px;padding:30px 24px;text-align:center;color:var(--dim);cursor:pointer;transition:border-color .15s;}
+  .drop.over{border-color:var(--accent);color:var(--text);background:var(--accent-tint);}
+  .drop b{color:var(--text);font-size:15px;}
+  .drop .fmts{font-family:var(--mono);font-size:11.5px;margin-top:8px;opacity:.85;}
+  .drop input{display:none}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:14px;margin-top:14px;}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+  button{background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:8px 14px;font-size:13px;cursor:pointer;}
+  button:hover{border-color:var(--accent);}
+  button.primary{background:var(--accent);color:var(--accent-fg);border:none;font-weight:700;}
+  button.sm{padding:3px 9px;font-size:11.5px;}
+  button:disabled{opacity:.45;cursor:not-allowed;}
+  pre{background:var(--panel2);border:1px solid var(--border);border-radius:4px;padding:12px;font-family:var(--mono);font-size:12px;
+    white-space:pre-wrap;word-break:break-word;margin:8px 0 0;max-height:420px;overflow:auto;}
+  .hint{font-size:12px;color:var(--dim);margin-top:8px;}
+  .warn{color:var(--warn);} .err{color:var(--err);} .ok{color:var(--green);}
+  .verdict{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-radius:4px;border:1px solid var(--border);background:var(--panel);margin-top:14px;}
+  .verdict .ic{font-size:22px;line-height:1;}
+  .verdict b{font-size:14.5px;}
+  .verdict ul{margin:6px 0 0;padding-left:18px;font-size:12.5px;color:var(--dim);}
+  .filehead{display:flex;gap:14px;align-items:center;margin-top:14px;}
+  .filehead .thumb{width:96px;height:96px;object-fit:cover;border-radius:4px;border:1px solid var(--border);background:#000;flex:none;}
+  .filehead .meta{font-size:12.5px;color:var(--dim);line-height:1.6;}
+  .filehead .meta b{color:var(--text);font-size:14px;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:12px;margin-top:12px;}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:12px 14px;min-width:0;}
+  .card.wide{grid-column:1 / -1;}
+  .card .val{font-size:13.5px;}
+  .card .val.mono{font-family:var(--mono);font-size:12px;word-break:break-all;}
+  .card .big{font-size:17px;font-weight:700;}
+  .ptxt{background:var(--panel2);border:1px solid var(--border);border-radius:4px;padding:10px 12px;font-size:13px;white-space:pre-wrap;word-break:break-word;max-height:260px;overflow:auto;}
+  .ptxt.neg{opacity:.85;}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  th{text-align:left;color:var(--dim);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.6px;padding:4px 6px;border-bottom:1px solid var(--border);}
+  td{padding:5px 6px;border-bottom:1px solid var(--border);vertical-align:top;word-break:break-all;}
+  td.mono{font-family:var(--mono);font-size:12px;}
+  tr:last-child td{border-bottom:none;}
+  .tag{display:inline-block;background:var(--panel2);border:1px solid var(--border);border-radius:3px;padding:1px 7px;font-size:11.5px;font-family:var(--mono);margin:2px 3px 2px 0;}
+  .tag.core{opacity:.7;} .tag.custom{border-color:var(--warn);color:var(--warn);}
+  details{margin-top:8px;} summary{cursor:pointer;font-size:12.5px;color:var(--accent);user-select:none;}
+  .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+  .foot{margin-top:28px;font-size:11.5px;color:var(--dim);line-height:1.65;border-top:1px solid var(--border);padding-top:14px;}
+  .foot code{font-family:var(--mono);font-size:11px;background:var(--panel2);padding:0 4px;border-radius:3px;}
+  #toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);background:var(--accent);color:var(--accent-fg);padding:9px 16px;border-radius:4px;font-weight:600;font-size:13px;opacity:0;transition:.2s;pointer-events:none;z-index:9;}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+  [data-theme="light"] button.primary{color:var(--accent-fg);}
+</style>
+<script>
+(function(){
+  function applyTheme(){
+    var t = 'auto'; try { t = localStorage.getItem('ps_theme') || 'auto'; } catch(e){}
+    var sysLight = window.matchMedia ? matchMedia('(prefers-color-scheme: light)').matches : false;
+    var light = t === 'light' || (t === 'auto' && sysLight);
+    document.documentElement.setAttribute('data-theme', light ? 'light' : 'dark');
+  }
+  function applyZoom(){
+    var z = 100; try { z = +(localStorage.getItem('ps_zoom') || 100); } catch(e){}
+    document.documentElement.style.zoom = z / 100;
+  }
+  applyTheme(); applyZoom();
+  window.addEventListener('storage', function(e){ if (!e.key || e.key === 'ps_theme') applyTheme(); if (!e.key || e.key === 'ps_zoom') applyZoom(); });
+  if (window.matchMedia) { try { matchMedia('(prefers-color-scheme: light)').addEventListener('change', applyTheme); } catch(e){} }
+})();
+</script>
+</head>
+<body>
+<div class="app">
+  <h1>🔎 Meta Inspector</h1>
+  <p class="sub">Every ComfyUI output carries its own recipe — the exact prompt, model files, LoRAs, seed and sampler, plus the whole node graph. Drop one here to read it. Nothing is uploaded; the file is parsed inside this page.</p>
+
+  <div class="uses">
+    <b>What it is for</b>
+    <ul>
+      <li><b>"Which one worked?"</b> After a big batch, drop the keepers here. Each file names its own seed, prompt, steps, CFG, sampler and LoRA strengths — compare two outputs side by side and you can see what actually changed between a hit and a miss, instead of guessing from memory.</li>
+      <li><b>Recreate or edit a success.</b> Download the workflow and drag it onto ComfyUI, or use <em>Reload settings into workflow export</em> to reopen it in Prompt Studio with everything pre-filled — then change exactly one thing (seed, wording, a LoRA strength) and run again.</li>
+      <li><b>Collaborate or teach.</b> Two machines with the same models installed can pass a single output file back and forth and both have the complete recipe. For classrooms or chat apps that strip images, the <em>Recipe bundle</em> sends the same thing as text: a readable <code>recipe.txt</code> checklist plus the workflow JSON.</li>
+      <li><b>Learn from other people's work.</b> An original ComfyUI output from a colleague or a Civitai <em>Download</em> shows their real prompt and settings — including which custom node packs you would need before their graph will run.</li>
+    </ul>
+  </div>
+
+  <div class="limits">
+    <b>What this can and cannot do — read first</b>
+    <ul>
+      <li><b>It only works on the original file.</b> Metadata lives in the file's bytes, not its pixels. Copy-paste of an image, screenshots, Discord/Reddit/X/Instagram/messenger uploads, and the <em>displayed</em> image on Civitai all re-encode and lose it. Moving or zipping the file keeps it; on Civitai only the post's <b>Download</b> button does.</li>
+      <li><b>Nothing is stored if the creator turned it off.</b> ComfyUI's <code>--disable-metadata</code> (Desktop: "Disable saving prompt metadata in files") writes no recipe at all. Preview Image never writes files. Some custom save nodes have their own toggle.</li>
+      <li><b>The recipe is not the ingredients.</b> You get model, LoRA and input <em>filenames</em> — never the weights, the input image's pixels, or the custom node packs. To reproduce a result you need the same files under the same names. LoRA trigger words are not stored anywhere unless they were typed into the prompt.</li>
+      <li><b>Reconstruction is best-effort.</b> Positive/negative labels, sampler settings and model family are inferred from the graph. Core nodes are reliable; unusual custom nodes or graphs saved without the API <code>prompt</code> field may show gaps or raw widget lists. The raw JSON at the bottom is always the ground truth.</li>
+      <li><b>It proves nothing.</b> Embedded metadata is plain editable text — a recipe, not a signature. It cannot tell you who made a file or whether it was altered.</li>
+    </ul>
+  </div>
+
+  <label class="drop" id="drop">
+    <b>Drop a ComfyUI output here</b> — or click to browse, or paste (Ctrl+V) workflow JSON text
+    <div class="fmts">PNG · WebP · JPEG · MP4 / MOV · WebM / MKV · .latent / .safetensors · workflow or API .json</div>
+    <input type="file" id="fileIn" multiple>
+  </label>
+
+  <div id="out"></div>
+
+  <div class="foot">
+    <b>Where the data lives.</b> ComfyUI's built-in save nodes write two JSON blobs unless the server runs with <code>--disable-metadata</code>:
+    <code>prompt</code> (the executed API graph — every node's inputs, so prompt text, model filenames, LoRA names and strengths, seed, steps, CFG, sampler, sizes) and
+    <code>workflow</code> (the full canvas: same values plus layout, links, notes and subgraphs — the file ComfyUI reloads when you drag an image onto it).
+    PNG keeps them in <code>tEXt</code> chunks, animated WebP in EXIF tags, MP4/WebM as container tags, <code>.latent</code>/<code>.safetensors</code> in the header. Typical size: 10–60 KB per output.<br>
+    <b>Why a file can come up empty.</b> Anything that re-encodes strips it: Discord, Reddit, X, Instagram, messengers, screenshots, most image editors — and the <em>displayed</em> image on Civitai (a CDN transform). On Civitai use the post's <b>Download</b> button, which fetches the uploader's original; right-click → Save image does not. Direct file hosts (Catbox, HuggingFace, GitHub, Drive) keep it. And the uploader may simply have had metadata disabled.<br>
+    <b>Trust.</b> Embedded metadata is plain text anyone can edit. It is a recipe, not a signature — it proves nothing about who made the file.
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+'use strict';
+/* =====================================================================
+   Meta Inspector — reads ComfyUI (and A1111-style) generation metadata
+   out of PNG / WebP / JPEG / MP4 / MOV / WebM / MKV / safetensors / JSON.
+   Pure client-side. No network calls of any kind.
+   ===================================================================== */
+const $ = id => document.getElementById(id);
+const EMBEDDED = window.parent && window.parent !== window;
+const TD_UTF8 = new TextDecoder('utf-8');
+const TD_LAT1 = new TextDecoder('latin1');
+function esc(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
+function toast(msg, ms){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), ms||1600); }
+function fmtNum(v){ if (typeof v === 'number' && !Number.isInteger(v)) return String(Math.round(v * 10000) / 10000); return v; }
+function fmtBytes(n){ if (n < 1024) return n + ' B'; if (n < 1048576) return (n/1024).toFixed(1) + ' KB'; return (n/1048576).toFixed(1) + ' MB'; }
+function tryJson(s){ try { const j = JSON.parse(s); return (j && typeof j === 'object') ? j : null; } catch(e){ return null; } }
+function bytesToStr(u8, latin){ return (latin ? TD_LAT1 : TD_UTF8).decode(u8); }
+function fourcc(dv, off){ return String.fromCharCode(dv.getUint8(off), dv.getUint8(off+1), dv.getUint8(off+2), dv.getUint8(off+3)); }
+async function inflate(u8){
+  if (typeof DecompressionStream === 'undefined') throw new Error('DecompressionStream unsupported');
+  const ds = new DecompressionStream('deflate');            // "deflate" = zlib-wrapped, which is what PNG uses
+  const stream = new Blob([u8]).stream().pipeThrough(ds);
+  return new Uint8Array(await new Response(stream).arrayBuffer());
+}
+
+/* ---------- result model ----------
+   fields: { key: { raw:string, json:object|null, bytes:number, where:string } }
+   notes:  diagnostics shown to the user
+*/
+function addField(res, key, raw, where){
+  if (!raw || !raw.length) return;
+  key = String(key);
+  if (/^(prompt|workflow|parameters|extra_pnginfo)$/i.test(key)) key = key.toLowerCase();   // Matroska muxers upper-case tag names
+  // ComfyUI's WebP/EXIF form is "workflow:{...}" / "prompt:{...}" inside a generic tag
+  const m = /^(workflow|prompt|parameters|extra_pnginfo|extra)\s*:\s*([\[{].*)$/s.exec(raw);
+  if (m && (!/^(workflow|prompt|parameters)$/.test(key))) { key = m[1]; raw = m[2]; }
+  if (res.fields[key] && res.fields[key].raw === raw) return;
+  if (res.fields[key]) key = key + '#' + (Object.keys(res.fields).length + 1);
+  res.fields[key] = { raw, json: tryJson(raw), bytes: new Blob([raw]).size, where };
+}
+
+/* ================= PNG ================= */
+async function parsePng(buf, res){
+  const dv = new DataView(buf);
+  if (buf.byteLength < 8 || dv.getUint32(0) !== 0x89504e47) return false;
+  res.container = 'PNG';
+  let off = 8, chunks = 0;
+  while (off + 8 <= buf.byteLength) {
+    const len = dv.getUint32(off), type = fourcc(dv, off + 4);
+    if (off + 12 + len > buf.byteLength) { res.notes.push('PNG is truncated after chunk ' + type + '.'); break; }
+    chunks++;
+    if (type === 'IHDR') { res.dims = dv.getUint32(off+8) + '×' + dv.getUint32(off+12); }
+    if (type === 'acTL') res.container = 'Animated PNG';
+    if (type === 'tEXt' || type === 'iTXt' || type === 'zTXt') {
+      const data = new Uint8Array(buf, off + 8, len);
+      const z = data.indexOf(0);
+      if (z > 0) {
+        const key = bytesToStr(data.slice(0, z), true);
+        let body = data.slice(z + 1), where = 'PNG ' + type;
+        try {
+          if (type === 'tEXt') {
+            // tEXt is Latin-1 by spec, but ComfyUI writes json.dumps() output, which is ASCII-escaped — either decode works.
+            addField(res, key, bytesToStr(body, true), where);
+          } else if (type === 'zTXt') {
+            body = await inflate(body.slice(1));          // [compression method] + zlib
+            addField(res, key, bytesToStr(body, true), where + ' (compressed)');
+          } else {                                          // iTXt: compFlag, compMethod, lang\0, translated\0, text
+            const comp = body[0] === 1; let i = 2, skips = 0;
+            while (i < body.length && skips < 2) { if (body[i] === 0) skips++; i++; }
+            body = body.slice(i);
+            if (comp) body = await inflate(body);
+            addField(res, key, bytesToStr(body, false), where + (comp ? ' (compressed)' : ''));
+          }
+        } catch(e) { res.notes.push('Could not decode PNG ' + type + ' chunk "' + key + '": ' + e.message); }
+      }
+    }
+    if (type === 'eXIf') { try { parseTiff(new Uint8Array(buf, off + 8, len), res, 'PNG eXIf'); } catch(e){} }
+    if (type === 'IEND') break;
+    off += 12 + len;
+  }
+  return true;
+}
+
+/* ================= TIFF / EXIF (shared by WebP, JPEG, PNG eXIf) ================= */
+const EXIF_TAGS = { 0x010e:'ImageDescription', 0x010f:'Make', 0x0110:'Model', 0x0131:'Software', 0x013b:'Artist', 0x8298:'Copyright', 0x9286:'UserComment', 0x9c9c:'XPComment', 0x9c9e:'XPKeywords' };
+function parseTiff(u8, res, where){
+  let base = 0;
+  if (u8.length > 6 && u8[0] === 0x45 && u8[1] === 0x78 && u8[2] === 0x69 && u8[3] === 0x66) base = 6;   // "Exif\0\0"
+  const dv = new DataView(u8.buffer, u8.byteOffset + base, u8.byteLength - base);
+  if (dv.byteLength < 8) return;
+  const le = dv.getUint16(0) === 0x4949;
+  if (!le && dv.getUint16(0) !== 0x4d4d) return;
+  const u16 = o => dv.getUint16(o, le), u32 = o => dv.getUint32(o, le);
+  if (u16(2) !== 42) return;
+  const seen = new Set();
+  const readIfd = (ifdOff, depth) => {
+    if (depth > 3 || ifdOff + 2 > dv.byteLength || seen.has(ifdOff)) return; seen.add(ifdOff);
+    const n = u16(ifdOff);
+    for (let i = 0; i < n; i++) {
+      const e = ifdOff + 2 + i * 12; if (e + 12 > dv.byteLength) break;
+      const tag = u16(e), type = u16(e+2), count = u32(e+4);
+      const tsz = ({1:1,2:1,3:2,4:4,5:8,7:1,9:4,10:8})[type] || 1;
+      const size = tsz * count;
+      const voff = size <= 4 ? e + 8 : u32(e+8);
+      if (tag === 0x8769 || tag === 0xa005) { if (type === 4) readIfd(u32(e+8), depth+1); continue; }   // Exif / Interop sub-IFD
+      if (type !== 2 && type !== 7 && type !== 1) continue;
+      if (voff + size > dv.byteLength) continue;
+      let bytes = new Uint8Array(dv.buffer, dv.byteOffset + voff, size);
+      let text;
+      if (tag === 0x9286 && size > 8) {                      // UserComment: 8-byte charset code
+        const code = bytesToStr(bytes.slice(0, 8), true);
+        const payload = bytes.slice(8);
+        if (/^UNICODE/.test(code)) { text = new TextDecoder(le ? 'utf-16le' : 'utf-16be').decode(payload); }
+        else text = bytesToStr(payload, false);
+      } else if (tag === 0x9c9c || tag === 0x9c9e) { text = new TextDecoder('utf-16le').decode(bytes); }
+      else text = bytesToStr(bytes, false);
+      text = text.replace(/\0+$/g, '').trim();
+      if (!text) continue;
+      const name = EXIF_TAGS[tag] || ('tag 0x' + tag.toString(16));
+      // ComfyUI stores "prompt:{...}" in Model (0x0110) and "workflow:{...}" in Make (0x010f); A1111 stores parameters in UserComment
+      if (/^\s*[\[{]/.test(text) || /^(workflow|prompt|parameters|extra_pnginfo)\s*:/.test(text) || tag === 0x9286 || tag === 0x010e) addField(res, tag === 0x9286 || tag === 0x010e ? 'parameters' : name, text, where + ' ' + name);
+      else res.exif = Object.assign(res.exif || {}, { [name]: text });
+    }
+  };
+  readIfd(u32(4), 0);
+}
+
+/* ================= WebP (RIFF) ================= */
+function parseWebp(buf, res){
+  const dv = new DataView(buf);
+  if (buf.byteLength < 12 || fourcc(dv, 0) !== 'RIFF' || fourcc(dv, 8) !== 'WEBP') return false;
+  res.container = 'WebP';
+  let off = 12;
+  while (off + 8 <= buf.byteLength) {
+    const type = fourcc(dv, off), len = dv.getUint32(off + 4, true);
+    if (type === 'ANIM') res.container = 'Animated WebP';
+    if (type === 'VP8X' && off + 18 <= buf.byteLength) {
+      const w = 1 + (dv.getUint8(off+12) | dv.getUint8(off+13) << 8 | dv.getUint8(off+14) << 16);
+      const h = 1 + (dv.getUint8(off+15) | dv.getUint8(off+16) << 8 | dv.getUint8(off+17) << 16);
+      res.dims = w + '×' + h;
+    }
+    if (type === 'EXIF') { try { parseTiff(new Uint8Array(buf, off + 8, Math.min(len, buf.byteLength - off - 8)), res, 'WebP EXIF'); } catch(e){ res.notes.push('EXIF chunk unreadable: ' + e.message); } }
+    if (type === 'XMP ') { const t = bytesToStr(new Uint8Array(buf, off + 8, Math.min(len, buf.byteLength - off - 8)), false); if (/comfy|prompt|workflow/i.test(t)) res.xmp = t; }
+    off += 8 + len + (len & 1);
+  }
+  return true;
+}
+
+/* ================= JPEG ================= */
+function parseJpeg(buf, res){
+  const dv = new DataView(buf);
+  if (buf.byteLength < 4 || dv.getUint16(0) !== 0xffd8) return false;
+  res.container = 'JPEG';
+  let off = 2;
+  while (off + 4 <= buf.byteLength) {
+    if (dv.getUint8(off) !== 0xff) break;
+    const marker = dv.getUint8(off + 1);
+    if (marker === 0xd8 || (marker >= 0xd0 && marker <= 0xd7) || marker === 0x01) { off += 2; continue; }
+    if (marker === 0xda || marker === 0xd9) break;               // start of scan / end
+    const len = dv.getUint16(off + 2);
+    const seg = new Uint8Array(buf, off + 4, Math.min(len - 2, buf.byteLength - off - 4));
+    if (marker === 0xe1 && seg.length > 6 && bytesToStr(seg.slice(0,4), true) === 'Exif') { try { parseTiff(seg, res, 'JPEG APP1 Exif'); } catch(e){} }
+    if (marker === 0xfe) { const t = bytesToStr(seg, false).replace(/\0+$/,''); if (t.trim()) addField(res, 'parameters', t, 'JPEG COM'); }
+    if (marker >= 0xc0 && marker <= 0xcf && marker !== 0xc4 && marker !== 0xc8 && marker !== 0xcc && seg.length >= 5) res.dims = ((seg[3] << 8) | seg[4]) + '×' + ((seg[1] << 8) | seg[2]);
+    off += 2 + len;
+  }
+  return true;
+}
+
+/* ================= MP4 / MOV (ISO BMFF) ================= */
+function parseMp4(buf, res){
+  const dv = new DataView(buf);
+  if (buf.byteLength < 12 || fourcc(dv, 4) !== 'ftyp') return false;
+  res.container = /qt/.test(fourcc(dv, 8)) ? 'MOV' : 'MP4';
+  const CONTAINERS = new Set(['moov','udta','ilst','trak','mdia','minf','stbl']);
+  const keys = [];      // index -> name (from moov/meta/keys)
+  const walk = (start, end, path) => {
+    let off = start;
+    while (off + 8 <= end) {
+      let size = dv.getUint32(off), hdr = 8;
+      const type = fourcc(dv, off + 4);
+      if (size === 1) { size = Number(dv.getBigUint64(off + 8)); hdr = 16; }
+      else if (size === 0) size = end - off;
+      if (size < hdr || off + size > end) break;
+      const body = off + hdr, bodyEnd = off + size, p = path + '/' + type;
+      if (type === 'meta') {
+        // ISO 'meta' is a FullBox (4 bytes version/flags); QuickTime's moov/meta is not. Sniff for a child header.
+        const isFull = !(body + 8 <= bodyEnd && /^[a-zA-Z©\- ]{4}$/.test(fourcc(dv, body + 4)));
+        walk(body + (isFull ? 4 : 0), bodyEnd, p);
+      } else if (type === 'keys') {
+        const n = dv.getUint32(body + 4); let o = body + 8;
+        for (let i = 0; i < n && o + 8 <= bodyEnd; i++) { const ks = dv.getUint32(o); keys[i + 1] = bytesToStr(new Uint8Array(buf, o + 8, ks - 8), false); o += ks; }
+      } else if (path.endsWith('/ilst')) {
+        // item box: name is either a fourcc (©cmt) or a 1-based index into `keys`
+        const idx = dv.getUint32(off + 4);
+        let name = (idx > 0 && idx < 65536 && keys[idx]) ? keys[idx] : type;
+        name = name.replace(/^com\.apple\.quicktime\./, '').replace(/^©/, '');
+        let o = body;
+        while (o + 16 <= bodyEnd) {
+          const ds = dv.getUint32(o); if (ds < 16 || o + ds > bodyEnd) break;
+          if (fourcc(dv, o + 4) === 'data') {
+            const dtype = dv.getUint32(o + 8) & 0xffffff;
+            if (dtype === 1 || dtype === 0) addField(res, name, bytesToStr(new Uint8Array(buf, o + 16, ds - 16), false), res.container + ' ' + path.split('/').slice(-2).join('/') + ' tag');
+          }
+          o += ds;
+        }
+      } else if (CONTAINERS.has(type)) walk(body, bodyEnd, p);
+      else if (type === 'mvhd') { const v = dv.getUint8(body); const ts = v === 1 ? dv.getUint32(body + 20) : dv.getUint32(body + 12); const du = v === 1 ? Number(dv.getBigUint64(body + 24)) : dv.getUint32(body + 16); if (ts) res.duration = (du / ts).toFixed(2) + ' s'; }
+      else if (type === 'tkhd') { const v = dv.getUint8(body); const o = body + (v === 1 ? 88 : 76); if (o + 8 <= bodyEnd) { const w = dv.getUint32(o) >>> 16, h = dv.getUint32(o + 4) >>> 16; if (w && h && !res.dims) res.dims = w + '×' + h; } }
+      off += size;
+    }
+  };
+  try { walk(0, buf.byteLength, ''); } catch(e) { res.notes.push('MP4 box walk stopped early: ' + e.message); }
+  return true;
+}
+
+/* ================= WebM / MKV (EBML) ================= */
+function parseEbml(buf, res){
+  const u8 = new Uint8Array(buf);
+  if (u8.length < 4 || !(u8[0] === 0x1a && u8[1] === 0x45 && u8[2] === 0xdf && u8[3] === 0xa3)) return false;
+  res.container = 'WebM/MKV';
+  const readVint = (off, keepMarker) => {
+    if (off >= u8.length) return null;
+    let b = u8[off], len = 1, mask = 0x80;
+    while (len <= 8 && !(b & mask)) { mask >>= 1; len++; }
+    if (len > 8 || off + len > u8.length) return null;
+    let v = keepMarker ? b : (b & (mask - 1)), allOnes = (b & (mask - 1)) === mask - 1;
+    for (let i = 1; i < len; i++) { v = v * 256 + u8[off + i]; if (u8[off + i] !== 0xff) allOnes = false; }
+    return { v, len, unknown: !keepMarker && allOnes };
+  };
+  const MASTER = new Set([0x18538067, 0x1254c367, 0x7373, 0x67c8, 0x1549a966]);   // Segment, Tags, Tag, SimpleTag, Info
+  let curName = null;
+  const walk = (start, end, depth) => {
+    let off = start;
+    while (off < end) {
+      const id = readVint(off, true); if (!id) break;
+      const sz = readVint(off + id.len, false); if (!sz) break;
+      const body = off + id.len + sz.len;
+      const bodyEnd = sz.unknown ? end : Math.min(end, body + sz.v);
+      if (MASTER.has(id.v)) {
+        if (id.v === 0x67c8) curName = null;
+        walk(body, bodyEnd, depth + 1);
+      } else if (id.v === 0x45a3) curName = bytesToStr(u8.subarray(body, bodyEnd), false);
+      else if (id.v === 0x4487 && curName) addField(res, curName, bytesToStr(u8.subarray(body, bodyEnd), false), 'Matroska Tags');
+      else if (id.v === 0x4489 && depth >= 2) { /* Duration (float) */ const dv = new DataView(buf, body, bodyEnd - body); res.durationRaw = dv.byteLength === 4 ? dv.getFloat32(0) : dv.getFloat64(0); }
+      else if (id.v === 0x2ad7b1) { let t = 0; for (let i = body; i < bodyEnd; i++) t = t * 256 + u8[i]; res.tcScale = t; }
+      if (sz.unknown && id.v !== 0x18538067) break;   // unknown-size cluster in a live stream: stop, fallback scan will take over
+      off = bodyEnd;
+    }
+  };
+  try { walk(0, u8.length, 0); } catch(e) { res.notes.push('EBML walk stopped early: ' + e.message); }
+  if (res.durationRaw) res.duration = (res.durationRaw * (res.tcScale || 1000000) / 1e9).toFixed(2) + ' s';
+  return true;
+}
+
+/* ================= safetensors / .latent ================= */
+function parseSafetensors(buf, res, name){
+  if (buf.byteLength < 16) return false;
+  const dv = new DataView(buf);
+  const n = Number(dv.getBigUint64(0, true));
+  if (n <= 0 || n > 100 * 1024 * 1024 || 8 + n > buf.byteLength) return false;
+  const hdr = tryJson(bytesToStr(new Uint8Array(buf, 8, n), false));
+  if (!hdr) return false;
+  res.container = /\.latent$/i.test(name) ? 'ComfyUI .latent (safetensors)' : 'safetensors';
+  const m = hdr.__metadata__ || {};
+  Object.keys(m).forEach(k => { if (typeof m[k] === 'string') addField(res, k, m[k], 'safetensors header __metadata__'); });
+  res.tensors = Object.keys(hdr).filter(k => k !== '__metadata__');
+  return true;
+}
+
+/* ================= JSON files / pasted text ================= */
+function parseJsonText(text, res, where){
+  const j = tryJson(text);
+  if (!j) return false;
+  res.container = res.container || 'JSON';
+  if (Array.isArray(j.nodes)) addField(res, 'workflow', text, where + ' (UI workflow format)');
+  else if (j.workflow || j.prompt) { if (j.workflow) addField(res, 'workflow', JSON.stringify(j.workflow), where); if (j.prompt) addField(res, 'prompt', JSON.stringify(j.prompt), where); if (j.parameters) addField(res, 'parameters', String(j.parameters), where); }
+  else if (Object.values(j).some(v => v && typeof v === 'object' && v.class_type)) addField(res, 'prompt', text, where + ' (API format)');
+  else addField(res, 'json', text, where);
+  return true;
+}
+
+/* ================= last-resort scan: find ComfyUI JSON anywhere in the bytes ================= */
+function balancedJson(s, start){
+  let depth = 0, inStr = false, escp = false;
+  for (let i = start; i < s.length; i++) {
+    const c = s[i];
+    if (inStr) { if (escp) escp = false; else if (c === '\\') escp = true; else if (c === '"') inStr = false; continue; }
+    if (c === '"') inStr = true; else if (c === '{' || c === '[') depth++; else if (c === '}' || c === ']') { depth--; if (depth === 0) return s.slice(start, i + 1); }
+    if (i - start > 20 * 1024 * 1024) break;
+  }
+  return null;
+}
+function scanForJson(buf, res){
+  // Bounded scan: real containers keep metadata near the start or end. Decoding whole
+  // multi-hundred-MB files into one JS string can exceed V8's string cap and freeze the tab.
+  const W = 12 * 1024 * 1024;
+  const views = buf.byteLength <= 2 * W
+    ? [new Uint8Array(buf)]
+    : [new Uint8Array(buf, 0, W), new Uint8Array(buf, buf.byteLength - W, W)];
+  let found = 0;
+  views.forEach(view => {
+    const s = bytesToStr(view, true);
+    const pats = [ [/\{"\d+"\s*:\s*\{"(inputs|class_type)"/g, 'prompt'], [/\{"(id|last_node_id|revision)"\s*:.{0,40}?"nodes"/g, 'workflow'], [/\{"nodes"\s*:\s*\[/g, 'workflow'] ];
+    pats.forEach(([re, key]) => {
+      let m; while ((m = re.exec(s)) && found < 6) {
+        const txt = balancedJson(s, m.index);
+        if (txt && tryJson(txt)) { addField(res, key, txt, 'raw byte scan (container tags unreadable)'); found++; re.lastIndex = m.index + txt.length; }
+      }
+    });
+  });
+  if (found && buf.byteLength > 2 * W) res.notes.push('Raw scan covered only the first and last 12 MB of this large file.');
+  return found;
+}
+
+/* ================= file dispatcher ================= */
+async function inspectFile(file){
+  const res = { name: file.name, size: file.size, mime: file.type, container: null, fields: {}, notes: [], file };
+  const HARD_CAP = 1.5 * 1024 * 1024 * 1024;
+  if (file.size > HARD_CAP) { res.notes.push('File is larger than 1.5 GB — not read.'); return res; }
+  const buf = await file.arrayBuffer();
+  let known = false;
+  try {
+    known = await parsePng(buf, res) || parseWebp(buf, res) || parseJpeg(buf, res) || parseMp4(buf, res) || parseEbml(buf, res) || parseSafetensors(buf, res, file.name);
+    if (!known && /\.(json|txt)$/i.test(file.name)) known = parseJsonText(bytesToStr(new Uint8Array(buf), false), res, 'JSON file');
+  } catch(e) { res.notes.push('Parser error: ' + e.message); }
+  if (!known) res.container = 'unknown';
+  if (!res.fields.prompt && !res.fields.workflow) {
+    if (scanForJson(buf, res)) res.notes.push('Metadata was found by scanning raw bytes rather than through the container\'s tag structure — the file may have been remuxed by another tool.');
+  }
+  return res;
+}
+
+/* =====================================================================
+   Graph model + summary
+   ===================================================================== */
+const LOADER_KEYS = /(ckpt|unet|clip|vae|model|lora|style_model|clip_vision|control_net|upscale_model|text_encoder|gligen|hypernetwork|audio_encoder)_?name\d*$/i;
+const WIDGET_MAP = {   // widget order for the workflow-only fallback (no API prompt present)
+  CLIPTextEncode: ['text'], CLIPTextEncodeSDXL: ['width','height','crop_w','crop_h','target_width','target_height','text_g','text_l'],
+  KSampler: ['seed','control_after_generate','steps','cfg','sampler_name','scheduler','denoise'],
+  KSamplerAdvanced: ['add_noise','noise_seed','control_after_generate','steps','cfg','sampler_name','scheduler','start_at_step','end_at_step','return_with_leftover_noise'],
+  CheckpointLoaderSimple: ['ckpt_name'], UNETLoader: ['unet_name','weight_dtype'], VAELoader: ['vae_name'], CLIPLoader: ['clip_name','type','device'],
+  DualCLIPLoader: ['clip_name1','clip_name2','type','device'], TripleCLIPLoader: ['clip_name1','clip_name2','clip_name3'],
+  LoraLoader: ['lora_name','strength_model','strength_clip'], LoraLoaderModelOnly: ['lora_name','strength_model'],
+  EmptyLatentImage: ['width','height','batch_size'], EmptySD3LatentImage: ['width','height','batch_size'],
+  EmptyHunyuanLatentVideo: ['width','height','length','batch_size'], EmptyLTXVLatentVideo: ['width','height','length','batch_size'],
+  Wan22ImageToVideoLatent: ['width','height','length','batch_size'], WanImageToVideo: ['width','height','length','batch_size'],
+  RandomNoise: ['noise_seed','control_after_generate'], KSamplerSelect: ['sampler_name'], BasicScheduler: ['scheduler','steps','denoise'],
+  CFGGuider: ['cfg'], FluxGuidance: ['guidance'], ModelSamplingSD3: ['shift'], ModelSamplingAuraFlow: ['shift'],
+  LoadImage: ['image','upload'], LoadVideo: ['file'], LoadAudio: ['audio'], SaveImage: ['filename_prefix'], SaveVideo: ['filename_prefix','format','codec'],
+  CreateVideo: ['fps'], Note: ['text'], MarkdownNote: ['text'], PrimitiveStringMultiline: ['value'], PrimitiveString: ['value'],
+  PrimitiveInt: ['value','control_after_generate'], PrimitiveFloat: ['value']
+};
+const TEXT_KEYS = ['text','prompt','text_g','text_l','clip_l','t5xxl','value','string','positive_prompt','negative_prompt'];
+
+function buildGraph(fields){
+  const g = { nodes: {}, fromApi: false, titles: {}, packs: {}, notes: [] };
+  const wf = fields.workflow && fields.workflow.json, api = fields.prompt && fields.prompt.json;
+  // titles / custom-pack info always come from the workflow if present
+  const scanWf = (nodes, prefix) => (nodes || []).forEach(n => {
+    if (!n || n.id == null) return;
+    const id = prefix + n.id;
+    if (n.title) g.titles[id] = n.title;
+    const pr = n.properties || {};
+    const pack = pr.cnr_id || pr.aux_id || (pr['Node name for S&R'] ? null : null);
+    if (pack) { g.packs[pack] = g.packs[pack] || { ver: pr.ver || '', types: new Set() }; g.packs[pack].types.add(n.type); }
+    if ((n.type === 'Note' || n.type === 'MarkdownNote') && n.widgets_values && n.widgets_values[0]) g.notes.push(String(n.widgets_values[0]));
+  });
+  if (wf) { scanWf(wf.nodes, ''); if (wf.definitions && wf.definitions.subgraphs) wf.definitions.subgraphs.forEach(sg => scanWf(sg.nodes, (sg.id || 'sg') + ':')); }
+
+  if (api && !Array.isArray(api.nodes)) {
+    g.fromApi = true;
+    Object.keys(api).forEach(id => {
+      const n = api[id]; if (!n || typeof n !== 'object' || !n.class_type) return;
+      const inputs = {}, links = {}, slots = {};
+      Object.keys(n.inputs || {}).forEach(k => { const v = n.inputs[k]; if (Array.isArray(v) && v.length === 2 && (typeof v[0] === 'string' || typeof v[0] === 'number') && typeof v[1] === 'number') { links[k] = String(v[0]); slots[k] = v[1]; } else inputs[k] = v; });
+      g.nodes[id] = { id, type: n.class_type, title: (n._meta && n._meta.title) || g.titles[id] || '', inputs, links, slots, mode: 0 };
+    });
+  } else if (wf) {
+    // link ids are scoped: a subgraph definition reuses the same numeric ids as the outer canvas, so keep one map per scope
+    const linkMap = (links) => { const m = {}; (links || []).forEach(l => { if (Array.isArray(l)) m[l[0]] = { id: String(l[1]), slot: l[2] }; else if (l && l.id != null) m[l.id] = { id: String(l.origin_id), slot: l.origin_slot }; }); return m; };
+    const addNodes = (nodes, prefix, linkOrigin) => (nodes || []).forEach(n => {
+      if (!n || n.id == null) return;
+      const id = prefix + n.id, inputs = {}, links = {}, slots = {};
+      const map = WIDGET_MAP[n.type];
+      const wv = Array.isArray(n.widgets_values) ? n.widgets_values : (n.widgets_values && typeof n.widgets_values === 'object' ? Object.values(n.widgets_values) : []);
+      if (map) map.forEach((k, i) => { if (wv[i] !== undefined) inputs[k] = wv[i]; });
+      else if (wv.length) inputs._widgets = wv;
+      (n.inputs || []).forEach(inp => { if (inp && inp.link != null && linkOrigin[inp.link]) { links[inp.name] = prefix + linkOrigin[inp.link].id; slots[inp.name] = linkOrigin[inp.link].slot; } });
+      g.nodes[id] = { id, type: n.type, title: n.title || '', inputs, links, slots, mode: n.mode || 0 };
+    });
+    const outerLinks = linkMap(wf.links);
+    addNodes(wf.nodes, '', outerLinks);
+    const sgDefs = {};
+    if (wf.definitions && wf.definitions.subgraphs) wf.definitions.subgraphs.forEach(sg => { sgDefs[sg.id] = sg; addNodes(sg.nodes, (sg.id || 'sg') + ':', linkMap(sg.links)); });
+    // Subgraph instances: values the user typed live on the *instance* node; push them onto the inner nodes they feed (-10 = the subgraph's input node)
+    (wf.nodes || []).forEach(inst => {
+      const sg = sgDefs[inst.type]; if (!sg) return;
+      const prefix = (sg.id || 'sg') + ':';
+      const sgInputs = sg.inputs || [];
+      const innerLinks = (sg.links || []).map(l => Array.isArray(l) ? { origin_id: l[1], origin_slot: l[2], target_id: l[3], target_slot: l[4] } : l).filter(l => l && l.origin_id === -10);
+      const feed = (slot, apply) => innerLinks.forEach(l => {
+        if (l.origin_slot !== slot) return;
+        const tn = g.nodes[prefix + l.target_id]; const raw = (sg.nodes || []).find(n => n.id === l.target_id);
+        const inName = raw && raw.inputs && raw.inputs[l.target_slot] && raw.inputs[l.target_slot].name;
+        if (tn && inName) apply(tn, inName);
+      });
+      const widgetInputs = (inst.inputs || []).filter(i => i && i.widget);
+      const wv = Array.isArray(inst.widgets_values) ? inst.widgets_values : [];
+      widgetInputs.forEach((wi, idx) => {
+        const val = wv[idx]; if (val === undefined || val === null || val === '') return;
+        const slot = sgInputs.findIndex(si => si.name === wi.name); if (slot >= 0) feed(slot, (tn, inName) => { tn.inputs[inName] = val; });
+      });
+      (inst.inputs || []).forEach(ii => {
+        if (!ii || ii.link == null || !outerLinks[ii.link]) return;
+        const slot = sgInputs.findIndex(si => si.name === ii.name); if (slot >= 0) feed(slot, (tn, inName) => { tn.links[inName] = outerLinks[ii.link].id; tn.slots[inName] = outerLinks[ii.link].slot; });
+      });
+    });
+  }
+  return g;
+}
+
+const ZEROED = '\u0000zeroed';   // sentinel: ConditioningZeroOut on a conditioning lane
+function nodeText(n){
+  for (const k of TEXT_KEYS) if (typeof n.inputs[k] === 'string' && n.inputs[k].trim()) return n.inputs[k].trim();
+  if (n.type === 'CLIPTextEncodeFlux' || n.type === 'CLIPTextEncodeSDXL') { const a = n.inputs.clip_l || n.inputs.text_g, b = n.inputs.t5xxl || n.inputs.text_l; if (a || b) return [a, b].filter(Boolean).join('\n'); }
+  return null;
+}
+function resolveText(g, id, depth, viaSlot){
+  const n = g.nodes[id]; if (!n || depth > 25) return null;
+  if (n.type === 'ConditioningZeroOut') return ZEROED;
+  const t = nodeText(n); if (t) return t;
+  const follow = k => resolveText(g, n.links[k], depth + 1, n.slots ? n.slots[k] : undefined);
+  // text encoders wired to a string primitive
+  for (const k of TEXT_KEYS) if (n.links[k]) { const r = follow(k); if (r) return r; }
+  // pass-through nodes that take a (positive, negative) pair and emit a pair (WanImageToVideo, LTXV conditioning, etc.): stay on our lane
+  if (n.links.positive && n.links.negative && viaSlot !== undefined) { const r = follow(viaSlot === 1 ? 'negative' : 'positive'); if (r) return r; }
+  // follow conditioning-ish links, else the only link
+  const keys = Object.keys(n.links);
+  const cond = keys.filter(k => /cond|positive|negative|guider|^clip$/i.test(k) && !/clip_vision/i.test(k));
+  for (const k of cond) { const r = follow(k); if (r) return r; }
+  if (keys.length === 1) return follow(keys[0]);
+  return null;
+}
+function firstLinked(g, id, keyRe, depth){
+  const n = g.nodes[id]; if (!n || depth > 12) return null;
+  for (const k of Object.keys(n.links)) if (keyRe.test(k)) return g.nodes[n.links[k]];
+  return null;
+}
+function findUp(g, id, typeRe, depth){   // walk links upstream until a node type matches
+  const n = g.nodes[id]; if (!n || depth > 12) return null;
+  if (typeRe.test(n.type)) return n;
+  for (const k of Object.keys(n.links)) { const r = findUp(g, n.links[k], typeRe, depth + 1); if (r) return r; }
+  return null;
+}
+
+function summarize(fields){
+  const g = buildGraph(fields);
+  const S = { hasGraph: Object.keys(g.nodes).length > 0, fromApi: g.fromApi, positive: [], negative: [], otherText: [], models: [], loras: [], samplers: [], canvas: {}, inputs: [], outputs: [], classTypes: {}, packs: g.packs, notes: g.notes, family: null, familyLabel: '', target: null, params: null };
+  const nodes = Object.values(g.nodes);
+  nodes.forEach(n => S.classTypes[n.type] = (S.classTypes[n.type] || 0) + 1);
+  const bypassed = n => n.mode === 2 || n.mode === 4;
+
+  // --- prompts via sampler/guider wiring
+  const seenText = new Set();
+  nodes.forEach(n => {
+    if (bypassed(n)) return;
+    if (/Guider$/.test(n.type) && n.links.conditioning && !n.links.positive) { const t = resolveText(g, n.links.conditioning, 0, n.slots.conditioning); if (t && t !== ZEROED && !seenText.has('positive' + t)) { seenText.add('positive' + t); S.positive.push(t); } }
+    ['positive', 'negative'].forEach(side => {
+      if (!n.links[side]) return;
+      const t = resolveText(g, n.links[side], 0, n.slots[side]);
+      if (t === ZEROED) { if (side === 'negative') S.negativeZeroed = true; return; }
+      if (t && !seenText.has(side + t)) { seenText.add(side + t); S[side].push(t); }
+    });
+  });
+  // fallback: unlabeled text encoders (also catches LTX/Wan graphs that feed text through custom nodes)
+  nodes.forEach(n => {
+    if (bypassed(n)) return;
+    if (/^(Note|MarkdownNote)$/.test(n.type)) return;
+    const isEncoder = /TextEncode|Prompt/i.test(n.type);
+    const t = isEncoder ? resolveText(g, n.id, 0) : nodeText(n); if (!t || t === ZEROED) return;
+    if (!isEncoder && !/String/i.test(n.type) && !TEXT_KEYS.some(k => typeof n.inputs[k] === 'string')) return;
+    if (S.positive.includes(t) || S.negative.includes(t)) return;
+    const title = (n.title || '').toLowerCase();
+    if (/neg|负|反向/.test(title)) S.negative.push(t);
+    else if (!S.positive.length && /TextEncode|Prompt/i.test(n.type)) S.positive.push(t);
+    else S.otherText.push({ title: n.title || n.type, text: t });
+  });
+
+  // --- loaders / models / LoRAs
+  nodes.forEach(n => {
+    if (bypassed(n)) return;
+    const isLora = /lora/i.test(n.type) || Object.keys(n.inputs).some(k => /^lora(_name)?$|^lora_\d+$/i.test(k));
+    if (isLora) {
+      // core loaders
+      if (typeof n.inputs.lora_name === 'string') S.loras.push({ name: n.inputs.lora_name, model: n.inputs.strength_model, clip: n.inputs.strength_clip, via: n.type });
+      // rgthree Power Lora Loader: lora_1: {on, lora, strength, strengthTwo}
+      Object.keys(n.inputs).forEach(k => { const v = n.inputs[k]; if (/^lora_\d+$/i.test(k) && v && typeof v === 'object' && v.lora) { if (v.on === false) return; S.loras.push({ name: v.lora, model: v.strength, clip: v.strengthTwo != null ? v.strengthTwo : v.strength, via: n.type }); } });
+      if (n.inputs._widgets) n.inputs._widgets.forEach(v => { if (v && typeof v === 'object' && v.lora && v.on !== false) S.loras.push({ name: v.lora, model: v.strength, clip: v.strengthTwo, via: n.type }); else if (typeof v === 'string' && /\.(safetensors|pt|ckpt)$/i.test(v)) S.loras.push({ name: v, via: n.type }); });
+      return;
+    }
+    Object.keys(n.inputs).forEach(k => {
+      const v = n.inputs[k];
+      if (typeof v === 'string' && LOADER_KEYS.test(k) && !/^lora/i.test(k)) S.models.push({ role: k.replace(/_name\d*$/i, '').replace(/^ckpt$/, 'checkpoint').replace(/^unet$/, 'diffusion model'), file: v, node: n.type });
+      else if (typeof v === 'string' && /\.(safetensors|gguf|ckpt|pt|pth|sft|bin)$/i.test(v) && !/^(image|video|audio|file)$/i.test(k)) S.models.push({ role: k, file: v, node: n.type });
+    });
+    if (typeof n.inputs.image === 'string' && /Load/i.test(n.type)) S.inputs.push({ kind: 'image', file: n.inputs.image });
+    if (typeof n.inputs.file === 'string' && /Video/i.test(n.type)) S.inputs.push({ kind: 'video', file: n.inputs.file });
+    if (typeof n.inputs.audio === 'string' && /Load/i.test(n.type)) S.inputs.push({ kind: 'audio', file: n.inputs.audio });
+    if (/^Save|VideoCombine|SaveAnimated/i.test(n.type)) S.outputs.push({ node: n.type, prefix: n.inputs.filename_prefix, format: n.inputs.format, codec: n.inputs.codec });
+  });
+
+  // --- samplers
+  nodes.forEach(n => {
+    if (bypassed(n)) return;
+    if (n.type === 'KSamplerSelect') return;
+    const isK = /^KSampler/.test(n.type) || (n.inputs.steps !== undefined && n.inputs.cfg !== undefined);
+    const isCustom = /^SamplerCustom/.test(n.type);
+    if (!isK && !isCustom) return;
+    const s = { node: n.title ? n.title + ' (' + n.type + ')' : n.type };
+    const num = v => (typeof v === 'number' || typeof v === 'string') ? v : undefined;
+    s.seed = num(n.inputs.seed !== undefined ? n.inputs.seed : n.inputs.noise_seed); s.steps = num(n.inputs.steps); s.cfg = num(n.inputs.cfg);
+    s.sampler = n.inputs.sampler_name; s.scheduler = n.inputs.scheduler; s.denoise = num(n.inputs.denoise);
+    if (n.inputs.start_at_step !== undefined) s.steps = (s.steps !== undefined ? s.steps : '?') + ' (' + n.inputs.start_at_step + '→' + n.inputs.end_at_step + ')';
+    if (isCustom || s.seed === undefined) { const rn = findUp(g, n.id, /^RandomNoise$|Noise/, 0) || firstLinked(g, n.id, /noise/i); if (rn && rn.inputs.noise_seed !== undefined) s.seed = rn.inputs.noise_seed; }
+    if (s.sampler === undefined) { const ks = findUp(g, n.id, /^KSamplerSelect$|SamplerSelect/, 0); if (ks) s.sampler = ks.inputs.sampler_name || ks.type; }
+    if (s.steps === undefined) { const sc = findUp(g, n.id, /Scheduler$/, 0); if (sc) { s.steps = sc.inputs.steps; s.scheduler = s.scheduler || sc.inputs.scheduler || sc.type.replace(/Scheduler$/, ''); s.denoise = s.denoise !== undefined ? s.denoise : sc.inputs.denoise; } }
+    if (s.cfg === undefined) { const gd = findUp(g, n.id, /Guider$/, 0); if (gd) s.cfg = gd.inputs.cfg !== undefined ? gd.inputs.cfg : (gd.type === 'BasicGuider' ? '1 (BasicGuider, no CFG)' : undefined); }
+    const fg = findUp(g, n.id, /^FluxGuidance$/, 0); if (fg) s.guidance = fg.inputs.guidance;
+    const ms = findUp(g, n.id, /^ModelSampling/, 0); if (ms && ms.inputs.shift !== undefined) s.shift = ms.inputs.shift;
+    if ([s.seed, s.steps, s.cfg, s.sampler].every(v => v === undefined)) return;
+    S.samplers.push(s);
+  });
+
+  // --- canvas / frames
+  nodes.forEach(n => {
+    if (bypassed(n)) return;
+    if (n.inputs.width !== undefined && n.inputs.height !== undefined && /Latent|ImageToVideo|Empty|Resize|Size/i.test(n.type) && !S.canvas.width) { S.canvas = { width: n.inputs.width, height: n.inputs.height, length: n.inputs.length, batch: n.inputs.batch_size, node: n.type }; }
+    if (n.inputs.fps !== undefined && S.canvas.fps === undefined) S.canvas.fps = n.inputs.fps;
+    if (n.inputs.frame_rate !== undefined && S.canvas.fps === undefined) S.canvas.fps = n.inputs.frame_rate;
+  });
+
+  // --- A1111 / "parameters" text
+  if (fields.parameters && !fields.parameters.json) {
+    const p = fields.parameters.raw;
+    const m = /^([\s\S]*?)(?:\nNegative prompt:\s*([\s\S]*?))?(?:\n(Steps:[\s\S]*))?$/.exec(p);
+    S.params = { positive: (m && m[1] || '').trim(), negative: (m && m[2] || '').trim(), settings: (m && m[3] || '').trim(), raw: p };
+    if (!S.positive.length && S.params.positive) S.positive.push(S.params.positive);
+    if (!S.negative.length && S.params.negative) S.negative.push(S.params.negative);
+    const st = {}; (S.params.settings.match(/([A-Za-z ]+): ([^,]+)/g) || []).forEach(kv => { const i = kv.indexOf(': '); st[kv.slice(0, i).trim()] = kv.slice(i + 2).trim(); });
+    if (Object.keys(st).length) { S.samplers.push({ node: 'A1111 parameters', seed: st.Seed, steps: st.Steps, cfg: st['CFG scale'], sampler: st.Sampler, scheduler: st.Schedule_type || st['Schedule type'] }); if (st.Model) S.models.push({ role: 'checkpoint', file: st.Model + (st['Model hash'] ? '  [' + st['Model hash'] + ']' : ''), node: 'A1111' }); if (st.Size && !S.canvas.width) { const wh = st.Size.split('x'); S.canvas = { width: wh[0], height: wh[1], node: 'A1111' }; } }
+    (p.match(/<lora:([^:>]+):([^>]+)>/g) || []).forEach(t => { const m2 = /<lora:([^:>]+):([^>]+)>/.exec(t); S.loras.push({ name: m2[1], model: m2[2], via: 'prompt tag' }); });
+  }
+
+  // --- family → Prompt Studio target
+  const hay = (S.models.map(m => m.file).join(' ') + ' ' + Object.keys(S.classTypes).join(' ') + ' ' + S.loras.map(l => l.name).join(' ')).toLowerCase();
+  const types = Object.keys(S.classTypes).join(' ');
+  const hasI2V = /ImageToVideo|I2V|FirstLastFrame|LoadImage/.test(types) && S.inputs.some(i => i.kind === 'image');
+  const rules = [
+    [/scail/, 'scail', 'SCAIL-2'],
+    [/ltx/, 'ltx', 'LTX-Video'],
+    [/wan[-_ ]?2|wan2|wanvideo|\bwan\b|Wan[A-Z]/, hasI2V ? 'wanI2V' : 'wan', 'Wan 2.x' + (hasI2V ? ' (image → video)' : '')],
+    [/hunyuan/, null, 'HunyuanVideo (no Prompt Studio dialect)'],
+    [/minimax|hailuo/, 'minimax', 'MiniMax Hailuo'],
+    [/krea[-_ ]?2|krea2/, 'krea2', 'Krea 2'],                       // before Qwen: Krea 2 borrows the Qwen-Image VAE + a Qwen3 encoder
+    [/z[-_ ]?image|zimage|lumina/, 'zimage', 'Z-Image'],
+    [/flux|klein/, 'flux', 'FLUX'],                                  // before Qwen: FLUX.2 klein uses a Qwen3 text encoder
+    [/qwen[-_ ]?image|qwenimage|TextEncodeQwenImage/i, 'qwenimg', 'Qwen-Image'],
+    [/sd3|stable[-_]?diffusion[-_]?3/, null, 'Stable Diffusion 3 (no Prompt Studio dialect)'],
+    [/pony|illustrious|noob|animagine|waifu|anime/, 'sdxlAnime', 'SDXL (anime / tag checkpoint)'],
+    [/sdxl|xl_|_xl|juggernaut|realvis|dreamshaper/, 'sdxl', 'SDXL'],
+    [/sd15|v1-5|sd_1|sd1|1\.5/, null, 'Stable Diffusion 1.5 (no Prompt Studio dialect)'],
+  ];
+  for (const [re, target, label] of rules) if (re.test(hay) || (re.source.includes('[A-Z]') && re.test(types))) { S.target = target; S.familyLabel = label; break; }
+  if (!S.familyLabel && S.classTypes.CheckpointLoaderSimple) { S.target = 'sdxl'; S.familyLabel = 'SD checkpoint (assuming SDXL)'; }
+  return S;
+}
+
+/* =====================================================================
+   Rendering
+   ===================================================================== */
+let current = null;   // last inspected { res, S }
+let lastThumbUrl = null; // previous thumbnail blob URL, revoked on next render
+function render(res){
+  const S = summarize(res.fields);
+  current = { res, S };
+  const f = res.fields;
+  const keys = Object.keys(f);
+  const hasComfy = !!(f.prompt || f.workflow);
+  const hasAny = keys.length > 0;
+  let h = '';
+
+  // file header
+  const isImg = /^(PNG|Animated PNG|WebP|Animated WebP|JPEG)$/.test(res.container || '');
+  const isVid = /MP4|MOV|WebM/.test(res.container || '');
+  if (lastThumbUrl) { try { URL.revokeObjectURL(lastThumbUrl); } catch(e){} lastThumbUrl = null; }
+  const url = (isImg || isVid) ? URL.createObjectURL(res.file) : null;
+  lastThumbUrl = url;
+  h += '<div class="filehead">' + (url ? (isVid ? '<video class="thumb" src="' + url + '" muted playsinline preload="metadata"></video>' : '<img class="thumb" src="' + url + '" alt="">') : '<div class="thumb" style="display:flex;align-items:center;justify-content:center;font-size:30px">📄</div>') +
+    '<div class="meta"><b>' + esc(res.name) + '</b><br>' + esc(res.container || 'unknown') + ' · ' + fmtBytes(res.size) + (res.dims ? ' · ' + esc(res.dims) : '') + (res.duration ? ' · ' + esc(res.duration) : '') +
+    (res.tensors ? ' · tensors: ' + esc(res.tensors.join(', ')) : '') + '</div></div>';
+
+  // verdict
+  if (hasComfy) {
+    const parts = ['prompt', 'workflow'].filter(k => f[k]).map(k => k + ' (' + fmtBytes(f[k].bytes) + (f[k].json ? '' : ', not valid JSON') + ')');
+    const extra = keys.filter(k => k !== 'prompt' && k !== 'workflow');
+    h += '<div class="verdict"><div class="ic ok">✓</div><div><b>ComfyUI metadata found:</b> ' + esc(parts.join(' + ')) + (extra.length ? ' · also: ' + esc(extra.join(', ')) : '') +
+      '<ul>' + (f.prompt ? '<li><code>prompt</code> = the executed API graph: exact values every node ran with.</li>' : '<li>No <code>prompt</code> field — values below are reconstructed from the canvas <code>workflow</code> (widget order assumed for core nodes; custom nodes may show raw widget lists).</li>') +
+      (f.workflow ? '<li><code>workflow</code> = the canvas: drag this file onto ComfyUI (or download the JSON below) to rebuild the graph.</li>' : '<li>No <code>workflow</code> field — ComfyUI cannot rebuild the canvas from this file, but the API prompt below is complete enough to reproduce the result.</li>') +
+      (S.fromApi ? '' : '') + '</ul></div></div>';
+  } else if (f.parameters) {
+    h += '<div class="verdict"><div class="ic warn">◐</div><div><b>A1111 / Forge-style "parameters" text found</b> (' + fmtBytes(f.parameters.bytes) + ') — not a ComfyUI graph, but it carries prompt, negative, and settings.<ul><li>Some ComfyUI custom savers (Image Saver, SaveImageWithMetaData) write this format so Civitai can parse it; the node graph itself is absent unless a <code>workflow</code> field is also present.</li></ul></div></div>';
+  } else if (hasAny) {
+    h += '<div class="verdict"><div class="ic warn">◐</div><div><b>Text metadata found, but nothing ComfyUI-shaped:</b> ' + esc(keys.join(', ')) + '<ul><li>Shown raw below. This file was probably saved by a different tool, or the ComfyUI fields were stripped and only generic tags survived.</li></ul></div></div>';
+  } else {
+    h += '<div class="verdict"><div class="ic err">✗</div><div><b>No generation metadata in this file.</b><ul>' +
+      '<li><b>Re-encoded copy?</b> ' + (res.container === 'JPEG' ? 'JPEG is almost always a converted copy — ComfyUI\'s core nodes only save PNG/WebP/MP4.' : 'Files saved from Discord, Reddit, X, Instagram, messengers, screenshots, or right-click → Save on Civitai are CDN transforms with the metadata gone.') + ' Ask for the original file, or on Civitai use the post\'s <b>Download</b> button.</li>' +
+      '<li><b>Metadata disabled at the source?</b> ComfyUI started with <code>--disable-metadata</code> (Desktop: Settings → Server-Config → "Disable saving prompt metadata") writes nothing.</li>' +
+      '<li><b>Not a save node?</b> Preview Image never writes files; some custom savers have a metadata toggle.</li>' +
+      (res.container === 'unknown' ? '<li>Unrecognized container — this tool reads PNG, WebP, JPEG, MP4/MOV, WebM/MKV, safetensors and JSON.</li>' : '') +
+      '</ul></div></div>';
+  }
+  if (res.notes.length) h += '<div class="hint warn">' + res.notes.map(esc).join('<br>') + '</div>';
+
+  if (hasAny) {
+    // summary cards
+    h += '<div class="grid">';
+    h += '<div class="card"><h2>Model family</h2><div class="big">' + esc(S.familyLabel || 'Unknown') + '</div>' +
+      (S.target ? '<div class="hint">Prompt Studio dialect: <b>' + esc(S.target) + '</b></div>' : (S.hasGraph ? '<div class="hint">Could not map this to a Prompt Studio model — check the loader filenames below.</div>' : '')) + '</div>';
+    if (S.canvas.width || S.samplers.length) {
+      h += '<div class="card"><h2>Canvas & sampling</h2><div class="val">';
+      if (S.canvas.width) h += '<b>' + esc(S.canvas.width) + '×' + esc(S.canvas.height) + '</b>' + (S.canvas.length ? ' · ' + esc(S.canvas.length) + ' frames' : '') + (S.canvas.fps ? ' · ' + esc(S.canvas.fps) + ' fps' : '') + (S.canvas.batch && S.canvas.batch > 1 ? ' · batch ' + esc(S.canvas.batch) : '') + '<div class="hint" style="margin-top:2px">from ' + esc(S.canvas.node) + '</div>';
+      if (S.samplers.length) {
+        h += '<table style="margin-top:8px"><tr><th>seed</th><th>steps</th><th>cfg</th><th>sampler</th><th>scheduler</th><th>denoise</th></tr>';
+        const d = v => v !== undefined ? esc(fmtNum(v)) : '—';
+        S.samplers.forEach(s => { h += '<tr title="' + esc(s.node) + '"><td class="mono">' + d(s.seed) + '</td><td>' + d(s.steps) + '</td><td>' + d(s.cfg) + (s.guidance !== undefined ? ' <span class="hint" style="display:inline">(guidance ' + d(s.guidance) + ')</span>' : '') + (s.shift !== undefined ? ' <span class="hint" style="display:inline">(shift ' + d(s.shift) + ')</span>' : '') + '</td><td>' + esc(s.sampler || '—') + '</td><td>' + esc(s.scheduler || '—') + '</td><td>' + d(s.denoise) + '</td></tr>'; });
+        h += '</table>';
+      }
+      h += '</div></div>';
+    }
+    if (S.positive.length) h += '<div class="card wide"><h2>Positive prompt' + (S.positive.length > 1 ? 's (' + S.positive.length + ')' : '') + ' <button class="sm" onclick="copyText(current.S.positive.join(\'\\n\\n\'))">copy</button></h2>' + S.positive.map(t => '<div class="ptxt">' + esc(t) + '</div>').join('<div style="height:6px"></div>') + '</div>';
+    if (S.negative.length) h += '<div class="card wide"><h2>Negative prompt' + (S.negative.length > 1 ? 's' : '') + ' <button class="sm" onclick="copyText(current.S.negative.join(\'\\n\\n\'))">copy</button></h2>' + S.negative.map(t => '<div class="ptxt neg">' + esc(t) + '</div>').join('<div style="height:6px"></div>') + '</div>';
+    else if (S.negativeZeroed) h += '<div class="card"><h2>Negative prompt</h2><div class="val">None — <b>ConditioningZeroOut</b> feeds the negative input (CFG-free graph; any negative text would be inert).</div></div>';
+    if (S.otherText.length) h += '<div class="card wide"><h2>Other text fields</h2>' + S.otherText.map(o => '<div class="hint" style="margin:6px 0 2px">' + esc(o.title) + '</div><div class="ptxt neg">' + esc(o.text) + '</div>').join('') + '</div>';
+    if (S.loras.length) {
+      h += '<div class="card wide"><h2>LoRAs (' + S.loras.length + ')</h2><table><tr><th>file</th><th>model strength</th><th>clip strength</th><th>loader</th></tr>';
+      S.loras.forEach(l => { h += '<tr><td class="mono">' + esc(l.name) + '</td><td>' + esc(l.model !== undefined ? fmtNum(l.model) : '—') + '</td><td>' + esc(l.clip !== undefined ? fmtNum(l.clip) : '—') + '</td><td>' + esc(l.via) + '</td></tr>'; });
+      h += '</table><div class="hint">Trigger words are <b>not</b> stored anywhere in the metadata — only the prompt text. If the prompt contains a LoRA\'s trigger, it is in the positive prompt above.</div></div>';
+    } else if (S.hasGraph) h += '<div class="card"><h2>LoRAs</h2><div class="val">None in this graph.</div></div>';
+    if (S.models.length) {
+      h += '<div class="card wide"><h2>Model files (' + S.models.length + ')</h2><table><tr><th>role</th><th>file</th><th>node</th></tr>';
+      S.models.forEach(m => { h += '<tr><td>' + esc(m.role) + '</td><td class="mono">' + esc(m.file) + '</td><td>' + esc(m.node) + '</td></tr>'; });
+      h += '</table><div class="hint">Filenames only — the metadata never contains the weights or their hashes. Your ComfyUI needs the same files under the same names to reload this.</div></div>';
+    }
+    if (S.inputs.length || S.outputs.length) {
+      h += '<div class="card"><h2>Inputs & outputs</h2><div class="val mono">';
+      S.inputs.forEach(i => h += '⬆ ' + esc(i.kind) + ': ' + esc(i.file) + '<br>');
+      S.outputs.forEach(o => h += '⬇ ' + esc(o.node) + (o.prefix ? ' → ' + esc(o.prefix) : '') + (o.format ? ' (' + esc(o.format) + (o.codec ? '/' + esc(o.codec) : '') + ')' : '') + '<br>');
+      h += '</div>' + (S.inputs.length ? '<div class="hint">Input files are referenced by name only; their pixels are not embedded.</div>' : '') + '</div>';
+    }
+    const packNames = Object.keys(S.packs).filter(p => p !== 'comfy-core');
+    if (S.hasGraph) {
+      h += '<div class="card wide"><h2>Nodes (' + Object.values(S.classTypes).reduce((a, b) => a + b, 0) + ')' + (packNames.length ? ' · <span class="warn">' + packNames.length + ' custom pack' + (packNames.length > 1 ? 's' : '') + '</span>' : (S.packs['comfy-core'] ? ' · core only' : '')) + '</h2>';
+      if (packNames.length) h += '<div class="hint" style="margin:0 0 6px">Needs: ' + packNames.map(p => '<span class="tag custom">' + esc(p) + (S.packs[p].ver ? ' @' + esc(String(S.packs[p].ver).slice(0, 12)) : '') + '</span>').join('') + '</div>';
+      h += Object.keys(S.classTypes).sort().map(t => { const custom = packNames.some(p => S.packs[p].types.has(t)); return '<span class="tag ' + (custom ? 'custom' : 'core') + '">' + esc(t) + (S.classTypes[t] > 1 ? ' ×' + S.classTypes[t] : '') + '</span>'; }).join('') + '</div>';
+    }
+    if (S.notes.length) h += '<div class="card wide"><h2>Notes on the canvas</h2>' + S.notes.map(t => '<div class="ptxt neg">' + esc(t) + '</div>').join('<div style="height:6px"></div>') + '</div>';
+    if (S.params && S.params.settings) h += '<div class="card wide"><h2>A1111 settings line</h2><div class="ptxt neg">' + esc(S.params.settings) + '</div></div>';
+    h += '</div>';
+
+    // actions
+    h += '<div class="actions">';
+    if (f.workflow && f.workflow.json) h += '<button class="primary" onclick="dl(\'workflow\')">⬇ Download workflow .json</button>';
+    if (f.prompt && f.prompt.json) h += '<button onclick="dl(\'prompt\')">⬇ Download API prompt .json</button>';
+    if (S.positive.length) h += '<button onclick="copyText(current.S.positive[0])">Copy positive prompt</button>';
+    if (hasComfy || f.parameters) h += '<button onclick="dlBundle()" title="One ZIP: workflow.json + api-prompt.json + recipe.txt (models, LoRAs, packs, seed) + the original file when small enough. Text files survive Discord/Reddit; the image alone would not.">📦 Recipe bundle (.zip)</button>';
+    if (EMBEDDED) {
+      if (S.positive.length) h += '<button class="primary" onclick="sendPrompt()">→ Send prompt to Translate' + (S.target ? ' (' + esc(S.target) + ')' : '') + '</button>';
+      if (S.loras.length || S.positive.length) h += '<button onclick="sendSettings()" title="Open the ComfyUI export dialog for the detected model with this file\'s prompt, seed, steps, CFG, resolution, duration and LoRAs pre-filled — edit one thing and re-export">→ Reload settings into workflow export' + (S.loras.length ? ' (' + S.loras.length + ' LoRA' + (S.loras.length > 1 ? 's' : '') + ')' : '') + '</button>';
+    }
+    h += '</div>';
+
+    // raw fields
+    h += '<div class="panel"><h2>Raw metadata fields</h2>';
+    keys.forEach(k => {
+      const fld = f[k];
+      const pretty = fld.json ? JSON.stringify(fld.json, null, 2) : fld.raw;
+      h += '<details><summary><b>' + esc(k) + '</b> — ' + fmtBytes(fld.bytes) + ' · ' + esc(fld.where) + (fld.json ? '' : ' · plain text') + ' <button class="sm" data-fk="' + esc(k) + '">copy</button></summary><pre>' + esc(pretty.length > 400000 ? pretty.slice(0, 400000) + '\n… (truncated in view; copy/download gives the full text)' : pretty) + '</pre></details>';
+    });
+    if (res.exif) h += '<details><summary>Other EXIF tags</summary><pre>' + esc(JSON.stringify(res.exif, null, 2)) + '</pre></details>';
+    if (res.xmp) h += '<details><summary>XMP packet</summary><pre>' + esc(res.xmp.slice(0, 20000)) + '</pre></details>';
+    h += '</div>';
+  }
+  $('out').innerHTML = h;
+  const v = document.querySelector('.filehead video'); if (v) { v.addEventListener('loadedmetadata', () => { try { v.currentTime = 0.1; } catch(e){} }); }
+}
+
+function copyText(t){ navigator.clipboard.writeText(t).then(() => toast('Copied'), () => toast('Clipboard blocked — select and copy from the box')); }
+function dl(key){
+  const fld = current && current.res.fields[key]; if (!fld) return;
+  const blob = new Blob([JSON.stringify(fld.json, null, 1)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = current.res.name.replace(/\.[^.]+$/, '') + (key === 'workflow' ? '.workflow.json' : '.api-prompt.json');
+  a.click(); URL.revokeObjectURL(a.href);
+  toast(key === 'workflow' ? 'Saved — drag it onto the ComfyUI canvas' : 'Saved — API format (queue via /prompt, or drag onto ComfyUI to reconstruct a layout)');
+}
+function sendPrompt(){
+  if (!current) return;
+  const S = current.S;
+  window.parent.postMessage({ type: 'psmeta-prompt', text: S.positive[0] || '', negative: S.negative[0] || '', target: S.target, family: S.familyLabel, source: current.res.name }, '*');
+}
+function primarySampler(S){
+  // first sampler that actually has a numeric step count (skips guider-only or unresolved rows)
+  return S.samplers.find(s => typeof s.steps === 'number' || /^\d+$/.test(String(s.steps))) || S.samplers[0] || {};
+}
+function sendSettings(){
+  if (!current) return;
+  const S = current.S, s = primarySampler(S), num = v => { const n = typeof v === 'number' ? v : parseFloat(v); return isFinite(n) ? n : undefined; };
+  const c = S.canvas || {};
+  const frames = num(c.length), fps = num(c.fps);
+  window.parent.postMessage({ type: 'psmeta-loras',
+    loras: S.loras.map(l => ({ name: l.name, strength: typeof l.model === 'number' ? l.model : parseFloat(l.model) || 0.8 })),
+    text: S.positive[0] || '', negative: S.negative[0] || '', target: S.target, family: S.familyLabel,
+    seed: num(s.seed), steps: num(String(s.steps).split(' ')[0]), cfg: num(s.cfg),
+    width: num(c.width), height: num(c.height), frames, fps, duration: (frames && fps) ? Math.round((frames / fps) * 10) / 10 : undefined,
+    source: current.res.name }, '*');
+}
+const sendLoras = sendSettings;
+
+/* ---- recipe bundle: dependency-free ZIP (stored, no compression) ---- */
+const CRC_T = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = (c & 1) ? (0xedb88320 ^ (c >>> 1)) : (c >>> 1); t[n] = c >>> 0; } return t; })();
+function crc32(u8){ let c = 0xffffffff; for (let i = 0; i < u8.length; i++) c = CRC_T[(c ^ u8[i]) & 0xff] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0; }
+function makeZip(entries){   // entries: [{name, data:Uint8Array}]
+  const enc = new TextEncoder(), parts = [], central = []; let offset = 0;
+  const d = new Date(), dosTime = (d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1), dosDate = ((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate();
+  const u16 = v => [v & 255, (v >>> 8) & 255], u32 = v => [v & 255, (v >>> 8) & 255, (v >>> 16) & 255, (v >>> 24) & 255];
+  entries.forEach(e => {
+    const name = enc.encode(e.name), data = e.data, crc = crc32(data);
+    const local = new Uint8Array([...u32(0x04034b50), ...u16(20), ...u16(0x0800), ...u16(0), ...u16(dosTime), ...u16(dosDate), ...u32(crc), ...u32(data.length), ...u32(data.length), ...u16(name.length), ...u16(0), ...name]);
+    parts.push(local, data);
+    central.push(new Uint8Array([...u32(0x02014b50), ...u16(20), ...u16(20), ...u16(0x0800), ...u16(0), ...u16(dosTime), ...u16(dosDate), ...u32(crc), ...u32(data.length), ...u32(data.length), ...u16(name.length), ...u16(0), ...u16(0), ...u16(0), ...u16(0), ...u32(0), ...u32(offset), ...name]));
+    offset += local.length + data.length;
+  });
+  const cdSize = central.reduce((a, c) => a + c.length, 0);
+  const end = new Uint8Array([...u32(0x06054b50), ...u16(0), ...u16(0), ...u16(entries.length), ...u16(entries.length), ...u32(cdSize), ...u32(offset), ...u16(0)]);
+  return new Blob([...parts, ...central, end], { type: 'application/zip' });
+}
+function recipeText(){
+  const { res, S } = current, L = [], s = primarySampler(S), v = x => x === undefined || x === null ? '—' : String(fmtNum(x));
+  L.push('COMFYUI RECIPE — ' + res.name, 'extracted ' + new Date().toISOString().slice(0, 16).replace('T', ' ') + ' by Prompt Studio Meta Inspector (metadata is editable text; treat as a recipe, not proof)', '');
+  L.push('MODEL FAMILY: ' + (S.familyLabel || 'unknown') + (S.target ? '  (Prompt Studio dialect: ' + S.target + ')' : ''), '');
+  if (S.positive.length) L.push('POSITIVE PROMPT:', ...S.positive, '');
+  if (S.negative.length) L.push('NEGATIVE PROMPT:', ...S.negative, ''); else if (S.negativeZeroed) L.push('NEGATIVE PROMPT: none (ConditioningZeroOut — CFG-free graph)', '');
+  L.push('SAMPLING: seed ' + v(s.seed) + ' · steps ' + v(s.steps) + ' · cfg ' + v(s.cfg) + (s.guidance !== undefined ? ' · guidance ' + v(s.guidance) : '') + (s.shift !== undefined ? ' · shift ' + v(s.shift) : '') + ' · ' + v(s.sampler) + ' / ' + v(s.scheduler) + (s.denoise !== undefined ? ' · denoise ' + v(s.denoise) : ''));
+  if (S.samplers.length > 1) L.push('  (' + S.samplers.length + ' sampler passes — see api-prompt.json for each)');
+  const c = S.canvas; if (c.width) L.push('CANVAS: ' + c.width + 'x' + c.height + (c.length ? ' · ' + c.length + ' frames' : '') + (c.fps ? ' · ' + c.fps + ' fps' : '') + (c.batch > 1 ? ' · batch ' + c.batch : ''));
+  L.push('');
+  L.push('YOU NEED THESE FILES (same names, in your ComfyUI models folders):');
+  if (S.models.length) S.models.forEach(m => L.push('  ' + m.role + ': ' + m.file)); else L.push('  (none listed in metadata)');
+  L.push('');
+  L.push('LORAS:'); if (S.loras.length) S.loras.forEach(l => L.push('  ' + l.name + '  model ' + v(l.model) + (l.clip !== undefined ? ' · clip ' + v(l.clip) : '') + '  (' + l.via + ')')); else L.push('  none');
+  L.push('');
+  if (S.inputs.length) { L.push('INPUT FILES (referenced by name only — pixels are NOT in the metadata):'); S.inputs.forEach(i => L.push('  ' + i.kind + ': ' + i.file)); L.push(''); }
+  const packs = Object.keys(S.packs).filter(p => p !== 'comfy-core');
+  L.push('CUSTOM NODE PACKS REQUIRED: ' + (packs.length ? packs.map(p => p + (S.packs[p].ver ? ' @' + String(S.packs[p].ver).slice(0, 12) : '')).join(', ') : (S.packs['comfy-core'] ? 'none (core nodes only)' : 'unknown — no pack info in this file')));
+  if (S.notes.length) { L.push('', 'NOTES ON THE CANVAS:'); S.notes.forEach(n => L.push('  ' + n.replace(/\n/g, '\n  '))); }
+  L.push('', 'FILES IN THIS BUNDLE:', '  workflow.json  → drag onto the ComfyUI canvas to rebuild the graph', '  api-prompt.json → the executed graph (POST to /prompt, or drag onto ComfyUI for a rough layout)', '  recipe.txt     → this summary', '  original file  → included if it was under 25 MB; it still carries the embedded metadata');
+  return L.join('\n');
+}
+async function dlBundle(){
+  if (!current) return;
+  const { res } = current, f = res.fields, enc = new TextEncoder(), base = res.name.replace(/\.[^.]+$/, '');
+  const entries = [{ name: base + '.recipe.txt', data: enc.encode(recipeText()) }];
+  if (f.workflow && f.workflow.json) entries.push({ name: base + '.workflow.json', data: enc.encode(JSON.stringify(f.workflow.json, null, 1)) });
+  if (f.prompt && f.prompt.json) entries.push({ name: base + '.api-prompt.json', data: enc.encode(JSON.stringify(f.prompt.json, null, 1)) });
+  if (f.parameters && !f.parameters.json) entries.push({ name: base + '.parameters.txt', data: enc.encode(f.parameters.raw) });
+  let withOriginal = false;
+  if (res.file && res.file.size && res.file.size <= 25 * 1024 * 1024 && res.name !== 'pasted text') { entries.push({ name: res.name, data: new Uint8Array(await res.file.arrayBuffer()) }); withOriginal = true; }
+  const blob = makeZip(entries);
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = base + '.recipe.zip'; a.click(); URL.revokeObjectURL(a.href);
+  toast('Bundle saved (' + entries.length + ' files' + (withOriginal ? ', original included' : ', original omitted — over 25 MB') + ') — text survives any chat app', 4000);
+}
+
+/* ================= input wiring ================= */
+async function handleFiles(files){
+  const list = Array.from(files || []).filter(Boolean);
+  if (!list.length) return;
+  if (list.length > 1) toast('Inspecting the first file: ' + list[0].name + ' (' + list.length + ' dropped)');
+  $('out').innerHTML = '<div class="hint">Reading ' + esc(list[0].name) + '…</div>';
+  try { render(await inspectFile(list[0])); }
+  catch(e) { $('out').innerHTML = '<div class="verdict"><div class="ic err">✗</div><div><b>Could not read that file.</b><div class="hint">' + esc(e.message) + '</div></div></div>'; }
+}
+const drop = $('drop');
+['dragenter','dragover'].forEach(ev => document.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave','dragend'].forEach(ev => document.addEventListener(ev, e => { if (e.target === document.documentElement || e.clientX <= 0 || e.clientY <= 0) drop.classList.remove('over'); }));
+document.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('over'); if (e.dataTransfer && e.dataTransfer.files.length) handleFiles(e.dataTransfer.files); });
+$('fileIn').addEventListener('change', e => { handleFiles(e.target.files); e.target.value = ''; });
+document.addEventListener('paste', e => {
+  const dt = e.clipboardData; if (!dt) return;
+  const files = Array.from(dt.files || []);
+  if (files.length) { handleFiles(files); toast('Note: images pasted from the clipboard are usually re-encoded by the browser — metadata may be gone. Drop the file itself instead.', 4000); return; }
+  const t = dt.getData('text/plain'); if (!t || !t.trim()) return;
+  const res = { name: 'pasted text', size: t.length, container: null, fields: {}, notes: [], file: new Blob([t]) };
+  if (parseJsonText(t.trim(), res, 'pasted JSON')) render(res); else toast('Pasted text is not JSON');
+});
+$('out').addEventListener('click', function(e){
+  const b = e.target && e.target.closest ? e.target.closest('button[data-fk]') : null;
+  if (!b) return;
+  e.preventDefault();
+  const f = current && current.res && current.res.fields ? current.res.fields[b.getAttribute('data-fk')] : null;
+  if (f) copyText(f.raw);
+});
+// embedded in Prompt Studio: accept files forwarded from the parent's global drop zone
+if (EMBEDDED) {
+  window.addEventListener('message', e => {
+    if (e.source !== window.parent) return;
+    const d = e.data; if (!d || typeof d !== 'object') return;
+    if (d.type === 'psmeta-files' && d.files) handleFiles(d.files);
+  });
+  try { window.parent.postMessage({ type: 'psmeta-ready' }, '*'); } catch(e){}
+}
+</script>
+</body>
+</html>
