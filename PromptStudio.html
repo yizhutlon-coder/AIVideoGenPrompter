@@ -19,7 +19,7 @@
   [data-theme="light"] .bigbtn, [data-theme="light"] button.go, [data-theme="light"] .refine button,
   [data-theme="light"] .ap-input button, [data-theme="light"] .chk .fixbtn{color:#fff;}
   [data-theme="light"] #histPanel.open, [data-theme="light"] #askPanel.open, [data-theme="light"] #gotPanel.open,
-  [data-theme="light"] #mdlPanel.open, [data-theme="light"] #pickPanel.open, [data-theme="light"] #clipPanel.open, [data-theme="light"] #metaPanel.open,
+  [data-theme="light"] #mdlPanel.open, [data-theme="light"] #pickPanel.open, [data-theme="light"] #clipPanel.open, [data-theme="light"] #stitchPanel.open, [data-theme="light"] #metaPanel.open,
   [data-theme="light"] #h3bPanel.open{box-shadow:-20px 0 50px rgba(25,35,55,.18);}
   #themeSel{background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:6px 8px;font-size:12px;}
   *{box-sizing:border-box}
@@ -175,13 +175,13 @@
   .ap-input button:disabled{opacity:.5;cursor:default;}
   .ap-hint{font-size:11px;color:var(--dim);padding:0 14px 10px;}
   /* clips panel */
-  #clipPanel{position:fixed;top:0;right:-680px;width:660px;max-width:96vw;height:100vh;background:var(--panel);
+  #clipPanel,#stitchPanel{position:fixed;top:0;right:-680px;width:660px;max-width:96vw;height:100vh;background:var(--panel);
     border-left:1px solid var(--border);transition:right .25s;z-index:12;display:flex;flex-direction:column;}
-  #clipPanel.open{right:0;box-shadow:-16px 0 40px rgba(0,0,0,.35);}
+  #clipPanel.open,#stitchPanel.open{right:0;box-shadow:-16px 0 40px rgba(0,0,0,.35);}
   #h3bPanel.open{right:0 !important;box-shadow:-16px 0 40px rgba(0,0,0,.35);}
-  #clipPanel .cp-head{padding:13px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
-  #clipPanel .cp-head b{font-size:14px;flex:1;}
-  #clipPanel iframe{flex:1;border:none;width:100%;background:var(--bg);}
+  #clipPanel .cp-head,#stitchPanel .cp-head{padding:13px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+  #clipPanel .cp-head b,#stitchPanel .cp-head b{font-size:14px;flex:1;}
+  #clipPanel iframe,#stitchPanel iframe{flex:1;border:none;width:100%;background:var(--bg);}
   /* meta inspector panel */
   #metaPanel{position:fixed;top:0;right:-1020px;width:1000px;max-width:97vw;height:100vh;background:var(--panel);
     border-left:1px solid var(--border);transition:right .25s;z-index:12;display:flex;flex-direction:column;}
@@ -287,6 +287,7 @@ if (PS_SPLIT) {
         <div class="menu-list">
           <button class="ghost" id="h3bBtn" onclick="toggleH3B()" title="Hand-craft H3 prompts: modes, tag budgeting, live rule checks">🎛 H3 Builder</button>
           <button class="ghost" id="clipBtn" onclick="toggleClips()" title="Cut reference clips to exact seconds (H3)">🎞 Clip Picker</button>
+          <button class="ghost" id="stitchBtn" onclick="toggleStitch()" title="Chain clips into one long video: last-frame PNGs for the next generation's start image, seam-exact ffmpeg concat">🧵 Clip Stitcher</button>
           <button class="ghost" id="metaBtn" onclick="toggleMeta()" title="Read the prompt, model, LoRAs, seed and full workflow embedded in any ComfyUI output (PNG · WebP · MP4 · WebM · .latent) — or just drop the file anywhere on this page">🔎 Meta Inspector</button>
           <button class="ghost" id="pickBtn" onclick="togglePicker()" title="Which model fits your machine and task?">🗺 Model Picker</button>
           <button class="ghost" id="gotBtn" onclick="toggleGotchas()" title="Myths and gotchas that trip people up">🧠 Gotchas</button>
@@ -391,6 +392,14 @@ if (PS_SPLIT) {
   <iframe id="clipFrame" data-src="tools/ClipPicker.html"></iframe>
 </div>
 
+<div id="stitchPanel">
+  <div class="cp-head"><b>🧵 Clip Stitcher</b>
+    <span style="font-size:11.5px;color:var(--dim)">chain clips: last frame → next start image → invisible cuts · nothing leaves this machine</span>
+    <button class="pin-x" onclick="toggleStitch()">✕</button>
+  </div>
+  <iframe id="stitchFrame" data-src="tools/ClipStitcher.html"></iframe>
+</div>
+
 <div id="metaPanel">
   <div class="cp-head"><b>🔎 Meta Inspector</b>
     <span style="font-size:11.5px;color:var(--dim)">the recipe inside a ComfyUI output — prompt, models, LoRAs, seed, full workflow · nothing leaves this machine</span>
@@ -456,7 +465,7 @@ if (PS_SPLIT) {
     <b>Ctrl+Enter</b> — Translate (same muscle as ComfyUI's Queue)<br>
     <b>Esc</b> — close any panel, menu, or dialog<br>
     <b>?</b> — this sheet<br>
-    <b>a</b> Ask tutor · <b>g</b> Gotchas · <b>p</b> Model Picker · <b>h</b> History · <b>m</b> Models · <b>l</b> Pins · <b>b</b> H3 Builder · <b>c</b> Clip Picker<br>
+    <b>a</b> Ask tutor · <b>g</b> Gotchas · <b>p</b> Model Picker · <b>h</b> History · <b>m</b> Models · <b>l</b> Pins · <b>b</b> H3 Builder · <b>c</b> Clip Picker · <b>s</b> Clip Stitcher<br>
     <span style="color:var(--dim);font-size:11.5px">Letter keys work when you're not typing in a field. Drop a ComfyUI PNG or workflow .json anywhere on this page to extract its prompt.</span>
   </div>
   <div style="text-align:right;margin-top:10px"><button onclick="$('helpDlg').close()">Close</button></div>
@@ -905,6 +914,8 @@ Managing many LoRAs — Lora Manager setup (recommended, multi-step): (1) ensure
 Outputs land in ComfyUI/output/ (SaveImage/SaveVideo filename_prefix supports subfolders like "video/myproject"). First run is slow because multi-GB weights load; later runs reuse them. Version: Settings→About shows TWO versions (core and frontend). As of Sept 10 2026: core v0.35.0 (Sept 9 — preceded by v0.34.4 Sept 4, v0.34.5 Sept 5, v0.34.6 Sept 7), workflow-templates 0.11.57 (Sept 9), minimum PyTorch 2.7. v0.35.0 added core support for Pixal3D Multi-View and SenseNova U1.5, plus four MiniMax H3 items: PDD (Parallel Decoding Distillation) LoRAs for faster sampling, Fun Union ControlNet (reference + keyframe conditioning together), text-encoder-only references (VAE made optional, so a reference can condition the text encoder without going through the latent path) and loading of DiffSynth-Studio / ModelScope-trained H3 and HiDream O1 LoRAs that previously skipped every key. It also added a CFG++ sampler named cfgpp_ud10_ab — note the spelling: it has NO underscore between cfg and pp, so anything matching on the substring "cfg_pp" will miss it. Note the ComfyUI Manager registry lags PyPI badly (it was still showing workflow-templates v0.10.7 from 25 June while PyPI had 0.11.57) — trust PyPI/GitHub, not the Manager's "Latest". git pull alone leaves you split-versioned — always pip install -r requirements.txt after, or you get "Frontend or Templates Package Not Updated". OFFICIAL. Queue from another program: POST API-format JSON to /prompt (needs --enable-cors-header for browser apps). ComfyUI runs fully offline once models are downloaded — nothing uploads.
 
 == GENERAL CONCEPTS ==
+
+CHAINING CLIPS (long videos from 5-15s models): generate clip 1 → export its LAST frame as a lossless PNG → use that PNG as the START/reference image of the next I2V generation → repeat → concatenate. Because each clip begins on the previous clip's final frame, drop the duplicated first frame of every clip after the first when concatenating or you get a 1-frame stutter at each seam (ffmpeg: trim=start_frame=1 per later input; trim audio by exactly 1/fps alongside it or sync drifts ~40ms per seam). Use a frame-exact PNG (not a screenshot/JPEG) as the reference — recompression at the seam is what makes cuts visible. KNOWN LIMIT: chained I2V accumulates slight color/sharpness drift over many hops (each generation re-encodes reality); mitigate with frame-exact references, same resolution/fps every hop, and a single color-grade pass on the final stitched video. The 🧵 Clip Stitcher tool does the last-frame export and writes the exact ffmpeg concat command.
 
 TEMPORAL CONNECTIVES ARE LOAD-BEARING PHYSICS (industry-practitioner guidance): while/as = simultaneous, then/after/before = sequence, until = bounded, causing/making = causal. Video models take these literally — swapping "then" for "while" rewrites the event structure and produces impossible motion; padding with decorative "while" clauses creates overlapping actions the model cannot stage. Rule: preserve the user's temporal relations exactly during rewriting; when adding detail, one simultaneous pairing per beat; the format checker cross-checks intent vs output for lost sequencing/simultaneity markers.
 BEST-EVIDENCED CROSS-MODEL RULE: front-load the subject — word ORDER carries emphasis. In a controlled ablation (MIT/Technion arXiv:2606.03715, SD 3 / FLUX.1 Schnell / FLUX.2 Klein-4B), a "bag of position-tagged words" (identity + absolute position, no context) reached 65% non-inferiority against full embeddings' 70-90% — COMING CLOSE TO, not matching — and resolved same-word-set / different-order prompt pairs correctly on every model. SCOPE IT TWO WAYS. By TASK: on GenEval "Single object" the contextless embedding scores 88-100%, but on DrawBench "Text" only 24-37%, and the paper singles out FLUX.2 as still sensitive to losing context — so comma-run slot lists are fine for a single subject, and real relational sentences are needed for spatial/multi-object scenes and for any visible text. By ARCHITECTURE: this is DiT-only. U-Net models collapse without context — SDXL 4%, SD 2.1 0.2% — so never apply it to the SDXL targets. BFL's own guidance independently says the same thing ("Prompt order matters here too… make the subject clear first"). "Write prose because the encoder is an LLM" is CONTESTED, but by task, not universally. TESTED/PAPER. Practical corollary: safe rewriting preserves the salient words AND their order; reordering is where rewriters do damage.
@@ -2452,7 +2463,7 @@ function toggleHelp(){
 }
 function closeAllPanels(){
   closeMenus();
-  ['askPanel','gotPanel','pickPanel','mdlPanel','histPanel','clipPanel','h3bPanel'].forEach(function(id){
+  ['askPanel','gotPanel','pickPanel','mdlPanel','histPanel','clipPanel','h3bPanel','metaPanel','stitchPanel'].forEach(function(id){
     const el = document.getElementById(id);
     if (el) el.classList.remove('open');
   });
@@ -2462,7 +2473,7 @@ document.addEventListener('keydown', function(e){
   const tag = (e.target && e.target.tagName) || '';
   if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || e.ctrlKey || e.metaKey || e.altKey) return;
   if (e.key === '?') { toggleHelp(); return; }
-  const map = { a:'toggleAsk', g:'toggleGotchas', p:'togglePicker', h:'toggleHist', m:'toggleModels', l:'togglePins', b:'toggleH3B', c:'toggleClips' };
+  const map = { a:'toggleAsk', g:'toggleGotchas', p:'togglePicker', h:'toggleHist', m:'toggleModels', l:'togglePins', b:'toggleH3B', c:'toggleClips', s:'toggleStitch' };
   const fn = map[e.key.toLowerCase()];
   if (fn && window[fn]) window[fn]();
 });
@@ -2730,6 +2741,11 @@ function toggleH3B(){
 function toggleClips(){
   const p = $('clipPanel'), f = $('clipFrame');
   if (!f.src) f.src = f.dataset.src;   // lazy-load only when first opened
+  p.classList.toggle('open');
+}
+function toggleStitch(){
+  const p = $('stitchPanel'), f = $('stitchFrame');
+  if (!f.src) f.src = f.dataset.src;
   p.classList.toggle('open');
 }
 

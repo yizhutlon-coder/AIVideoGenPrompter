@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clip Stitcher — chain clips into one long video</title>
+<style>
+  :root{--bg:#14161a;--panel:#1b1e24;--panel2:#232730;--border:#2f3540;--text:#e7eaee;
+    --dim:#99a2af;--accent:#7fa3c7;--green:#7cc494;--warn:#d8a75f;--err:#d98484;--accent-fg:#0f151c;--accent-tint:rgba(127,163,199,.12);--font-heading:'Barlow Condensed','Arial Narrow','Helvetica Neue Condensed',system-ui,sans-serif;--font-body:'Barlow',system-ui,'Segoe UI',sans-serif;--mono:ui-monospace,'Cascadia Code',Consolas,monospace;}
+  [data-theme="light"]{
+    --bg:#f2f2f3; --panel:#ffffff; --panel2:#ebecee; --border:#d3d6da;
+    --text:#1d1f20; --dim:#5b636d; --accent:#48708f; --green:#1f6f3f; --warn:#8a5a14; --err:#a83232;
+    --accent-fg:#ffffff; --accent-tint:rgba(72,112,143,.09);
+  }
+  [data-theme="light"] button.primary{color:#fff;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:14px/1.55 var(--font-body);}
+  .app{max-width:940px;margin:0 auto;padding:22px 20px 60px;}
+  h1{font-size:19px;margin:0 0 4px;font-family:var(--font-heading);letter-spacing:.4px;}
+  h2{font-size:14px;margin:0 0 8px;font-family:var(--font-heading);letter-spacing:.4px;}
+  .sub{color:var(--dim);font-size:13px;margin:0 0 16px;}
+  .drop{border:2px dashed var(--border);border-radius:4px;padding:30px;text-align:center;color:var(--dim);cursor:pointer;}
+  .drop.over{border-color:var(--accent);color:var(--text);}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:14px;margin-top:14px;}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+  button{background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:4px;
+    padding:7px 12px;font-size:13px;cursor:pointer;}
+  button:hover{border-color:var(--accent);}
+  button.primary{background:var(--accent);color:var(--accent-fg);border:none;font-weight:700;}
+  button.tiny{padding:3px 8px;font-size:12px;}
+  select,input[type=text],input[type=number]{background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:6px 9px;font-size:13px;}
+  input[type=number]{width:72px;}
+  pre{background:var(--panel2);border:1px solid var(--border);border-radius:4px;padding:12px;
+    font-family:var(--mono);font-size:12px;white-space:pre-wrap;word-break:break-all;margin:8px 0 0;}
+  .hint{font-size:12px;color:var(--dim);margin-top:8px;}
+  .warn{color:var(--warn);}
+  .clip{display:flex;gap:10px;align-items:center;background:var(--panel2);border:1px solid var(--border);border-radius:4px;padding:8px 10px;margin-top:8px;}
+  .clip canvas{width:96px;height:54px;border-radius:3px;background:#000;flex:none;object-fit:cover;}
+  .clip .nm{flex:1;min-width:0;}
+  .clip .nm b{display:block;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .clip .nm span{font-size:12px;color:var(--dim);font-family:var(--mono);}
+  .seam{font-size:11.5px;color:var(--dim);margin:2px 0 0 12px;}
+  .steps{font-size:12.5px;color:var(--dim);margin:0;padding-left:18px;}
+  .steps li{margin:3px 0;}
+  .mismatch{color:var(--warn);font-size:12px;}
+  #toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--accent);
+    border-radius:4px;padding:9px 16px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:9;}
+  #toast.show{opacity:1;}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+</style>
+<script>
+(function(){
+  function applyTheme(){
+    var t = 'auto'; try { t = localStorage.getItem('ps_theme') || 'auto'; } catch(e){}
+    var sysLight = window.matchMedia ? matchMedia('(prefers-color-scheme: light)').matches : false;
+    var light = t === 'light' || (t === 'auto' && sysLight);
+    document.documentElement.setAttribute('data-theme', light ? 'light' : 'dark');
+  }
+  function applyZoom(){
+    var z = 100; try { z = +(localStorage.getItem('ps_zoom') || 100); } catch(e){}
+    document.documentElement.style.zoom = z / 100;
+  }
+  applyTheme(); applyZoom();
+  window.addEventListener('storage', function(){ applyTheme(); applyZoom(); });
+  if (window.matchMedia) { try { matchMedia('(prefers-color-scheme: light)').addEventListener('change', applyTheme); } catch(e){} }
+})();
+</script>
+</head>
+<body>
+<div class="app">
+  <h1>🧵 Clip Stitcher</h1>
+  <p class="sub">Chain generated clips into one long video. Everything stays on your machine — this page prepares exact ffmpeg commands; ffmpeg does the lossless work.</p>
+
+  <div class="panel" id="how">
+    <h2>The chaining workflow (why the cuts are invisible)</h2>
+    <ol class="steps">
+      <li>Generate clip 1 (any model).</li>
+      <li>Drop it here → <b>📸 Last frame</b> → you get a PNG of its final frame.</li>
+      <li>Use that PNG as the <b>start / reference image</b> of the next generation (Wan I2V, LTX I2V, H3 image ref…). Prompt Studio's I2V dialects describe <i>motion from this frame</i> — exactly what you want.</li>
+      <li>Drop clip 2 here too. Repeat.</li>
+      <li>When done, copy the stitch command below. Because each clip <i>starts</i> on the previous clip's last frame, the tool drops that duplicated frame at every seam — the cut lands on identical pixels and is invisible.</li>
+    </ol>
+    <div class="hint">Honest caveat: chained I2V drifts slightly in color/sharpness over many hops — that is the model re-encoding reality each time, not a stitching problem. Frame-exact reference PNGs (not screenshots) keep it minimal; some people re-grade the final video once at the end.</div>
+  </div>
+
+  <div class="drop" id="drop" style="margin-top:14px">Drop your clips here in any order (you can reorder below), or click to browse
+    <input type="file" id="file" accept="video/*" multiple style="display:none">
+  </div>
+
+  <div class="panel" id="listPanel" style="display:none">
+    <h2>Clips, in final order</h2>
+    <div id="list"></div>
+    <div class="hint" id="mismatch"></div>
+  </div>
+
+  <div class="panel" id="optPanel" style="display:none">
+    <h2>Stitch options</h2>
+    <div class="row">
+      <label><input type="checkbox" id="optSeam" checked> Drop each later clip's first frame (chained clips share it — prevents a 1-frame stutter at every seam)</label>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <label>Audio <select id="optAudio">
+        <option value="none">video only (strip audio — Wan/SCAIL clips have none)</option>
+        <option value="cut">keep audio — hard cuts (H3/LTX)</option>
+        <option value="fade">keep audio — 0.15s fade out/in at seams (kills clicks; lengths unchanged)</option>
+      </select></label>
+      <label>fps <input type="number" id="optFps" value="24" min="1" max="120" step="1" title="the clips' frame rate — used to trim audio by exactly one frame at each seam"></label>
+      <label>Output <input type="text" id="optOut" value="stitched.mp4" size="14"></label>
+    </div>
+    <div class="hint">fps: Wan 2.2 = 24 · LTX = 25 (2.5: 50) · H3 = 24 · SCAIL-2 = 16 — check your workflow's frame rate node if unsure. It only matters for the one-frame audio trim at seams.</div>
+  </div>
+
+  <div class="panel" id="cmdPanel" style="display:none">
+    <h2>Stitch command <button class="tiny" onclick="copyText($('cmd').textContent)">copy</button>
+      <button class="tiny" onclick="downloadBat()">⬇ StitchClips.bat</button></h2>
+    <div class="hint" id="cmdHint"></div>
+    <pre id="cmd"></pre>
+    <div id="copyWrap">
+      <h2 style="margin-top:14px">No-re-encode alternative (only when every clip has identical codec/resolution/fps <u>and</u> seam-frame dropping is off) <button class="tiny" onclick="copyText($('copyCmd').textContent)">copy</button></h2>
+      <pre id="copyCmd"></pre>
+    </div>
+    <div class="hint">Run the command in the folder that contains the clips. Windows: install ffmpeg from ffmpeg.org (or <span style="font-family:var(--mono)">winget install ffmpeg</span>), then paste into a terminal — or just download the .bat into that folder and double-click it.</div>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1800); }
+function copyText(s){
+  if (navigator.clipboard) navigator.clipboard.writeText(s).then(()=>toast('Copied')).catch(()=>toast('Copy failed — select the text manually'));
+  else toast('Copy not available — select the text manually');
+}
+function fmtDur(s){ return (Math.round(s*100)/100) + 's'; }
+
+let clips = [];   // { name, dur, w, h, url, file }
+
+function addFiles(files){
+  Array.from(files).forEach(function(f){
+    if (!/^video\//.test(f.type) && !/\.(mp4|mov|webm|mkv|avi)$/i.test(f.name)) { toast('Skipped ' + f.name + ' — not a video'); return; }
+    const url = URL.createObjectURL(f);
+    const v = document.createElement('video');
+    v.preload = 'metadata';
+    v.muted = true;
+    v.src = url;
+    v.addEventListener('loadedmetadata', function(){
+      clips.push({ name: f.name, dur: v.duration || 0, w: v.videoWidth, h: v.videoHeight, url: url, file: f });
+      renderList();
+    }, { once: true });
+    v.addEventListener('error', function(){ URL.revokeObjectURL(url); toast('Could not read ' + f.name); }, { once: true });
+  });
+}
+
+function drawThumb(canvas, clip, t){
+  const v = document.createElement('video');
+  v.preload = 'auto'; v.muted = true; v.src = clip.url;
+  v.addEventListener('loadedmetadata', function(){ v.currentTime = Math.min(t, Math.max(0, v.duration - 0.05)); }, { once: true });
+  v.addEventListener('seeked', function(){
+    canvas.width = 192; canvas.height = Math.max(1, Math.round(192 * v.videoHeight / Math.max(1, v.videoWidth)));
+    try { canvas.getContext('2d').drawImage(v, 0, 0, canvas.width, canvas.height); } catch(e){}
+    v.removeAttribute('src'); v.load();
+  }, { once: true });
+}
+
+function grabLastFrame(i){
+  const c = clips[i];
+  const v = document.createElement('video');
+  v.preload = 'auto'; v.muted = true; v.src = c.url;
+  toast('Grabbing last frame…');
+  v.addEventListener('loadedmetadata', function(){ v.currentTime = Math.max(0, v.duration - 0.04); }, { once: true });
+  v.addEventListener('seeked', function(){
+    const cv = document.createElement('canvas');
+    cv.width = v.videoWidth; cv.height = v.videoHeight;
+    cv.getContext('2d').drawImage(v, 0, 0);
+    cv.toBlob(function(blob){
+      if (!blob) { toast('Frame grab failed — use the exact ffmpeg command instead'); return; }
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = c.name.replace(/\.[^.]+$/, '') + '_lastframe.png';
+      a.click();
+      setTimeout(function(){ URL.revokeObjectURL(a.href); }, 4000);
+      toast('Last frame saved — use it as the next clip’s start image');
+    }, 'image/png');
+    v.removeAttribute('src'); v.load();
+  }, { once: true });
+}
+
+function lastFrameCmd(i){
+  return 'ffmpeg -sseof -0.1 -i "' + clips[i].name + '" -update 1 -frames:v 1 -q:v 1 "' + clips[i].name.replace(/\.[^.]+$/, '') + '_lastframe.png"';
+}
+
+function move(i, d){
+  const j = i + d;
+  if (j < 0 || j >= clips.length) return;
+  const t = clips[i]; clips[i] = clips[j]; clips[j] = t;
+  renderList();
+}
+function removeClip(i){
+  URL.revokeObjectURL(clips[i].url);
+  clips.splice(i, 1);
+  renderList();
+}
+
+function renderList(){
+  const L = $('list');
+  L.innerHTML = '';
+  clips.forEach(function(c, i){
+    if (i > 0) {
+      const s = document.createElement('div');
+      s.className = 'seam';
+      s.textContent = '✂ seam ' + i + ' — clip ' + (i+1) + '’s first frame should be clip ' + i + '’s last frame';
+      L.appendChild(s);
+    }
+    const d = document.createElement('div');
+    d.className = 'clip';
+    d.innerHTML = '<canvas></canvas><div class="nm"><b>' + esc(c.name) + '</b><span>' + fmtDur(c.dur) + ' · ' + c.w + '×' + c.h + '</span></div>' +
+      '<button class="tiny" onclick="move(' + i + ',-1)" title="earlier">▲</button>' +
+      '<button class="tiny" onclick="move(' + i + ',1)" title="later">▼</button>' +
+      '<button class="tiny" onclick="grabLastFrame(' + i + ')" title="save this clip’s final frame as PNG — the start image for the next generation">📸 Last frame</button>' +
+      '<button class="tiny" onclick="copyText(lastFrameCmd(' + i + '))" title="frame-exact alternative: ffmpeg command for the same PNG">⌘</button>' +
+      '<button class="tiny" onclick="removeClip(' + i + ')" title="remove">✕</button>';
+    L.appendChild(d);
+    drawThumb(d.querySelector('canvas'), c, 0.1);
+  });
+  $('listPanel').style.display = clips.length ? 'block' : 'none';
+  $('optPanel').style.display = clips.length > 1 ? 'block' : 'none';
+  $('cmdPanel').style.display = clips.length > 1 ? 'block' : 'none';
+  const mm = $('mismatch');
+  const bad = clips.filter(function(c){ return clips.length && (c.w !== clips[0].w || c.h !== clips[0].h); });
+  mm.innerHTML = bad.length ? '<span class="mismatch">⚠ Resolutions differ (' + esc(bad.map(function(c){ return c.name; }).join(', ')) + ') — the stitch command scales everything to ' + clips[0].w + '×' + clips[0].h + ' (the first clip). Matching resolutions at generation time looks better.</span>' : '';
+  const q = clips.filter(function(c){ return /['"]/g.test(c.name); });
+  if (q.length) mm.innerHTML += '<div class="mismatch">⚠ Quotes in filenames break shell commands — rename: ' + esc(q.map(function(c){ return c.name; }).join(', ')) + '</div>';
+  buildCmd();
+}
+
+function buildCmd(){
+  if (clips.length < 2) return;
+  const seam = $('optSeam').checked;
+  const audio = $('optAudio').value;
+  const fps = Math.max(1, +$('optFps').value || 24);
+  const out = ($('optOut').value || 'stitched.mp4').trim();
+  const scale = clips.some(function(c){ return c.w !== clips[0].w || c.h !== clips[0].h; });
+  const W = clips[0].w, H = clips[0].h;
+
+  const inputs = clips.map(function(c){ return '-i "' + c.name + '"'; }).join(' ');
+  const fparts = [], vlabels = [], alabels = [];
+  clips.forEach(function(c, i){
+    let vf = [];
+    if (i > 0 && seam) vf.push('trim=start_frame=1');
+    if (scale) vf.push('scale=' + W + ':' + H + ':force_original_aspect_ratio=decrease', 'pad=' + W + ':' + H + ':(ow-iw)/2:(oh-ih)/2');
+    vf.push('setpts=PTS-STARTPTS');
+    fparts.push('[' + i + ':v]' + vf.join(',') + '[v' + i + ']');
+    vlabels.push('[v' + i + ']');
+    if (audio !== 'none') {
+      let af = [];
+      if (i > 0 && seam) af.push('atrim=start=' + (Math.round(1000000 / fps) / 1000000));
+      if (audio === 'fade') {
+        if (i > 0) af.push('afade=t=in:st=0:d=0.15');
+        if (i < clips.length - 1) af.push('afade=t=out:st=' + Math.max(0, Math.round((c.dur - 0.15) * 1000) / 1000) + ':d=0.15');
+      }
+      af.push('asetpts=PTS-STARTPTS');
+      fparts.push('[' + i + ':a]' + af.join(',') + '[a' + i + ']');
+      alabels.push('[a' + i + ']');
+    }
+  });
+  const n = clips.length;
+  const concat = audio === 'none'
+    ? vlabels.join('') + 'concat=n=' + n + ':v=1:a=0[v]'
+    : vlabels.map(function(v, i){ return v + alabels[i]; }).join('') + 'concat=n=' + n + ':v=1:a=1[v][a]';
+  fparts.push(concat);
+  let cmd = 'ffmpeg ' + inputs + ' -filter_complex "' + fparts.join(';') + '" -map "[v]"' +
+    (audio === 'none' ? ' -an' : ' -map "[a]" -c:a aac -b:a 192k') +
+    ' -c:v libx264 -crf 16 -preset slow -pix_fmt yuv420p "' + out + '"';
+  $('cmd').textContent = cmd;
+  $('cmdHint').innerHTML = 'Re-encodes once at near-lossless CRF 16' +
+    (seam ? '; drops the duplicated seam frame of every clip after the first (video and one audio frame together — no drift)' : '') +
+    (audio === 'fade' ? '; 0.15s audio fades at each seam' : '') + '.';
+
+  const listTxt = clips.map(function(c){ return "file '" + c.name + "'"; }).join('\n');
+  $('copyCmd').textContent = '(echo ' + clips.map(function(c){ return "file '" + c.name + "'"; }).join(' & echo ') + ') > mylist.txt\n' +
+    'ffmpeg -f concat -safe 0 -i mylist.txt -c copy "' + out + '"\n\n# mylist.txt contents, for reference:\n' + listTxt;
+  $('copyWrap').style.display = (seam || scale) ? 'none' : 'block';
+}
+
+function downloadBat(){
+  if (clips.length < 2) return;
+  const cmd = $('cmd').textContent.replace(/%/g, '%%');
+  const out = ($('optOut').value || 'stitched.mp4').trim();
+  const lines = [
+    '@echo off',
+    'rem Clip Stitcher - generated by Prompt Studio. Put this .bat in the folder with the clips and double-click.',
+    'where ffmpeg >nul 2>nul',
+    'if errorlevel 1 goto noff',
+    cmd,
+    'if errorlevel 1 goto fail',
+    'echo.',
+    'echo Done: ' + out,
+    'pause',
+    'exit /b',
+    ':noff',
+    'echo ffmpeg was not found on PATH. Install it first: winget install ffmpeg  - or ffmpeg.org',
+    'pause',
+    'exit /b',
+    ':fail',
+    'echo ffmpeg reported an error - scroll up for the reason. Common: a clip name changed, or quotes in a filename.',
+    'pause'
+  ];
+  const blob = new Blob([lines.join('\r\n') + '\r\n'], { type: 'application/octet-stream' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'StitchClips.bat';
+  a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); }, 4000);
+  toast('Save it next to the clips, then double-click it');
+}
+
+/* wiring */
+const drop = $('drop');
+drop.addEventListener('click', function(){ $('file').click(); });
+$('file').addEventListener('change', function(){ addFiles(this.files); this.value = ''; });
+drop.addEventListener('dragover', function(e){ e.preventDefault(); drop.classList.add('over'); });
+drop.addEventListener('dragleave', function(){ drop.classList.remove('over'); });
+drop.addEventListener('drop', function(e){ e.preventDefault(); drop.classList.remove('over'); if (e.dataTransfer && e.dataTransfer.files) addFiles(e.dataTransfer.files); });
+['optSeam','optAudio','optFps','optOut'].forEach(function(id){ $(id).addEventListener('input', buildCmd); $(id).addEventListener('change', buildCmd); });
+</script>
+</body>
+</html>
