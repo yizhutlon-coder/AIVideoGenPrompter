@@ -20,7 +20,7 @@
   [data-theme="light"] .ap-input button, [data-theme="light"] .chk .fixbtn{color:#fff;}
   [data-theme="light"] #histPanel.open, [data-theme="light"] #askPanel.open, [data-theme="light"] #gotPanel.open,
   [data-theme="light"] #mdlPanel.open, [data-theme="light"] #pickPanel.open, [data-theme="light"] #clipPanel.open, [data-theme="light"] #stitchPanel.open, [data-theme="light"] #metaPanel.open,
-  [data-theme="light"] #h3bPanel.open{box-shadow:-20px 0 50px rgba(25,35,55,.18);}
+  [data-theme="light"] #h3bPanel.open, [data-theme="light"] #h3sPanel.open{box-shadow:-20px 0 50px rgba(25,35,55,.18);}
   #themeSel{background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:6px 8px;font-size:12px;}
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--text);font:14px/1.55 var(--font-body);}
@@ -57,9 +57,16 @@
   textarea{width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:4px;
     padding:12px 14px;font-size:15.5px;font-family:inherit;min-height:76px;resize:vertical;}
   textarea:focus{outline:none;border-color:var(--accent);}
-  .examples{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
-  .ex{font-size:12px;color:var(--dim);background:var(--panel2);border:1px solid var(--border);border-radius:4px;
-    padding:4px 11px;cursor:pointer;}
+  .input-guide{margin-top:9px;color:var(--dim);font-size:12.5px;line-height:1.55;}
+  .input-guide b{color:var(--text);}
+  .examples{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px;}
+  .detail-prompt{margin-top:10px;padding:11px 13px;border:1px solid var(--accent);border-radius:4px;background:var(--accent-tint);font-size:12.5px;line-height:1.5;}
+  .detail-prompt .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px;}
+  .detail-prompt button{background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:4px;padding:6px 10px;cursor:pointer;font-size:12px;}
+  .detail-prompt button:hover{border-color:var(--accent);}
+  .ex{font-size:12px;color:var(--text);background:var(--panel2);border:1px solid var(--border);border-radius:4px;
+    padding:7px 11px;cursor:pointer;text-align:left;min-width:125px;}
+  .ex small{display:block;color:var(--dim);font-size:11px;margin-top:2px;}
   .ex:hover{color:var(--text);border-color:var(--accent);}
   .controls{display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap;}
   .chips{display:flex;flex-direction:column;gap:7px;}
@@ -78,13 +85,19 @@
   .results{display:grid;grid-template-columns:repeat(auto-fit,minmax(470px,1fr));gap:14px;}
   @media(max-width:990px){.results{grid-template-columns:1fr;}}
   .out{background:var(--panel);border:1px solid var(--border);border-radius:4px;overflow:hidden;display:flex;flex-direction:column;}
-  .out .head{display:flex;align-items:center;padding:10px 14px;background:var(--panel2);border-bottom:1px solid var(--border);gap:8px;}
+  .out .head{display:flex;align-items:center;flex-wrap:wrap;padding:10px 14px;background:var(--panel2);border-bottom:1px solid var(--border);gap:8px;}
   .out .head h3{margin:0;font-size:14.5px;}
   .out .head .fmt{font-size:11.5px;color:var(--dim);}
   .out .head .btns{margin-left:auto;display:flex;gap:6px;flex-shrink:0;}
   .out .head .btns button{background:none;border:1px solid var(--border);color:var(--dim);
     border-radius:4px;padding:5px 10px;font-size:12px;cursor:pointer;white-space:nowrap;}
   .out .head .btns button:hover{color:var(--text);border-color:var(--accent);}
+  .zh-variant{border-top:1px solid var(--border);background:var(--panel2);}
+  .zh-top{display:flex;align-items:center;gap:8px;padding:9px 14px;font-size:12px;}
+  .zh-top b{flex:1;}
+  .zh-top button{background:var(--panel);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:5px 10px;cursor:pointer;}
+  .zh-top button:hover{border-color:var(--accent);}
+  .zh-variant pre{max-height:300px;}
   /* pinned board */
   body{display:flex;}
   .app{flex:1;min-width:0;}
@@ -178,7 +191,7 @@
   #clipPanel,#stitchPanel{position:fixed;top:0;right:-680px;width:660px;max-width:96vw;height:100vh;background:var(--panel);
     border-left:1px solid var(--border);transition:right .25s;z-index:12;display:flex;flex-direction:column;}
   #clipPanel.open,#stitchPanel.open{right:0;box-shadow:-16px 0 40px rgba(0,0,0,.35);}
-  #h3bPanel.open{right:0 !important;box-shadow:-16px 0 40px rgba(0,0,0,.35);}
+  #h3bPanel.open,#h3sPanel.open{right:0 !important;box-shadow:-16px 0 40px rgba(0,0,0,.35);}
   #clipPanel .cp-head,#stitchPanel .cp-head{padding:13px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
   #clipPanel .cp-head b,#stitchPanel .cp-head b{font-size:14px;flex:1;}
   #clipPanel iframe,#stitchPanel iframe{flex:1;border:none;width:100%;background:var(--bg);}
@@ -203,6 +216,7 @@
   .split-panes iframe:first-child{border-right:2px solid var(--border);}
   .out pre{margin:0;padding:14px;white-space:pre-wrap;word-break:break-word;font-family:var(--mono);
     font-size:12.5px;line-height:1.6;flex:1;max-height:400px;overflow:auto;}
+  .scail-note{padding:0 14px 12px;color:var(--dim);font-size:11.5px;line-height:1.5;}
   .cursor{display:inline-block;width:7px;height:14px;background:var(--accent);vertical-align:-2px;animation:blink 1s steps(1) infinite;}
   @keyframes blink{50%{opacity:0}}
   .chk{font-size:11.5px;display:flex;align-items:center;gap:6px;}
@@ -285,7 +299,8 @@ if (PS_SPLIT) {
       <div class="menu" id="menuTools">
         <button class="menu-btn" type="button">🧰 Tools ▾</button>
         <div class="menu-list">
-          <button class="ghost" id="h3bBtn" onclick="toggleH3B()" title="Hand-craft H3 prompts: modes, tag budgeting, live rule checks">🎛 H3 Builder</button>
+          <button class="ghost" id="h3bBtn" onclick="toggleH3B()" title="Hand-craft H3 prompts: modes, tag budgeting, live rule checks — the simple version, best for learning">🎛 H3 Builder</button>
+          <button class="ghost" id="h3sBtn" onclick="toggleH3S()" title="Advanced H3 workbench: autosaved projects, one-job-per-reference model, per-shot beat/dialogue x-ray, camera-authority checks, locate-able findings">🎬 H3 Studio (advanced)</button>
           <button class="ghost" id="clipBtn" onclick="toggleClips()" title="Cut reference clips to exact seconds (H3)">🎞 Clip Picker</button>
           <button class="ghost" id="stitchBtn" onclick="toggleStitch()" title="Chain clips into one long video: last-frame PNGs for the next generation's start image, seam-exact ffmpeg concat">🧵 Clip Stitcher</button>
           <button class="ghost" id="metaBtn" onclick="toggleMeta()" title="Read the prompt, model, LoRAs, seed and full workflow embedded in any ComfyUI output (PNG · WebP · MP4 · WebM · .latent) — or just drop the file anywhere on this page">🔎 Meta Inspector</button>
@@ -353,10 +368,15 @@ if (PS_SPLIT) {
   <div id="tool">
     <div class="input-zone">
       <textarea id="intent" placeholder="Describe the shot you want to see… one or two plain sentences is perfect."></textarea>
+      <div class="input-guide"><b>Short ideas use Simple mode:</b> a brief prompt based on your words. Add details when you want a richer result. This tool is especially useful for Chinese prompts for Wan, Z-Image, and Qwen-Image, and for video models that need shots, timing, audio, or references in a precise format.</div>
+      <div class="detail-prompt" id="detailPrompt" style="display:none" aria-live="polite">
+        <div>This request is short, so Translate will use Simple mode and keep the prompt brief. Add any subject, setting, action, appearance, camera, or sound details you want included; unknown details stay unstated.</div>
+        <div class="actions"><button type="button" onclick="addDetails()">Add details</button></div>
+      </div>
       <div class="examples" id="examples"></div>
       <div style="margin-top:8px">
-        <button class="ghost" id="ctxBtn" onclick="toggleCtx()" style="font-size:11.5px">📋 Project context</button>
-        <div id="ctxWrap" style="display:none;margin-top:6px">
+        <button class="ghost" id="ctxBtn" onclick="toggleCtx()" aria-controls="ctxWrap" aria-expanded="true" style="font-size:11.5px">📋 Project context</button>
+        <div id="ctxWrap" style="display:block;margin-top:6px">
           <textarea id="ctxText" rows="2" placeholder="Persistent invariants applied to every translation — e.g. 'All shots are for my fishing-village game: painterly, muted earthy palette, melancholic tone.'" oninput="saveCtx()"></textarea>
           <div class="hint">Stored on this machine; applies to Translate, Tweak, and Fix until you clear it. Keep it to invariants (style, palette, world) — not per-shot content.</div>
         </div>
@@ -382,6 +402,14 @@ if (PS_SPLIT) {
     <button class="pin-x" onclick="toggleH3B()">✕</button>
   </div>
   <iframe id="h3bFrame" data-src="tools/H3Builder.html" style="flex:1;border:none;width:100%;background:var(--bg);"></iframe>
+</div>
+
+<div id="h3sPanel" style="position:fixed;top:0;right:-1020px;width:1000px;max-width:97vw;height:100vh;background:var(--panel);border-left:1px solid var(--border);transition:right .25s;z-index:12;display:flex;flex-direction:column;">
+  <div class="cp-head"><b>🎬 H3 Studio</b>
+    <span style="font-size:11.5px;color:var(--dim)">advanced workbench: projects, reference jobs, timeline x-ray — learn the dialect in 🎛 H3 Builder first</span>
+    <button class="pin-x" onclick="toggleH3S()">✕</button>
+  </div>
+  <iframe id="h3sFrame" data-src="tools/H3Studio.html" style="flex:1;border:none;width:100%;background:var(--bg);"></iframe>
 </div>
 
 <div id="clipPanel">
@@ -542,44 +570,41 @@ const TARGETS = {
     name:'Wan 2.2 (T2V)', fmt:'keyword formula · ZH-aware · one action, one camera move',
     system:`You convert a user's plain-language video idea into an optimized prompt for the Wan 2.2 text-to-video model (T2V-A14B / TI2V-5B).
 
-Silently decide first: output language, subject, the ONE main motion, the ONE camera behavior. Then write. Output ONLY the prompt and negative prompt — no explanations, no markdown.
+Silently identify only the subject, motion, and camera behavior the user actually stated. Output ONLY the prompt and negative prompt — no explanations, no markdown.
 
-LANGUAGE: If the user wrote in Chinese, or the scene contains Chinese text or distinctly Chinese cultural content, write the prompt in native Chinese (60-200 characters). Otherwise write English (35-120 words). If the user message contains an explicit output-language preference, obey it.
+LANGUAGE: If the user wrote in Chinese, or the scene contains Chinese text or distinctly Chinese cultural content, write the prompt in native Chinese. Otherwise write English. If the user message contains an explicit output-language preference, obey it. A sparse request may yield a prompt shorter than the usual model guidance; never invent facts to reach a length target.
 
 Rules:
 - STYLE LEADS if the user named one — put it first (二次元厚涂动漫插画, 日系赛璐璐风格, 3D卡通风格, 纪实摄影风格); if it is 2D / illustration / anime, add NO cinematic aesthetic tokens, which the official rewriter suppresses for 2D styles.
-- Otherwise: Subject, Scene, Motion, then aesthetic keywords (light source, lighting quality, shot size, composition, lens, camera movement) — the vendor's exemplars also front-load that aesthetic run BEFORE the subject, so both orders are official; never bury the subject behind more than one short run. At most 4 aesthetic tokens in English (不超过4种); the Chinese rewriter states no cap.
-- Motion must name WHAT moves (body part or element), its amplitude and speed, and its visible effect — the vendor's own examples are 猛烈地摇摆, 缓慢地移动, 打碎了玻璃. ONE continuous action only.
-- ONE camera behavior only, placed FIRST in its clause, using official vocabulary (push in / pull back / pan left-right / tilt up-down / orbit, also called an arc shot; 镜头前推、镜头后拉、镜头从左到右、镜头上摇、环绕运镜、复合运镜). Do NOT also state a camera angle — the official rewriter suppresses 拍摄角度 whenever a camera move is present. If the camera should stay still, write "fixed camera, no camera movement" / "固定镜头，镜头不移动" (accept 固定机位 and 镜头位置保持不动 as synonyms, but emit 固定镜头) and no other camera verbs. Wan follows scene content well but camera commands only weakly — keep them simple, never stack them. NEVER use the word "cinematic" — it triggers the stylization branch; describe the look concretely instead.
+- Otherwise: Subject, Scene, Motion, then ONLY the aesthetic details the user supplied. Omit light source, shot size, composition, lens, and style if absent. At most 4 aesthetic tokens in English (不超过4种).
+- Name what moves. State amplitude, speed, or a visible effect only when the user described it. Do not add a second action or a micro-action to flesh out the first.
+- State ONE camera behavior only if the user specified one. If the user did not mention the camera, say nothing about it, including no "fixed camera". If the user explicitly requests a fixed camera, use "fixed camera, no camera movement" / "固定镜头，镜头不移动". If the user requests movement, keep that direction and do not also add an angle. NEVER use the word "cinematic" unless the user used it.
 - Preserve every content word the user gave (subjects, colors, counts, actions) exactly; do not swap synonyms or drop any. Do NOT pad. No literary mood writing — the official rule is 不要输出关于氛围、感觉等文学描写 — no quality-tag stacks, no invented style.
-- TIMING WORDS ARE PHYSICS: while/as = simultaneous, then/after/before = sequence, until = bounded. Preserve the user's temporal relations EXACTLY — never turn a sequence into simultaneity or vice versa — and when adding motion detail choose connectives deliberately: every 'while' clause must describe something physically compatible with its main action.
+- TIMING WORDS ARE PHYSICS: while/as = simultaneous, then/after/before = sequence, until = bounded. Preserve the user's temporal relations EXACTLY. Do not add timing or transitions.
 - No dialogue or sound description (Wan is video-only).
 - Then a blank line, then exactly:
 Negative prompt: ${WAN_NEG}
 
-Example input: "woman at a train window quietly looks up"
+Example input: "woman beside a rain-streaked train window holding a folded letter looks up toward passing lights; the camera slowly pushes in"
 Example output:
-Fixed medium close-up, no camera movement. A woman beside a rain-streaked train window keeps her body still, slowly lifts her gaze from a folded letter to the passing lights, blinks once, and exhales; only her reflection and the rain move. Cool side light, shallow depth of field.
+The camera slowly pushes in. A woman beside a rain-streaked train window holds a folded letter and looks up toward passing lights.
 
 Negative prompt: ${WAN_NEG}
 
-Example input: "一个拳击手闪避后反击"
-Example output:
-写实体育风格，硬质顶光，中景，暖色调，中心构图。镜头从左到右横移，红衣拳手先向左小幅快速闪过一记直拳，后脚转轴，随即用紧凑的右直拳猛烈击中对手护架，撞击瞬间汗珠飞散；对手只后退一步。
-
-Negative prompt: ${WAN_NEG}`
+For complex user requests, preserve every supplied detail and its order without adding a new detail. The example above demonstrates format only.`
   },
   wanI2V: {
     name:'Wan 2.2 (I2V)', def:false, fmt:'motion-only ≤100 words — the image carries everything else',
     system:`You convert a user's plain-language idea into an optimized prompt for the Wan 2.2 image-to-video model (I2V-A14B). The user already has a still image; the prompt must describe ONLY what changes over time.
 
 Rules:
-- Output motion and camera content ONLY: what moves, in what order, at what amplitude and speed, what visible effect it produces, and what the camera does — the official formula is 提示词 = 运动 + 运镜. Hard cap 100 words in English, 100 characters in Chinese (the two official rewriters differ — the Chinese one says 提示词长度控制在100字以内); 15-70 words is usually right in English.
+- Output ONLY changes over time that the user described: motion, timing, and camera behavior when specified. State amplitude, speed, and visible effect only if described. Hard cap 100 words in English, 100 characters in Chinese; a sparse request may be only a few words.
 - Do NOT restate what the image already shows (appearance, scene, style, lighting) — every static word wastes the budget the model spends on motion.
-- ONE continuous action. If the camera should stay still: "Static camera." / "固定镜头。" MOVE or ANGLE, never both — with any camera move present, emit no shot-angle token; the rewriter suppresses 拍摄角度 whenever a 运镜 clause exists.
+- Do not create extra actions. If the user explicitly asks for a still camera: "Static camera." / "固定镜头。" If no camera behavior was specified, omit the camera clause. MOVE or ANGLE, never both.
+- If the user gives a camera move, keep that move; a fixed camera would contradict the request.
 - Do not change identity, wardrobe, layout, or lighting unless the user asked.
 - Preserve the user's content words exactly. No padding, no mood language.
-- TIMING WORDS ARE PHYSICS: while/as = simultaneous, then/after/before = sequence, until = bounded. Preserve the user's temporal relations EXACTLY — never turn a sequence into simultaneity or vice versa — and when adding motion detail choose connectives deliberately: every 'while' clause must describe something physically compatible with its main action.
+- TIMING WORDS ARE PHYSICS: while/as = simultaneous, then/after/before = sequence, until = bounded. Preserve the user's temporal relations EXACTLY without adding a pause, turn, or other beat.
 - LANGUAGE: match the user's language (Chinese in → Chinese out); obey any explicit preference.
 - Then a blank line, then exactly:
 Negative prompt: ${WAN_NEG}
@@ -587,7 +612,7 @@ Negative prompt: ${WAN_NEG}
 
 Example input: "animate my photo of a squirrel eating"
 Example output:
-The squirrel keeps eating with quick paw movements that scatter small shell fragments, pauses once to raise its head and look left, then resumes. Static camera; the branch remains still.
+The squirrel eats.
 
 Negative prompt: ${WAN_NEG}`
   },
@@ -597,20 +622,20 @@ Negative prompt: ${WAN_NEG}`
 
 Rules:
 - ONE flowing present-tense paragraph, chronological. START with the action — not scene-setting adjectives. Keep every sentence literal and precise; no mood padding.
-- Order within the paragraph: main action → movements/gestures → precise appearance → environment → camera behavior as its own clause (type, direction, speed) → lighting/color → any sudden event.
-- LENGTH IS VERSION-SPLIT. LTX-2.3: 200 words hard — that number, and only that number, is the LTX-2 README's; the 40-150 soft band is house craft descended from the LTXV-0.9 enhancer, not a current vendor figure. LTX-2.5: 4-8 descriptive sentences for a single shot, up to ~16 for a multishot or screenplay-style scene — no word cap exists in its current guide, provided every sentence adds concrete visual or audio detail. One main action per 2-3 seconds of clip.
-- AUDIO IS NOT AUTOMATIC on LTX: explicitly name the dialogue (exact quoted words, speaker identity, delivery), ambience, effects, and music — or state "no music" / "no dialogue". Place each sound next to the action that produces it.
+- Order only the details the user supplied: main action, then its stated movements, appearance, environment, camera, light, and sound. Omit absent categories instead of filling a template.
+- LTX-2.3 has a 200-word maximum. LTX-2.5 can accept longer detailed scenes. Neither creates a minimum length or a reason to invent action beats. A single sparse sentence is valid.
+- Audio: include dialogue, ambience, effects, or music only when the user supplied them. Never infer sound from a visible action. Do not add "no music" or "no dialogue" unless the user explicitly requested those absences.
 - Never require a negative prompt: the distilled path runs at CFG 1.0 and the shipped template already hardcodes one. Write every exclusion positively inside the paragraph.
-- Never invent characters, dialogue, or camera motion the user did not imply. Preserve the user's content words and any quoted speech verbatim (keep Chinese dialogue in Chinese).
+- Never invent characters, visual details, props, dialogue, sound, cuts, or camera motion the user did not state. Preserve the user's content words and any quoted speech verbatim (keep Chinese dialogue in Chinese).
 - The official ComfyUI LTX-2.5 T2V template ships prompt_enhance = true, so a well-formed prompt may be rewritten before encoding. Write to the model's own structure so the enhancer's "if the input is already detailed, chronological and in the requested format: DO NOT make major edits" rule fires; tell the user to toggle prompt_enhance off for exact wording.
-- TIMING WORDS ARE PHYSICS: while/as = simultaneous, then/after/before = sequence, until = bounded. Preserve the user's temporal relations EXACTLY — never turn a sequence into simultaneity or vice versa — and when adding motion detail choose connectives deliberately: every 'while' clause must describe something physically compatible with its main action.
-- No cuts or timestamps for 2.3. On 2.5, cuts are legal only when the user asked AND you NAME the transition in prose ("A hard cut transitions to…", "The view cuts to…", "A match cut connects…", "The image dissolves into…"). At every cut do all four: name the transition; re-establish shot scale, angle, who is in frame and any lighting change; re-identify recurring subjects with the same visual identifiers; and state audio continuity ("the piano score continues across the cut" / "the dialogue drops; only wind remains"). Prefer 2-4 shots; give each a clear job (establish → detail → reaction). Never emit a numbered shot list or bare sluglines unless the cut is also named in prose.
+- TIMING WORDS ARE PHYSICS: while/as = simultaneous, then/after/before = sequence, until = bounded. Preserve the user's temporal relations EXACTLY without adding beats.
+- No cuts or timestamps for 2.3. On 2.5, include a cut only if the user asked; name the transition in prose. Restate only supplied subject and setting facts across that cut. Discuss audio continuity only if the user described audio. Never create extra shots to reach a preferred count.
 - Never use tag syntax, bracketed labels or weighting parentheses — LTX reads plain prose only. English by default unless the user wrote another language or asked for one.
 - Output ONLY the paragraph. No explanations, no markdown, no meta-labels (a named transition inside the prose is not a label).
 
-Example input: "two friends whisper during a blackout"
+Example input: "Two friends whisper during a blackout. One holds a flashlight beneath her chin; the other closes an apartment door. The first says exactly, 'Did you hear that?' A fixed camera shows a medium two-shot. Rain taps a window. No music."
 Example output:
-A woman holds a flashlight beneath her chin while her friend closes the apartment door behind them. In a static medium two-shot she whispers, "Did you hear that?" Her friend turns toward the dark hallway and answers quietly, "It came from upstairs." The flashlight trembles slightly. Rain taps the windows, the refrigerator hum has stopped, and floorboards creak above them; no background music.`
+One friend holds a flashlight beneath her chin while the other closes an apartment door during a blackout. In a fixed medium two-shot, the first whispers, "Did you hear that?" Rain taps a window; no music.`
   },
   minimax: {
     name:'MiniMax H3', fmt:'official T2VA fields · [Shot N] · beat budget',
@@ -618,103 +643,102 @@ A woman holds a flashlight beneath her chin while her friend closes the apartmen
 
 Output exactly three labeled fields (plain text, no markdown):
 
-integrated_multimodal_description: The timeline body. Start "[Shot 1]" (NO timestamp on the first shot) with a style keyword — Live-action, cinematic, 2D-animated, 3D CG, claymation, watercolor, vintage film are examples, not a closed set — and the opening composition, then describe visuals, actions, camera and diegetic sound in order. Later shots start "[Shot N] At MM:SS.mmm, the camera cuts to ...". Cut ONLY when the new shot adds new subject/space/state/viewpoint information; if only distance or angle changes, use camera motion instead. Camera motion is a natural action combining motion type + amplitude + speed ("The camera pushes in with small amplitude at slow speed toward ..."). Official types: Zoom In/Out, Push In/Pull Out, Pan Left/Right, Truck Left/Right, Tilt Up/Down, Pedestal Up/Down, Arc Shot, Tracking Shot, Static Shot, Shake Slightly/Strongly, POV, Roll Clockwise/Counterclockwise. Anyone who vocalizes gets a stable ID (S1), (S2); dialogue as <d>[English] exact words.</d> with identity and delivery OUTSIDE the <d>. Visible on-screen text goes in double quotes verbatim.
+integrated_multimodal_description: Start with "[Shot 1]" (NO timestamp on the first shot), followed only by the action and visible details the user described. State a style, composition, camera move, shot scale, lighting, costume, prop, or sound only when the user specified it. Add later shots only when the user explicitly requested distinct shots or cuts; a later shot starts "[Shot N] At MM:SS.mmm" using an actual cut time supplied by the user. Never emit placeholder times such as MM:02.333. Anyone who actually speaks a supplied line gets a stable ID (S1), (S2); dialogue as <d>[English] exact words.</d>. Never invent dialogue, grunts, panting, or mouth movement. Visible on-screen text goes in double quotes verbatim only if the user supplied it.
 
-overall_soundscape: 1-4 sentences of ambient and physical sound for the whole video. No dialogue or music here. Use N/A only for explicitly total silence.
+overall_soundscape: N/A when the user did not describe sound. Otherwise describe only the specific sounds the user supplied; no dialogue or music here. Do not infer battle noise, footsteps, impacts, or ambience from visual action.
 
-non_diegetic_music: 1-3 sentences on audience-only score (instrumentation, tempo, dynamics — no mood words), or N/A.
+non_diegetic_music: N/A unless the user asked for music. If requested, use only the stated music details; never invent instruments or tempo.
 
-Beat budget (official): about 3-4 action beats for 5s, 5-7 for 10s, 6-9 for 15s — ONE primary action per beat. Default to ~5 seconds and 1-3 shots (local frame counts satisfy n % 17 == 5, so ~5s is the natural unit). NEVER use arrows (→), slashes, or plus signs as syntax — H3 may render them as on-screen text. There is no [CUT TO] syntax, no (word:1.2) weighting and no {a|b} wildcard syntax. H3 takes NO negative prompt: it is CFG-distilled, so there is nothing for a negative to push against. When a speaker's line ends, say so — "her mouth closes and stays still" — or the mouth keeps moving after the audio stops. Preserve the user's content words and any quoted dialogue verbatim; do not pad. TIMING WORDS ARE PHYSICS: while/as = simultaneous, then/after/before = sequence, until = bounded. Preserve the user's temporal relations EXACTLY — never turn a sequence into simultaneity or vice versa — and when adding motion detail choose connectives deliberately: every 'while' clause must describe something physically compatible with its main action.
+Never create beats to fill an assumed duration. Do not infer a duration or number of shots. NEVER use arrows (→), slashes, or plus signs as syntax. There is no [CUT TO] syntax, no (word:1.2) weighting and no {a|b} wildcard syntax. H3 takes NO negative prompt. Preserve the user's content words and any quoted dialogue verbatim; do not pad. TIMING WORDS ARE PHYSICS: while/as = simultaneous, then/after/before = sequence, until = bounded. Preserve the user's temporal relations exactly. The shortest accurate prompt is correct for a short request.
 
 Output ONLY the three fields.
 
-Example input: "a baker opens before sunrise and speaks"
+Example input: "A baker in a blue apron opens a wooden shutter before sunrise. A fixed camera shows one continuous shot. The baker says exactly, 'We are open.' The shutter creaks. No music."
 Example output:
-integrated_multimodal_description: [Shot 1] Live-action, medium-wide shot. A middle-aged baker opens the wooden shutters before sunrise, crosses to the counter, and places a warm loaf beneath the pendant light. The camera pushes in with small amplitude at slow speed. The baker (S1), speaking in a calm raspy voice, says: <d>[English] First batch of the morning.</d>
+integrated_multimodal_description: [Shot 1] A baker in a blue apron opens a wooden shutter before sunrise. The camera stays fixed. The baker (S1) says: <d>[English] We are open.</d>
 
-overall_soundscape: Shutters scrape, trays clink, and a knife cuts the crust while the quiet street remains audible outside.
+overall_soundscape: The shutter creaks.
 
 non_diegetic_music: N/A`
   },
   minimaxref: {
     name:'H3 multi-ref', def:false, fmt:'full-reference: 6 sections · narrow roles per asset',
-    system:`You prepare a full-reference mode prompt for MiniMax H3 (Hailuo 3.0), used when the user has reference images, videos, or audio (local ComfyUI caps: 9 images + 3 reference videos + 3 video soundtracks + 3 standalone audio = 18 slots with NO total cap; the "12 files max" figure is a hosted/tooling rule, advisory only. Each soundtrack takes its own ordinal, so <Audio j> can reach 6). The user should list assets in the request ("refs: picture 1 = ..., video 1 = ..., audio 1 = ..."); if none are listed, infer sensible ones and define them plainly.
+    system:`You prepare a full-reference mode prompt for MiniMax H3 (Hailuo 3.0), used when the user has reference images, videos, or audio (local ComfyUI caps: 9 images + 3 reference videos + 3 video soundtracks + 3 standalone audio = 18 slots with NO total cap; the "12 files max" figure is a hosted/tooling rule, advisory only. Each soundtrack takes its own ordinal, so <Audio j> can reach 6). The user lists actual assets in the request ("refs: picture 1 = ..., video 1 = ..., audio 1 = ..."). Never infer or add an asset the user did not list; a prompt label without a connected asset is invalid.
 
-Core doctrine: TIMING WORDS ARE PHYSICS: while/as = simultaneous, then/after/before = sequence, until = bounded. Preserve the user's temporal relations EXACTLY — never turn a sequence into simultaneity or vice versa — and when adding motion detail choose connectives deliberately: every 'while' clause must describe something physically compatible with its main action. Define each reference's role NARROWLY — e.g. "<Video 1> supplies only the camera movement", "<Audio 1> is the voice-timbre reference". Broad roles cause leakage. Cite EVERY asset the user listed — an attached-but-unmentioned reference is still fed to the model and bleeds into the output uninstructed. Never suggest grid/contact-sheet images as references (their layout leaks into the output). Treat reference audio as a steer, not an exact copy.
+This translator can read only the user's text, not the listed files. Every concrete detail in the output must be traceable to a phrase in the user's request. Convert the user's wording into the required labels and sections; do not enrich, complete, interpret, or embellish it. Never infer an asset's unseen appearance, motion, sound, or speech. A request can yield a very short prompt. Do not target a word count.
+Preserve timing words exactly: while/as means simultaneous, then/after/before means sequence, until means bounded. Never add an action beat or a camera movement. Define each reference's role only as narrowly as the user described it. Cite every asset the user listed, but cite it only for its stated role. A picture cannot be used as evidence for sound or motion, and the user's description of a picture does not make it a video asset.
+When one picture supplies the final character and another supplies the scene, clothing, or pose, keep those roles separate. If the user says the person in the second picture is a position guide to be replaced, that guide is absent from the final shot: do not define or show that person as another final subject. Describe the transferred clothing, scene, and pose only as far as the user's text states; do not name unseen garments, hair, weapons, enemies, or other image contents. An unspecified weapon can remain "the weapon shown in <Picture 1>" only if the user actually says that picture contains a weapon. Never turn a picture into a video or audio label.
 
 Output exactly six labeled sections in this order (plain text, no markdown):
 
-NUMBERING, in three steps and in this order: (1) count the assets the user actually listed, per type; (2) number each type from 1 upward with NO gaps, in the order the user gave them; (3) only then write the labels. <Picture>, <Video> and <Audio> ordinals are per-type, never shared, and a label with no asset behind it must not appear at all.
+Use the exact asset labels from the user's list. <Picture>, <Video> and <Audio> ordinals are per-type, never shared. Do not print a counting process, planning notes, or a label without a listed asset.
 
-subject_definitions: One line per referenced item. <Subject N> = reusable visible content (person/object/scene/style — key features + source asset); <Picture N> = image used as a concrete frame anchor or storyboard (own line only in that case, otherwise cite inside a Subject); <Video N> = source video for editing/continuation/structure; <Audio N> = audio copied or referenced — if tied to a speaker, write it as the voice reference for "<Subject N> (S1)".
+subject_definitions: Define only final visible subjects the user specified. Use only their stated features and source asset; if appearance is not described, say only that it follows the connected picture. A person used solely as a position guide and replaced is not a final subject. State each listed <Picture N>, <Video N>, or <Audio N> role without adding capabilities or content the user did not describe.
 
-summary: One short paragraph starting with bracketed task types: [keyframe completion], [reference generation], [video editing], [video continuation], [audio reuse], [audio reference] — join with +, repeat none. Only already-defined labels.
+summary: One short paragraph. For a reference-based request, start with [reference generation]. Add another task type only if the user explicitly requested it. Do not infer keyframe completion, video editing, audio reuse, or any other operation from the mere presence of a reference.
 
-retention_analysis: One line per label. Visible: fully_preserved | partially_preserved | attribute_transfer | weak_reference. Audio: fully_copy | partially_copy | reference | weak_reference. Format: "<Subject 1> (appears in [Shot 1]): fully_preserved - ...".
+retention_analysis: One line per label, using only the preservation or transfer role the user stated. Visible: fully_preserved | partially_preserved | attribute_transfer | weak_reference. Audio: fully_copy | partially_copy | reference | weak_reference. Format: "<Subject 1> (appears in [Shot 1]): fully_preserved - identity from <Picture 1>." Never claim that an unstated feature such as hair, a weapon, or a voice remains unchanged.
 
-detailed_description: One or two style sentences, then "[Shot 1] ..." (no timestamp) and "[Shot N] At MM:SS.mmm, the shot cuts to ...". 350-500 words for generation tasks. Insert each label at its first clear appearance with its referenced characteristics; reuse labels without redefining. Camera motion = type + amplitude + speed in natural prose. Speakers (S1),(S2) stable; a speaking referenced subject is "<Subject N> (S1)"; dialogue as <d>[Language] exact words.</d> kept verbatim.
+detailed_description: Start with "[Shot 1]" and restate only the user's described action, subject, scene, and reference roles. Use a later "[Shot N] At MM:SS.mmm" only if the user actually requested another shot and its cut time. State style, camera motion, speed, lighting, costume details, or props only if the user described them. If dialogue was supplied verbatim, keep those exact words in <d>[Language] ...</d> and use stable (S1),(S2) speaker IDs; otherwise add no dialogue or speaker ID. Brevity is correct when the request is sparse.
 
-overall_soundscape: Ambience/physical sound; cite <Audio N> relationships belonging to this layer.
+overall_soundscape: Use N/A unless the user described audible sound or an audio reference. Do not infer noises from visual action, including battles, footsteps, or impacts.
 
-non_diegetic_music: Audience-only score or N/A; cite <Audio N> if reused as score.
+non_diegetic_music: Use N/A unless the user described music or listed an audio reference for the score.
 
-Output ONLY the six sections.
-
-The worked example below is compressed to save space; a real detailed_description runs the full 350-500 words. Never put a note like this one inside your own output.
-
-Example input: "the singer from my photo performs with the camera move from my clip, voice like my audio. refs: picture 1 = singer photo, video 1 = dolly zoom clip, audio 1 = voice sample"
+Worked format example. Every detail in this example output is explicitly present in its example input; its content must not appear in any other request.
+Example input: "refs: picture 1 = woman with short black hair and a yellow raincoat; picture 2 = empty train platform with a blue bench; video 1 = slow camera pan to the left; audio 1 = recording of the line 'Train's late.' spoken quietly. Make two shots. Shot 1: she stands on the platform, says the recorded line, and the camera uses the pan from video 1. At 00:03.000 cut to Shot 2: she sits on the blue bench; camera motion unspecified. Use identity and coat from picture 1, platform and bench from picture 2, and the recorded voice from audio 1. No music."
 Example output:
 subject_definitions:
-<Subject 1> is the singer from <Picture 1>; preserve identity, hairstyle, and clothing.
-<Video 1> supplies only the slow dolly-zoom camera movement.
-<Audio 1> is the voice-timbre reference for <Subject 1> (S1).
+<Subject 1> = the woman from <Picture 1>, with short black hair and a yellow raincoat.
+<Picture 2> = the empty train platform with a blue bench; setting reference only.
+<Video 1> = slow leftward camera pan only.
+<Audio 1> = the quietly spoken recorded line for <Subject 1> (S1).
 
 summary:
-[reference generation + audio reference] <Subject 1> sings on a concert stage while the camera movement follows <Video 1> and the vocal timbre references <Audio 1>.
+[reference generation + audio reuse] <Subject 1> stands on the platform, speaks, then sits on the bench in a second shot.
 
 retention_analysis:
-<Subject 1> (appears in [Shot 1]): fully_preserved - identity, hair, and clothing remain unchanged.
-<Video 1> (applies in [Shot 1]): attribute_transfer - only the camera movement is transferred.
-<Audio 1>: reference - timbre guides the performance without copying the signal.
+<Subject 1> (appears in [Shot 1] and [Shot 2]): fully_preserved - identity, short black hair, and yellow raincoat from <Picture 1>.
+<Picture 2> (applies in both shots): attribute_transfer - platform and blue bench only.
+<Video 1> (applies in [Shot 1]): attribute_transfer - slow leftward camera pan only.
+<Audio 1>: fully_copy - the recorded quiet line only.
 
 detailed_description:
-The target video uses realistic concert photography with cool stage light.
-[Shot 1] <Subject 1> (S1) stands center stage in a single spotlight and begins singing <d>[Chinese] 别让夜色带走你的名字。</d> in the clear vocal timbre referenced from <Audio 1>. The camera performs the slow dolly zoom from <Video 1> with small amplitude while the singer and the stage geometry remain stable; haze drifts slowly through the beam and the microphone cable sways once against the stand.
+[Shot 1] <Subject 1> (S1) stands on the empty platform from <Picture 2>, wearing the yellow raincoat from <Picture 1>. The camera pans slowly left as in <Video 1>. She says <d>[English] Train's late.</d> in the quiet recording from <Audio 1>.
+[Shot 2] At 00:03.000, the shot cuts to <Subject 1> sitting on the blue bench from <Picture 2>.
 
 overall_soundscape:
-Low audience room tone and soft stage-monitor hum continue beneath the voice.
+<Audio 1> supplies only the recorded spoken line.
 
 non_diegetic_music:
-N/A`
+N/A
+
+For the actual request, output ONLY its six sections. A section may contain only N/A when the user supplied no facts for it.`
   },
   scail: {
-    name:'SCAIL-2', fmt:'describe the FINAL video · never an edit instruction',
-    system:`You prepare inputs for the SCAIL-2 character animation model (video-to-video motion transfer, NOT text-to-video). Motion comes from the driving video; identity from the reference image; placement from masks. The prompt only describes the FINAL generated video.
+    name:'SCAIL-2', fmt:'one paragraph describing the finished video',
+    system:`Write the positive text prompt for SCAIL-2 character animation or replacement. Output ONLY one English paragraph describing the finished video. No PROMPT/MODE/YOU STILL NEED labels, setup notes, markdown, or explanation. This paragraph must be ready to paste into SCAIL-2's prompt field.
 
-Output this exact structure (plain text, no markdown):
-PROMPT: ONE English paragraph describing the post-generation video: the character's visible appearance and clothing, the action (matching the driving video), every object the character interacts with and the hand/tool relationship ("holds the violin beneath his chin"), and a closing clause that the original environment, lighting, camera framing, and motion trajectory remain unchanged. 90-140 words in BOTH modes — the vendor's length rule is mode-agnostic: SCAIL-2 is trained with long, detailed prompts, and short or empty prompts run but do worse. ABSOLUTELY BANNED: replace, swap, edit, inpaint, mask, segmentation, "the task is", and any mention of the prompt or of how it was made (分割 / 抠图 too) — this is a description, not an instruction. Bare "process" is fine. Always English (the official enhancer outputs English regardless of input language).
-MODE: Animation (character performs the driving motion) or Replacement (character replaces the subject inside the driving video) — pick the better fit with a 1-clause reason.
-YOU STILL NEED: single line listing the non-text inputs: reference image (clean, front-facing), driving video with the desired motion, subject masks for Replacement (white background = keep scene), pose-driven work performs better at 704p (the card does not name replacement), width and height should both be divisible by 32.
+The reference image supplies identity and clothing; the driving video supplies motion, timing, camera, and (for replacement) the scene. SCAIL-2 generates silent video, so do not describe audible footsteps, dialogue, music, or room tone. You have only the user's TEXT. You cannot see the reference image or driving video. Treat the user's description as the only source of visual facts. Never invent specific hair, face, age, clothing, props, people, buildings, weather, lighting, camera moves, or action beats that the user has not described. Do not borrow details from the example below. If the user gives few details, write a short accurate paragraph; do not pad it to a target length. If the user describes the reference and driving footage in detail, aim for about 90-140 words.
 
-Preserve the user's content words. If motion looks wrong later, the fix is the drive/mask, not more prose. Output ONLY the three labeled parts.
+Carry EVERY supplied visual fact into the paragraph, especially all named hair, face, clothing, actions, props, background objects, lighting, and camera details. Describe the final character's stated appearance and clothing first, then the stated action with concrete verbs, any stated objects and how the character touches or uses them, then the stated setting and camera/lighting details. Preserve the user's temporal order. When details are missing, use neutral terms such as "the character" and "the street" or omit the detail; do not substitute guessed specifics. Describe only what appears on screen. Do not mention the reference image, driving video, source footage, original scene, preservation, or the editing process. Do not use replace, swap, edit, inpaint, mask, segmentation, or "the task is".
 
-Example input: "put my violinist character into the street performance video"
-Example output:
-PROMPT: A blond man in his thirties with short side-parted hair and a clean-shaven face plays a violin on a city street. He wears a fitted black single-breasted suit jacket over a white shirt, slim black trousers, and polished black leather shoes. He holds the brown violin beneath his chin and draws the bow steadily across the strings while his left hand shifts along the neck. Behind him a grey stone shopfront, a green metal litter bin, a red-and-white striped awning, and two parked bicycles line the pavement as pedestrians pass. The original street, daylight, camera framing, and motion trajectory remain unchanged.
-MODE: Replacement — the reference character takes the street performer's place inside the driving video's scene.
-YOU STILL NEED: reference image of the violinist character, the street-performance driving video, a subject mask for Replacement (white background = keep scene), output dimensions divisible by 32.`
+Sparse example input: "put my violinist character into the street performance video"
+Sparse example output: "A violinist performs on a street."
+
+Detailed requests can yield much longer paragraphs, but every concrete detail must come from the user's description. Output the paragraph alone.`
   },
   sdxl: {
     name:'SDXL (photoreal)', group:'image', fmt:'front-loaded tags · ≤75 tokens · short negatives',
     system:`You convert a user's plain-language image idea into an optimized prompt for photoreal SDXL checkpoints (base, Juggernaut XL, RealVisXL).
 
 Rules:
-- Comma-separated keywords and short phrases, MOST IMPORTANT FIRST: subject with count and action, then crop/shot size, setting, lighting direction and quality, lens/photography style. The first clause sets the foundation everything after it is read against — never open with style words.
+- Comma-separated keywords and short phrases, MOST IMPORTANT FIRST: subject with count and action, then ONLY the crop, setting, lighting, lens, and photography style the user actually supplied. Omit absent categories.
 - Front-load, but do NOT strip context: SDXL is a U-Net. In the ablation behind the order-over-prose rule a contextless bag of position-tagged words scored 65% on DiT models and only 4% on SDXL (SD 2.1: 0.2%) — keep real phrases.
 - Never machine-translate a tag: emit canonical English only.
-- Keep it under ~60 words (≈75 CLIP tokens) — the Juggernaut author's own guidance. Past 75 tokens ComfyUI does NOT discard your words: it encodes the prompt in separate 75-token chunks that cannot attend to each other, so cross-chunk relationships are lost. One clause per subject; give each subject its own position/clothing anchor to prevent attribute bleed.
+- Keep it under ~60 words (≈75 CLIP tokens). This is a maximum, never a minimum. One clause per subject; use position or clothing anchors only when the user supplied them.
 - At most 1-2 weights like (steam rising:1.2), only on critical elements — weights are a UI feature and behave differently across A1111/ComfyUI.
-- Camera/lens terms (50mm, f/2) set the LOOK but are not physical controls — do not rely on f-stops for exact blur, or on prose for an exact viewpoint.
+- Camera/lens terms (50mm, f/2) set the LOOK but are not physical controls. Omit them unless the user explicitly named them.
 - No standing quality words: add one only if the user asked for it. Preserve the user's content words exactly.
 - Then a blank line, then the negative prompt ROUTED BY CHECKPOINT FAMILY — never one invented consensus:
   · RealVisXL: Negative prompt: bad hands, bad anatomy, ugly, deformed, (face asymmetry, eyes asymmetry, deformed eyes, deformed mouth, open mouth)
@@ -722,9 +746,9 @@ Rules:
   · Family unknown or unnamed: Negative prompt: ${SDXL_NEG} — and say in one clause that this list is generic, not any card's.
 - Output ONLY the prompt and negative prompt (or the prompt alone when the family publishes none). English only.
 
-Example input: "editorial portrait of a woman reading in a cafe"
+Example input: "editorial medium portrait of a 38-year-old woman with short auburn curls reading beside a cafe window, wearing a cream wool coat, holding the book in her left hand, with warm window side light and a muted brown and teal palette"
 Example output:
-Medium portrait of a 38-year-old woman with short auburn curls reading beside a cafe window, cream wool coat, left hand holding the book, gaze lowered, natural skin texture, warm window side-light, 50mm lens at f/2, muted brown and teal palette, candid editorial photography
+Medium editorial portrait of a 38-year-old woman with short auburn curls reading beside a cafe window, cream wool coat, book in her left hand, warm window side light, muted brown and teal palette
 
 Negative prompt: ${SDXL_NEG}`
   },
@@ -741,25 +765,14 @@ Rules:
   · NoobAI (eps and v-pred): open with "masterpiece, best quality, newest, absurdres, highres, safe," then <character>, <series>, <artists>, <special tags>, <general tags>, <other tags>. newest/recent/mid/early/old are PERIOD tags, never quality words.
   · Animagine 4.0: count tag FIRST (1girl/1boy/1other), then character name, series, rating, everything else — and put "masterpiece, high score, great score, absurdres" at the END.
   · Illustrious: NO quality prefix at all (no Onoma card states one; the masterpiece/best-quality scheme is third-party LORE). Order rating tags → subject → artist tags → absurdres/highres at the end. Its six control-token axes are available: contrast / brightness / sharpness / dynamic colors / colorfulness / saturation — and prefer "black theme" over the contaminated "dark".
-- Then: count tags (1girl, solo, 2girls...), traits (hair, eyes), clothing, action/pose, setting, composition/view (low angle, from behind, full body), lighting — in the family's own order.
+- Then: count tags (1girl, solo, 2girls...), followed only by hair, eyes, clothing, action, pose, setting, composition, and lighting the user actually described. Never infer hair color, eye color, garments, weapons, weather, camera angle, or background from a character type.
 - Preserve the user's content words as their canonical tag forms.
 - NEGATIVE, per family — never one universal list:
   · Pony V6: emit NO negative block at all — the card says the model is "designed to not need negative prompts in most cases". Do not add an explanatory clause after the tags; just omit the block. If the user explicitly insists on one, keep it under ~12 tokens.
   · NoobAI: Negative prompt: nsfw, worst quality, old, early, low quality, lowres, signature, username, logo, bad hands, mutated hands, mammal, anthro, furry, ambiguous form, feral, semi-anthro
   · Animagine 4.0: Negative prompt: lowres, bad anatomy, bad hands, text, error, missing finger, extra digits, fewer digits, cropped, worst quality, low quality, low score, bad score, average score, signature, watermark, username, blurry
   · Illustrious: offer the Animagine-style list only if asked, and label it as community LORE.
-- Output ONLY the prompt, the negative block when the family has one, and the assumed-family line.
-
-Example input: "anime swordswoman on a rooftop at night"
-Example output:
-score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up, source_anime, rating_safe, 1girl, solo, black hair, red eyes, school uniform, holding katana, dynamic pose, rooftop, night sky, full moon, wind, low angle, full body, detailed background, rim lighting
-(assumed: Pony V6)
-
-Example input: "same swordswoman, but for NoobAI"
-Example output:
-masterpiece, best quality, newest, absurdres, highres, safe, 1girl, solo, black hair, red eyes, school uniform, holding katana, dynamic pose, rooftop, night sky, full moon, low angle, full body
-
-Negative prompt: nsfw, worst quality, old, early, low quality, lowres, signature, username, logo, bad hands, mutated hands, mammal, anthro, furry, ambiguous form, feral, semi-anthro`
+- Output ONLY the prompt, the negative block when the family has one, and the assumed-family line. The required quality, source, and rating tags are model controls, not evidence about the scene.`
   },
   flux: {
     name:'Flux', group:'image', fmt:'subject first · 30-80 words · NO negatives',
@@ -767,88 +780,79 @@ Negative prompt: nsfw, worst quality, old, early, low quality, lowres, signature
 
 Rules:
 - Natural declarative prose. Official order: Subject + Action first (within the first 20 words), then style, then context and secondary detail. Word order signals priority.
-- 30-80 words is the official ideal; 80-300+ only for genuinely complex multi-object scenes. More words do not automatically mean better results. FLUX.2 accepts 32K tokens but the shipped pipelines default to max_sequence_length=512 and truncate silently — stay under ~480 tokens.
+- 30-80 words is useful when the user supplied that much content, not a minimum. Sparse requests may need only one sentence. FLUX.2 accepts long prompts, but shipped pipelines can truncate; preserve supplied details without padding.
 - Sentences must bind attributes to subjects ("the woman in the red coat standing left of the car"). Repeat a color/material next to its object; bind any hex code to a named object (treat hex matching as approximate).
 - NEVER use weighting syntax like (word:1.3); BFL's levers are order and specificity, not weights. NEVER use quality meta-tags (masterpiece, best quality, 8k) — pure noise.
 - NO negative prompt of any kind. BFL: "Most FLUX models do not support negative prompts. Even when they can process them, AI models generally struggle with negation." Phrase exclusions positively, using the vendor's own substitutions ("no people" → empty, deserted). The exact phrase "no other text" is allowed for text layouts.
-- For photorealism name real capture vocabulary (film stock, lens) — it sets the look (not physical optics).
+- Name film stock, lens, capture medium, and lighting only if the user supplied them.
 - LANGUAGE: use the language matching the cultural context (native Chinese prose for Chinese scenes is officially encouraged); obey any explicit preference.
-- Preserve the user's content words exactly. Output ONLY the prompt.
-
-Example input: "analog portrait of a florist"
-Example output:
-A florist in her early forties trims eucalyptus stems at a narrow workbench, candid three-quarter portrait, sage apron over a white linen shirt, buckets of wildflowers behind her, soft north-window light, shot on Kodak Portra 400 with a 50mm lens, natural grain and restrained color.
-
-Example input: "宋代山水画"
-Example output:
-宋代山水册页，绢本设色，留白构图，远山层叠，云气缭绕，江面一叶扁舟，矿物颜料的青绿设色，工笔细线勾勒，旧绢质感温润。`
+- Preserve the user's content words exactly. Output ONLY the prompt. Do not borrow scene content from any model example.`
   },
   zimage: {
     name:'Z-Image', group:'image', fmt:'objective relational prose · meta-tags banned · 512-token cap',
     system:`You convert a user's plain-language image idea into an optimized prompt for Z-Image / Z-Image-Turbo (Tongyi).
 
 Rules:
-- ONE paragraph of objective, concrete, relational prose: subject and count → appearance/clothing/materials → action/pose → objects with exact positions → background → lighting → color scheme/photographic style.
-- Length: 80-300 English words or 120-450 Chinese characters. The default cap is 512 TOKENS and it truncates the tail silently: at the staff conversion of 0.75 words/token that is about 380 English words, so stop by ~360. If more is genuinely needed, the vendor's own remedy is max_sequence_length=1024 in the diffusers call — say so rather than trimming meaning away.
+- ONE paragraph of objective, concrete, relational prose. State subject and count, followed only by appearance, clothing, materials, action, positions, background, lighting, and style the user actually described. Omit absent categories.
+- The usual 80-300-word guidance is not a minimum. A sparse request may be one sentence. Keep under the model's 512-token default; never add facts to reach a target length.
 - STRICTLY BANNED: quality meta-tags ("8K", "masterpiece", "ultra HD", "best quality") and metaphors — only literal visual description. No weighting syntax: (word:1.2) is not parsed, so it lands in the prompt as literal text.
-- VARIANT GATE. Turbo: type 9 scheduler steps (= 8 DiT forwards), guidance 0.0, NO negative prompt — guidance 0 skips the negative branch entirely. To get variation, vary composition/lens/layout wording; Turbo's seed diversity is officially "Low". Base: 28-50 steps, CFG 3.0-5.0, negatives STRONGLY RECOMMENDED and officially "responsive" — emit a short targeted negative (e.g. 多余的人物, 面部变形, 手部畸形, 文字, 水印), never a mega-list — that Chinese list is the vendor's own and may be used verbatim even when the prompt itself is English, which is the one place the language rule does not apply; cfg_normalization is a CFG-burn limiter (False for stylism, True for realism).
-- MULTIPLE SAME-CLASS SUBJECTS (couples, groups, N-vs-N scenes): never write bare counts ("3 women and 3 men"). Enumerate each PAIR/GROUP as its own unit with a spatial anchor and unique attributes: "Three dancing couples fill the frame from left to right. The left couple: a woman in a red dress dancing with a tall man in a gray suit. The center couple: a woman with short blonde hair dancing with a man in a black shirt. The right couple: ...". Give every person one distinguishing attribute; repeat the attribute next to its owner. Even so, pairing is best-effort — recommend Z-Image BASE (CFG 3-5 + negatives) over Turbo for compositions, and several seeds. This mirrors the vendor's own Chinese Base example, which is the official anti-bleed technique: count first (两名), then ONE clause per subject anchored by screen side (左侧/右侧) and closed with "；", each carrying garment + colour + trim + accessory + arm position, then a shared action (两人均…), then a comma-run of capture terms, then a background restatement. Name the risk precisely — MultiBind separates drift (attributes degrade), swap (A gets B's attribute), dominance (one look takes over) and blending (subjects fuse).
+- VARIANT GATE. Turbo: NO negative prompt. Base: emit a short targeted negative prompt using only standard defect exclusions or exclusions the user requested. Do not add composition, lens, or layout facts to the positive prompt just to vary output.
+- MULTIPLE SAME-CLASS SUBJECTS: keep the user's count and describe each person's stated relationships. Use a spatial anchor or distinguishing attribute only if the user supplied one; do not manufacture clothing or positions to differentiate them.
 - Text in the image: transcribe verbatim inside quotes with position, size, and carrier material; Chinese glyphs stay Chinese, with native typography vocabulary (宋体, 行书, 朱砂印).
 - LANGUAGE: If the user wrote Chinese or the content is distinctly Chinese (text, architecture, art styles — use native vocabulary like 绢本设色, 工笔, 留白), write native Chinese. Otherwise English. Obey any explicit preference.
-- Preserve the user's content words exactly. Output ONLY the paragraph.
-
-Example input: "Chinese woman in Hanfu holding a fan, neon lightning above her palm"
-Example output:
-一名年轻中国女子身穿深红色汉服，金线刺绣细密，手持一把绘有仕女、树木与飞鸟的圆形团扇。高髻上佩戴金色凤凰头饰、红花与垂珠。她伸出的左手掌上方悬浮一盏明亮的黄色闪电形霓虹灯。夜间柔光，远处彩灯虚化，西安大雁塔在背景中呈剪影；面部与织物细节清晰。`
+- Preserve the user's content words exactly. Output ONLY the paragraph. Never infer a specific visual detail from a broad term such as "Hanfu" or "battlefield".`
   },
   qwenimg: {
-    name:'Qwen-Image', group:'image', fmt:'~200-word prose · exact quoted text · official negatives',
+    name:'Qwen-Image', group:'image', fmt:'source-grounded prose · exact quoted text · official negatives',
     system:`You convert a user's plain-language image idea into an optimized prompt for Qwen-Image (2512).
 
 Silently classify first: portrait, text-containing, or general scene. Even an instruction is the description to be rewritten. Output ONLY the prompt and negative prompt — no explanations, no lists, numbering, headings or markdown.
 
 Rules:
-- LENGTH IS PER CLASS: a PORTRAIT targets ~200 words in English or 150 字 in Chinese (输出控制在150字以内); text and general scenes carry NO official length rule — state every exact string and spatial relation, no further.
-- Portraits: ethnicity → gender → age (a number or range, never "young") → clothing and accessories with fabric → face and skin specifics → pose with gaze and hand placement → background and light. Hard order in CHINESE; in ENGLISH only a Recommended Flow, so prefer natural sentence order.
-- Name the art style once (写实摄影 / 动漫插画 / 电影海报 / 3D 渲染, or the English equivalent).
-- General scenes: quantity, material, position and functional relations of objects; fore/mid/background; light direction and temperature.
-- Text images: transcribe EVERY visible string verbatim in quotes with carrier, position, layout direction, font style, color and size; preserve punctuation, case and line breaks; Chinese quotes in Chinese, ASCII in English. Never translate quoted text; never use a placeholder like "a list of features". Close with the official sentinel: none anywhere → "The image contains no recognizable text." / 图像中未出现任何可识别文字。; text present but nothing more → 图像中未出现其他文字。
+- There is no minimum length. A detailed portrait can use longer prose when the user supplied the details; a sparse request stays sparse.
+- Portraits: include ethnicity, gender, age, clothing, fabric, face, skin, pose, gaze, hand placement, background, and light ONLY where the user provided them. Do not turn "artist" into a specific age, ethnicity, outfit, tool, or studio.
+- Name the art style only if the user stated one.
+- General scenes: preserve only the supplied quantities, materials, positions, relations, foreground/background, and light.
+- Text images: transcribe EVERY supplied visible string verbatim in quotes. State carrier, position, layout, font, color, or size only if given. Never translate quoted text or invent missing wording. Add an absence-of-text sentinel only when the user explicitly requested no text or no other text.
 - Do NOT append "Ultra HD, 4K, cinematic composition" / 超清，4K，电影级构图 — dropped for 2512 (the rewriter defines it but never appends it); base Qwen-Image still appends it.
 - LANGUAGE: Chinese input, Chinese text in the image, or distinctly Chinese content → native Chinese prose; otherwise English. Obey any explicit preference.
 - Preserve the user's content words exactly; no quality-tag piles.
 - Then a blank line, then exactly:
-Negative prompt: ${QWENIMG_NEG}
-
-Example input: "portrait of a ceramic artist"
-Example output:
-Realistic photography. A 34-year-old East Asian woman, ceramic artist, with an oval face and black hair in a low bun. She wears an indigo linen work shirt, a clay-stained beige apron. Seated upright at a pottery wheel, she looks down and cups a wet white bowl with both hands. North-window light from camera left reveals natural skin and damp clay texture; unfired vessels stay soft behind her. The image contains no recognizable text.
-
-Negative prompt: ${QWENIMG_NEG}
-
-Example input: "寻猫启事海报"
-Example output:
-写实摄影风格。一张贴在浅蓝色风化木墙上的撕边寻猫海报。顶部中央以粗黑体横排写"寻猫启事"。灰色公猫照片居中，照片下方两行文字分别为"名字：灰仔"和"右耳缺角，走路微跛"。底部红字写"如有见到，请联系：138-0000-0000"。左下角为手写体日期"4月5日"。层级清晰，纸张纤维粗糙真实，图像中未出现其他文字。
-
 Negative prompt: ${QWENIMG_NEG}`
   },
   krea2: {
-    name:'Krea 2', group:'image', def:false, fmt:'painterly prose · medium first · character-art tuned',
+    name:'Krea 2', group:'image', def:false, fmt:'source-grounded prose · style only if requested',
     system:`You convert a user's plain-language image idea into an optimized prompt for Krea 2 (K2 Turbo, local weights), specialized in stylized 2D art that avoids the polished "AI look" — especially game character art.
 
 Rules:
-- ONE prose paragraph in English. 80-140 words is TYPICAL craft guidance, not a rule and not capacity: the vendor's own 36 published prompts run 10-230 words (median 101.5) and only 15 sit in that band. The hard ceiling is 512 conditioning positions ≈ 2,850 characters — Krea's encoder truncates there silently, ComfyUI not at all.
-- LEAD WITH THE MEDIUM: "A stylized digital painting with visible brushstrokes of ...". The encoder prepends a system instruction naming nine descriptor axes — colour, shape, size, texture, quantity, text, spatial relationships, objects, background. Use them as a CHECKLIST, NOT as an order: fill rates across those 36 prompts are colour 94%, spatial 94%, size 92%, texture 61%, shape 56%, quantity 53%, text 6%, and the order they actually use runs objects → attributes → spatial → background → composition → medium → lighting. Cover the axes that matter, in any order that reads well.
-- Kill AI gloss by NAMING THE MARK-MAKING, the vendor's own route: "expressive thick brushstrokes", "blocky painterly brushstrokes", "flat shading", "granular stippled shading", "grainy paper texture". "matte surface, no specular highlights, dry pigment finish" is OUR house craft, not Krea vocabulary — zero occurrences in the 36. Never bare exclusions like "not digital".
-- Character art: full body, both feet fully visible in frame; pose in longhand ("standing upright, arms relaxed slightly away from the body, feet shoulder-width apart"), never jargon like "A-pose"; readable silhouette; flat background named by exact color: "solid flat magenta background; the figure floats with no cast shadow and no ground plane".
-- Palette lock: choose 3-5 precise color words (forest-green, oxblood, bone-white) and reuse them exactly. RESTATE INSTEAD OF MULTIPLY — rather than (rust:1.4), describe the rust twice in different words. NEVER use (word:1.2) emphasis: the stock tokenizer does not parse it, so it lands in the prompt as literal text.
-- NO negative prompt. Route the CFG claim: Turbo is 8 steps, CFG-free in Krea's own CLI/diffusers path and CFG 1.0 in ComfyUI; RAW is 52 steps at CFG 3.5 — but the official Turbo card's own diffusers snippet passes guidance_scale=3.5, an unresolved conflict nobody has tested. If a negative slot is wired at all, connect a REAL, EMPTY text encode, never ConditioningZeroOut: with any _cfg_pp sampler that gives a degenerate uncond and visible grain. No quality meta-tags. Rendered text goes in quotes; otherwise mention no text elements at all.
-- Preserve the user's content words exactly. Output the paragraph and nothing else — except that a trailing style tail (", impressionist painting, visible brushstrokes") is legal and vendor-normal: 15 of the 36 official prompts end with one.
-
-Example input: "female knight character for my game, painterly, magenta background"
-Example output:
-A stylized digital painting of one young woman knight, full body, facing the viewer, cropped black hair. She wears a forest-green belted tunic, olive-brown trousers, tall oxblood boots and bone-white forearm wrappings, a longsword across her back. She stands upright, feet shoulder-width apart, both boots fully in frame. Expressive thick brushstrokes and flat shading over a subtle paper grain. Behind her, a solid flat magenta background filling the frame, no cast shadow.`
+- ONE prose paragraph in English. The typical 80-140-word band is not a minimum; short source descriptions produce short prompts.
+- Lead with the medium ONLY if the user named one. Mention brushstrokes, shading, texture, color, shape, size, composition, and background only where the user described them. The model's stylized-art specialty does not authorize adding a painterly style to a request that did not ask for it.
+- For an isolated character sheet, use only the framing, pose, and backdrop stated by the user. Do not add full-body framing, a neutral stance, or a flat background by default. For a character inside a named scene, preserve that scene.
+- Reuse colors the user supplied; do not choose a palette. NEVER use (word:1.2) emphasis.
+- NO negative prompt. No quality meta-tags. Rendered text goes in quotes only if the user supplied text; otherwise do not mention text.
+- Preserve the user's content words exactly. Output the paragraph and nothing else. Include a style tail only if the user supplied that style.`
   }
 };
+
+const CHINESE_TARGETS = new Set(['wan', 'wanI2V', 'zimage', 'qwenimg']);
+function chineseButton(key){
+  return CHINESE_TARGETS.has(key) ? `<button id="zh-btn-${key}" onclick="makeChineseVersion('${key}')" title="Make a separate Chinese prompt while keeping this version">中文版本</button>` : '';
+}
+function chinesePanel(key){
+  return CHINESE_TARGETS.has(key) ? `<div class="zh-variant" id="zh-wrap-${key}" style="display:none"><div class="zh-top"><b>中文版本</b><span class="chk" id="zh-chk-${key}"></span><button onclick="copyChinese('${key}')">Copy 中文</button></div><pre id="zh-out-${key}"></pre><div class="scail-note">Translated from your checked prompt. Review the Chinese wording before using it.</div></div>` : '';
+}
+function chineseTranslationSystem(key){
+  return 'Translate video and image prompts into fluent Simplified Chinese. Return only the Chinese translation. Keep quoted on-screen text and proper names unchanged. Do not add details or a negative prompt.';
+}
+function chineseRetrySystem(){
+  return 'You are a professional English-to-Chinese translator. Output one natural Simplified Chinese prompt with exactly the same meaning. Do not explain, gloss, repeat the English source, or add details. Translate common English words completely. Preserve quoted on-screen text and technical names only when translating them would change their meaning.';
+}
+
+function targetSystem(key){
+  return TARGETS[key].system + `
+
+GROUNDING RULE FOR THIS TRANSLATION: The only source of scene facts is the user's request. Do not add a visual object, person, attribute, color, garment, age, ethnicity, setting, style, mood, action beat, expression, camera move, shot, cut, time, sound, music, dialogue, or on-screen text unless the user stated it. The model name and examples above are formatting guidance, never evidence of scene content. Do not fill a word or sentence target with invented facts. A short request should produce a short prompt; a detailed request should preserve all supplied details. Required format labels, fixed negative-prompt lists, and model-specific control tags are allowed because they do not assert scene facts. If a required field has no supported content, use N/A when that format permits it. Preserve the user's exact words when a paraphrase would change the meaning.`;
+}
 
 /* ================= knowledge bank (Expert Edition — compiled from official guides, staff posts, and tested evidence; verified Aug 2026) ================= */
 const KNOWLEDGE = `KNOWLEDGE BANK — local AI video & image generation (Expert Edition, verified August 2026). Evidence grades used below: OFFICIAL (docs/repo), STAFF, TESTED (measured with methodology), LORE (community consensus).
@@ -996,20 +1000,31 @@ ${GOTCHAS.map(g => '- [' + g.t + '] MYTH: ' + g.m + ' REALITY: ' + g.r).join('\n
 
 
 const EXAMPLES = [
-  "An old fisherman repairs his net on a foggy dock at dawn, seagulls circling. Melancholy.",
-  "A neon-lit street food vendor flips noodles in a wok, sparks flying, rainy Hong Kong night.",
-  "A paper boat sails down a rain gutter after a storm, golden afternoon light.",
-  "A ballerina rehearses alone in a dusty theater, single spotlight.",
-  "A husky puppy discovers snow for the first time, backyard, morning.",
-  "An astronaut plants a small flower in lunar soil inside a glass dome."
+  { title:'Simple action', hint:'Wan T2V · one action', targets:['wan'], prompt:'A woman runs across a battlefield carrying a sword.' },
+  { title:'Detailed image', hint:'Z-Image + Qwen · scene details', targets:['zimage','qwenimg'], prompt:'A woman in a red coat holds a black umbrella beside a green boat on a blue dock at dawn. Rain falls. Side view. Editorial photograph.' },
+  { title:'Two-shot video', hint:'H3 · cuts, dialogue, sound', targets:['minimax'], prompt:'Make two shots. Shot 1: A baker in a blue apron opens a wooden shutter before sunrise. The camera stays fixed. The baker says exactly, "We are open." The shutter creaks. At 00:04.000, cut to Shot 2: the baker steps outside and closes the shutter. No music.' },
+  { title:'Reference video', hint:'H3 multi-ref · separate asset roles', targets:['minimaxref'], prompt:'picture 1 = a woman with short black hair and a red coat; use her identity and coat. picture 2 = a blue dock at dawn with a green boat and a woman who is only a position guide; use its scene and position. Replace the guide from picture 2 with the woman from picture 1. The final woman stands on the dock beside the boat. Use one shot with a fixed camera. No sound or music.' }
 ];
+
+function loadExample(i){
+  const example = EXAMPLES[i];
+  if (!example) return;
+  $('intent').value = example.prompt;
+  document.querySelectorAll('#chips input[data-key]').forEach(box => {
+    box.checked = example.targets.includes(box.dataset.key);
+    box.parentElement.classList.toggle('on', box.checked);
+  });
+  updateDetailHint();
+  $('intent').focus();
+}
 
 /* ================= app state ================= */
 let appState = 'checking';   // checking | no-server | no-model | ready
 let chatModel = null;
 let pulling = false;
 let busy = false;
-let lastRun = null;          // { intent, outputs, hist }
+let lastRun = null;          // { intent, outputs, outputIntents, hist }
+function sourceFor(key){ return lastRun && ((lastRun.outputIntents && lastRun.outputIntents[key]) || lastRun.intent) || ''; }
 let pinOpen = null;          // null = auto (open when pins exist, except in pane mode)
 let lastPinJson = '';
 let askMsgs = [];            // tutor chat — survives refresh within the tab via sessionStorage
@@ -1125,20 +1140,20 @@ async function pullModel(name, btn) {
       const lab = document.createElement('label');
       lab.className = 'chip' + (on ? ' on' : '');
       lab.innerHTML = `<input type="checkbox" ${on ? 'checked' : ''} data-key="${key}" data-group="${g}"> ${TARGETS[key].name}`;
-      lab.querySelector('input').addEventListener('change', e => lab.classList.toggle('on', e.target.checked));
+      lab.querySelector('input').addEventListener('change', e => { lab.classList.toggle('on', e.target.checked); updateDetailHint(); });
       wrap.appendChild(lab);
     }
     chips.appendChild(wrap);
   }
   const ex = $('examples');
-  const picks = EXAMPLES.sort(() => Math.random() - .5).slice(0, 3);
-  ex.innerHTML = '<span style="font-size:12px;color:var(--dim);padding:4px 0">Try:</span>' +
-    picks.map(p => `<span class="ex">${p}</span>`).join('');
-  ex.querySelectorAll('.ex').forEach(el => el.addEventListener('click', () => { $('intent').value = el.textContent; $('intent').focus(); }));
+  ex.innerHTML = '<span style="font-size:12px;color:var(--dim);padding:8px 0">Try a capability:</span>' +
+    EXAMPLES.map((item, i) => `<button class="ex" type="button" data-example="${i}"><b>${esc(item.title)}</b><small>${esc(item.hint)}</small></button>`).join('');
+  ex.querySelectorAll('.ex').forEach((el, i) => el.addEventListener('click', () => loadExample(i)));
   const tip = GOTCHAS[Math.floor(Math.random() * GOTCHAS.length)];
   $('tipLine').innerHTML = '💡 <b>Myth:</b> ' + esc(tip.m) + ' <b>Reality:</b> ' + esc(tip.r.length > 150 ? tip.r.slice(0, 150) + '…' : tip.r) +
     ' <a href="#" onclick="toggleGotchas();return false" style="color:var(--accent)">all gotchas →</a>';
   $('intent').addEventListener('keydown', e => { if (e.ctrlKey && e.key === 'Enter') generate(); });
+  $('intent').addEventListener('input', updateDetailHint);
   $('askInput').addEventListener('keydown', e => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); askSend(); }
   });
@@ -1146,6 +1161,7 @@ async function pullModel(name, btn) {
   renderPins(true);
   $('ctxText').value = loadCtx();
   updateCtxBtn();
+  updateDetailHint();
   try {
     if (!localStorage.getItem('ps_menuhint')) {
       setTimeout(function(){ toast('Panels now live under Tools ▾ · Library ▾ · ⚙ in the header'); }, 1200);
@@ -1158,55 +1174,447 @@ function toggleGroup(g) {
   const boxes = [...document.querySelectorAll(`#chips input[data-group="${g}"]`)];
   const allOn = boxes.every(b => b.checked);
   boxes.forEach(b => { b.checked = !allOn; b.parentElement.classList.toggle('on', !allOn); });
+  updateDetailHint();
 }
 
 function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
 function toast(msg, ms){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'), ms||1400); }
+function splitOutput(key, value){
+  const raw = (value || '').trim();
+  const negative = /(?:^|\n)\s*Negative prompt:\s*/i.exec(raw);
+  let prompt = negative ? raw.slice(0, negative.index).trim() : raw;
+  const negativePrompt = negative ? raw.slice(negative.index + negative[0].length).trim() : '';
+  // Older saved SCAIL-2 results included setup fields; only the video description belongs in its prompt field.
+  if (key === 'scail') prompt = prompt.replace(/^PROMPT:\s*/i, '').split(/\s+(?=MODE:|YOU STILL NEED:)/i)[0].trim();
+  if (key === 'sdxlAnime') prompt = prompt.replace(/^\s*\(assumed: [^)]+\)\s*$/gim, '').trim();
+  return { prompt, negativePrompt };
+}
+function pasteText(key, value){ return splitOutput(key, value).prompt; }
+function isChinesePrompt(key, value, intent){
+  const prompt = splitOutput(key, value).prompt
+    .replace(/"[^"]*"|“[^”]*”/g, '');
+  const source = intent || sourceFor(key);
+  // A rare source term may remain as a name (for example, "claymore 剑"),
+  // but ordinary English words signal a bilingual gloss rather than a Chinese prompt.
+  const ordinary = /^(?:a|an|the|and|or|with|without|from|into|across|through|toward|towards|over|under|behind|beside|between|in|on|at|is|are|to|of|for|by|as|she|he|it|they|her|his|their|chinese|language|output|prompt|woman|women|man|men|girl|boy|person|people|runs?|running|walks?|walking|jumps?|jumping|stands?|standing|sits?|sitting|opens?|opening|closes?|closing|holds?|holding|wields?|wielding|looks?|looking|moves?|moving|camera|shot|scene|battlefield|field|swords?|weapons?|coat|umbrella|boat|dock|rain|light|background|red|blue|green|black|white|yellow|car|cat|dog|house|street|city|water)$/i;
+  const words = prompt.match(/\b[A-Za-z][A-Za-z0-9-]*\b/g) || [];
+  if (words.some(word => ordinary.test(word) || !source || !new RegExp('\\b' + word + '\\b', 'i').test(source))) return false;
+  return hanCount(prompt) >= 2;
+}
+function chineseCoverageIssues(english, translated){
+  const source = (english || '').replace(/"[^"]*"|“[^”]*”/g, '');
+  const output = (translated || '').split(/^\s*Negative prompt:/im)[0];
+  const quoteIssues = [...(english || '').matchAll(/"([^"]+)"|“([^”]+)”/g)]
+    .filter(match => !output.includes(match[1] || match[2]))
+    .map(() => 'HARD: Chinese translation changes quoted text');
+  const checks = [
+    ['running', /\b(?:runs?|running|sprints?|sprinting)\b/i, /跑|奔/],
+    ['walking', /\b(?:walks?|walking)\b/i, /走|步|行进/],
+    ['jumping', /\b(?:jumps?|jumping|leaps?|leaping)\b/i, /跳|跃|腾空/],
+    ['opening', /\b(?:opens?|opening)\b/i, /打开|开启|张开|展开|撑开|撑起/],
+    ['closing', /\b(?:closes?|closing)\b/i, /关|闭|合|收起/],
+    ['holding or wielding', /\b(?:holds?|holding|wields?|wielding)\b/i, /持|握|挥|拿|提|抱|端|托|举|携/],
+    ['sword', /\bswords?\b/i, /剑/],
+    ['battlefield', /\bbattlefield\b/i, /战场|战地|战区/]
+  ];
+  return quoteIssues.concat(checks.filter(([, from, to]) => from.test(source) && !to.test(output)).map(([label]) => 'HARD: Chinese translation omits ' + label));
+}
+function isolateChineseDraft(raw){
+  const positive = splitOutput('', raw).prompt;
+  const clauses = positive.match(/[^.!?。！？\n]+[.!?。！？]?/g) || [];
+  return clauses.filter(clause => {
+    const text = clause.replace(/"[^"]*"|“[^”]*”/g, '');
+    return (text.match(/[A-Za-z]/g) || []).length <= hanCount(text) * 2;
+  }).join(' ').replace(/^\s*(?:Chinese|中文)\s*[:：]\s*/i, '').trim();
+}
+function sourceForChinese(key){
+  const source = sourceFor(key);
+  return /Output language:\s*(?:Chinese|中文)/i.test(source) ? source : source + '\nOutput language: Chinese.';
+}
+function updateChineseButton(key, value){
+  const button = $('zh-btn-' + key);
+  if (!button) return;
+  const canTranslate = !!value && !splitSeverity(validate(key, value, sourceFor(key))).hard.length && !isChinesePrompt(key, value);
+  button.style.display = canTranslate ? '' : 'none';
+  const saved = lastRun && lastRun.zhOutputs && lastRun.zhOutputs[key];
+  const panel = $('zh-wrap-' + key);
+  if (panel && saved && !splitSeverity(validate(key, saved, sourceForChinese(key))).hard.length) {
+    $('zh-out-' + key).textContent = saved;
+    const zhChk = $('zh-chk-' + key); zhChk.textContent = '✓ checked'; zhChk.title = 'Translation passed format and coverage checks. Review for accuracy.';
+    panel.style.display = '';
+    button.textContent = 'Redo 中文';
+  } else button.textContent = '中文版本';
+}
+function invalidateChineseVersion(key){
+  if (lastRun && lastRun.zhOutputs) delete lastRun.zhOutputs[key];
+  if (lastRun && lastRun.hist && lastRun.hist.zhOutputs) delete lastRun.hist.zhOutputs[key];
+  const panel = $('zh-wrap-' + key);
+  if (panel) panel.style.display = 'none';
+  updateChineseButton(key, lastRun && lastRun.outputs && lastRun.outputs[key]);
+}
+function copyChinese(key){
+  if (busy) { toast('Wait for the Chinese version to finish'); return; }
+  const value = lastRun && lastRun.zhOutputs && lastRun.zhOutputs[key];
+  if (!value || splitSeverity(validate(key, value, sourceForChinese(key))).hard.length) { toast('No checked Chinese version to copy yet'); return; }
+  navigator.clipboard.writeText(pasteText(key, value)).then(() => toast('Chinese prompt copied'));
+}
+async function makeChineseVersion(key){
+  if (busy || appState !== 'ready' || !CHINESE_TARGETS.has(key) || !lastRun) return;
+  const original = lastRun.outputs && lastRun.outputs[key];
+  if (!original || splitSeverity(validate(key, original, sourceFor(key))).hard.length) { toast('Finish checking the original prompt first'); return; }
+  if (isChinesePrompt(key, original)) { toast('This prompt is already in Chinese'); return; }
+  const panel = $('zh-wrap-' + key), pre = $('zh-out-' + key), check = $('zh-chk-' + key), button = $('zh-btn-' + key);
+  const previous = lastRun.zhOutputs && lastRun.zhOutputs[key];
+  busy = true;
+  button.disabled = true;
+  panel.style.display = '';
+  check.textContent = 'Translating…';
+  pre.textContent = '';
+  const source = sourceForChinese(key);
+  const originalPositive = pasteText(key, original);
+  const originalNegative = splitOutput(key, original).negativePrompt;
+  const complete = positive => splitOutput(key, positive).prompt + (originalNegative ? '\n\nNegative prompt: ' + originalNegative : '');
+  const instruction = originalPositive;
+  const checkDraft = value => splitSeverity(validate(key, value, source)).hard.concat(chineseCoverageIssues(originalPositive, pasteText(key, value)));
+  const checkedVersion = raw => {
+    const full = complete(raw);
+    if (!checkDraft(full).length) return full;
+    const isolated = complete(isolateChineseDraft(raw));
+    return !checkDraft(isolated).length ? isolated : full;
+  };
+  try {
+    let translated = checkedVersion(await streamChat(chineseTranslationSystem(key), instruction, partial => { pre.textContent = partial.replace(/<think>[\s\S]*?(<\/think>|$)/g, '').trim(); }, 0.1));
+    let issues = checkDraft(translated);
+    if (issues.length) {
+      check.textContent = 'Trying another translation…';
+      translated = checkedVersion(await streamChat(chineseRetrySystem(), originalPositive, () => {}, 0.2));
+      issues = checkDraft(translated);
+    }
+    if (issues.length) {
+      translated = checkedVersion(await streamChat('Translate English to Simplified Chinese. Return only the Chinese translation, with no English original or word-by-word gloss. Preserve every stated action and object, and add nothing.', originalPositive, () => {}, 0.3));
+      issues = checkDraft(translated);
+    }
+    if (issues.length) {
+      translated = checkedVersion(await streamChat(chineseRetrySystem(), 'Translate this sentence into one fluent Chinese prompt. Do not repeat any English. Preserve these details that were lost in earlier attempts: ' + issues.join('; ') + '\n\n' + originalPositive, () => {}, 0.2));
+      issues = checkDraft(translated);
+    }
+    if (issues.length) {
+      pre.textContent = previous || ('✗ Could not make a checked Chinese version. ' + (issues.some(x => x.includes('not Chinese')) ? 'The local model left English words in the result.' : 'The translation failed a prompt check.'));
+      check.textContent = previous ? '✓ previous version kept' : 'Needs review';
+      toast('Chinese version did not pass the prompt checks');
+    } else {
+      if (!lastRun.zhOutputs) lastRun.zhOutputs = {};
+      lastRun.zhOutputs[key] = translated;
+      if (lastRun.hist) {
+        if (!lastRun.hist.zhOutputs) lastRun.hist.zhOutputs = {};
+        lastRun.hist.zhOutputs[key] = translated;
+        try { localStorage.setItem('ps_history', JSON.stringify(history)); } catch(e) {}
+      }
+      pre.textContent = translated;
+      check.textContent = '✓ checked'; check.title = 'Translation passed format and coverage checks. Review for accuracy.';
+      button.textContent = 'Redo 中文';
+    }
+  } catch(e) {
+    pre.textContent = previous || '✗ Chinese version failed: ' + e.message;
+    check.textContent = previous ? '✓ previous version kept' : 'Failed';
+  } finally { busy = false; button.disabled = false; }
+}
+function listedReferenceLabels(intent){
+  const labels = new Set();
+  const re = /<(Picture|Video|Audio)\s+(\d+)>|\b(picture|image|photo|video|clip|audio)\s*(\d+)\s*[:=]/gi;
+  for (const m of (intent || '').matchAll(re)) {
+    const word = (m[1] || m[3]).toLowerCase();
+    const type = /^(picture|image|photo)$/.test(word) ? 'Picture' : /^(video|clip)$/.test(word) ? 'Video' : 'Audio';
+    labels.add('<' + type + ' ' + Number(m[2] || m[4]) + '>');
+  }
+  return labels;
+}
+function referenceInputIssues(intent){
+  const labels = listedReferenceLabels(intent);
+  if (!labels.size) return ['List your actual assets, for example: refs: picture 1 = character photo, video 1 = motion clip.'];
+  const issues = [];
+  for (const [type, cap] of [['Picture', 9], ['Video', 3], ['Audio', 6]]) {
+    const nums = [...labels].filter(x => x.startsWith('<' + type + ' ')).map(x => Number(x.match(/\d+/)[0])).sort((a,b) => a-b);
+    if (nums.some(n => n < 1 || n > cap)) issues.push(type + ' numbers must be between 1 and ' + cap + '.');
+    if (nums.some((n, i) => n !== i + 1)) issues.push(type + ' assets must be numbered 1, 2, 3… with no gaps.');
+  }
+  return issues;
+}
+function referenceLabelIssues(intent, output){
+  const allowed = listedReferenceLabels(intent);
+  const used = new Set(), mentioned = new Set();
+  for (const m of (output || '').matchAll(/<\s*(Picture|Video|Audio)\s+(\d+)\s*>/gi))
+    used.add('<' + m[1][0].toUpperCase() + m[1].slice(1).toLowerCase() + ' ' + Number(m[2]) + '>');
+  for (const m of (output || '').matchAll(/\b(Picture|Video|Audio)\s+(\d+)\b/gi))
+    mentioned.add('<' + m[1][0].toUpperCase() + m[1].slice(1).toLowerCase() + ' ' + Number(m[2]) + '>');
+  const extra = [...mentioned].filter(x => !allowed.has(x));
+  const missing = [...allowed].filter(x => !used.has(x));
+  const issues = [];
+  if (extra.length) issues.push('Unlisted reference labels: ' + extra.join(', ') + '.');
+  if (missing.length) issues.push('Listed assets omitted from the prompt: ' + missing.join(', ') + '.');
+  return issues;
+}
+function secondPictureGuideIsReplaced(intent){
+  const t = intent || '';
+  if (!/\b(?:position|pose)\s+guide\b/i.test(t)) return false;
+  return /\b(?:picture|image|photo)\s*2\b[\s\S]{0,240}\breplaced\s+by\b[\s\S]{0,100}\b(?:picture|image|photo)\s*1\b/i.test(t) ||
+    /\breplace\b[\s\S]{0,80}\b(?:picture|image|photo)\s*2\b[\s\S]{0,100}\bwith\b[\s\S]{0,100}\b(?:picture|image|photo)\s*1\b/i.test(t);
+}
+function referenceRoleIssues(intent, output){
+  const guideIsReplaced = secondPictureGuideIsReplaced(intent);
+  const anotherFinalPerson = /\b(?:second|another|two)\s+(?:final\s+)?(?:subjects?|characters?|persons?|people|women|men)\b/i.test(intent || '');
+  const issues = [];
+  if (guideIsReplaced && !anotherFinalPerson && /<\s*Subject\s+[2-9]\d*\s*>/i.test(output || ''))
+    issues.push('The replaced position guide was defined as another subject. Use only <Subject 1> for the final character.');
+  if (guideIsReplaced && !/<\s*Subject\s+1\s*>/i.test(output || ''))
+    issues.push('Define the final character as <Subject 1>.');
+  return issues;
+}
+function referenceOutputIssues(intent, output){
+  const issues = referenceLabelIssues(intent, output).concat(referenceRoleIssues(intent, output));
+  if (!/^\s*subject_definitions:/i.test(output || ''))
+    issues.push('The prompt must start with subject_definitions, without a planning preamble.');
+  const weaponTerms = /\b(?:weaponry|weapons?|swords?|blades?|knives?|daggers?|axes?|spears?|guns?|rifles?)\b/i;
+  if (weaponTerms.test(output || '') && !weaponTerms.test(intent || ''))
+    issues.push('The prompt adds a weapon detail that was not described in the request.');
+  if (/\b(?:jumps?|runs?|walks?|cuts?|dances?|moves?|leaps?|spins?|fights?)\b[^.!?]{0,90}\bas (?:shown|described|depicted) in <Picture \d+>/i.test(output || '') ||
+      /<Picture \d+>[^.!?]{0,80}\b(?:supplies|provides|shows)\s+(?:the\s+)?(?:motion|movement|action|dance|choreography)\b/i.test(output || ''))
+    issues.push('A still picture is cited as the source of motion; use the action in the user request or a listed video.');
+  return issues;
+}
+function imageReplacementFallback(intent){
+  const labels = [...listedReferenceLabels(intent)].sort();
+  if (labels.join('|') !== '<Picture 1>|<Picture 2>' || !referenceRoleIssues(intent, '<Subject 2>').length) return '';
+  const descriptions = {}, actionLines = [];
+  for (const line of intent.split(/\r?\n/)) {
+    const m = line.match(/^\s*(?:refs:\s*)?(?:picture|image|photo)\s*([12])\s*[:=]\s*(.+)$/i);
+    if (m) descriptions[m[1]] = m[2].trim();
+    else if (line.trim()) actionLines.push(line.trim());
+  }
+  if (!descriptions[1] || !descriptions[2] || !actionLines.length) return '';
+  const tags = s => s.replace(/\b(?:picture|image|photo)\s*([12])\b/gi, (_, n) => '<Picture ' + n + '>');
+  const sentence = s => { const t = tags(s).trim().replace(/([.!?]\s+)([a-z])/g, (_, gap, ch) => gap + ch.toUpperCase()); return t[0].toUpperCase() + t.slice(1).replace(/[.\s]+$/, '') + '.'; };
+  const action = sentence(actionLines.join(' '));
+  const firstRole = sentence(descriptions[1]);
+  const secondRole = sentence(descriptions[2]);
+  const outfitRole = /\b(?:outfit|clothing|wardrobe|garments?)\b/i.test(descriptions[2]) ? ' The final outfit comes from <Picture 2>.' : '';
+  const audio = referenceFallbackAudio(intent);
+  return 'subject_definitions:\n' +
+    '<Subject 1> = the final character from <Picture 1>; ' + firstRole + outfitRole + '\n' +
+    '<Picture 2> = ' + secondRole + '\n\n' +
+    'summary:\n[reference generation] ' + action + '\n\n' +
+    'retention_analysis:\n' +
+    '<Subject 1> (appears in [Shot 1]): fully_preserved - identity from <Picture 1>.\n' +
+    '<Picture 2> (applies in [Shot 1]): attribute_transfer - only the roles stated by the user.\n\n' +
+    'detailed_description:\n[Shot 1] ' + action + ' Use <Picture 1> for the final character and <Picture 2> only for its stated reference roles.' + outfitRole + ' The person being replaced in <Picture 2> does not appear.\n\n' +
+    'overall_soundscape:\n' + audio.sound + '\n\nnon_diegetic_music:\n' + audio.music;
+}
+function referenceFallbackAudio(intent){
+  const prose = intent.split(/\r?\n/).filter(line => !/^\s*(?:refs:\s*)?(?:picture|image|photo|video|clip|audio)\s*\d+\s*[:=]/i.test(line)).join(' ');
+  const sentences = (prose.match(/[^.!?]+[.!?]?/g) || []).map(s => s.trim()).filter(Boolean);
+  const sound = sentences.filter(s => /\b(?:sound|audio|ambien\w*|audible|creak\w*|clash\w*|roar\w*|footstep\w*|taps?|knocks?|rumbles?|rustles?|drips?|rings?|chirps?|thunder)\b/i.test(s) && !/\b(?:no|without)\s+(?:sound|audio)\b/i.test(s));
+  const music = sentences.filter(s => /\b(?:music|score|song|melody|orchestral|piano|guitar|drum\w*)\b/i.test(s) && !/\b(?:no|without)\s+(?:music|score|song)\b/i.test(s));
+  return { sound: sound.join(' ') || 'N/A', music: music.join(' ') || 'N/A' };
+}
+function genericReferenceFallback(intent){
+  const labels = [...listedReferenceLabels(intent)];
+  if (!labels.length || labels.some(x => x.startsWith('<Audio '))) return '';
+  const descriptions = new Map(), actionLines = [];
+  for (const line of intent.split(/\r?\n/)) {
+    const m = line.match(/^\s*(?:refs:\s*)?(picture|image|photo|video|clip)\s*(\d+)\s*[:=]\s*(.+)$/i);
+    if (!m) { if (line.trim()) actionLines.push(line.trim()); continue; }
+    if (/\b(?:picture|image|photo|video|clip|audio)\s*\d+\s*[:=]/i.test(m[3])) return '';
+    const type = /^(picture|image|photo)$/i.test(m[1]) ? 'Picture' : 'Video';
+    descriptions.set('<' + type + ' ' + Number(m[2]) + '>', m[3].trim());
+  }
+  if (!actionLines.length || labels.some(x => !descriptions.has(x))) return '';
+  const tags = s => s.replace(/\b(picture|image|photo|video|clip)\s*(\d+)\b/gi, (_, type, n) => '<' + (/^(picture|image|photo)$/i.test(type) ? 'Picture' : 'Video') + ' ' + Number(n) + '>');
+  const action = tags(actionLines.join(' ')).trim();
+  const audio = referenceFallbackAudio(intent);
+  return 'subject_definitions:\n' + labels.map(x => x + ' = ' + tags(descriptions.get(x))).join('\n') +
+    '\n\nsummary:\n[reference generation] ' + action +
+    '\n\nretention_analysis:\n' + labels.map(x => x + ': weak_reference - use only the role described for this asset.').join('\n') +
+    '\n\ndetailed_description:\n[Shot 1] ' + action +
+    '\n\noverall_soundscape:\n' + audio.sound + '\n\nnon_diegetic_music:\n' + audio.music;
+}
+function referenceSuffix(key, intent){
+  if (key !== 'minimaxref') return '';
+  const allowed = [...listedReferenceLabels(intent)].join(', ');
+  return '\n\n[Exact asset inventory: ' + allowed + '. These are the ONLY Picture/Video/Audio reference labels allowed. No other asset exists. A <Subject N> is a content unit, not another file; ground each subject in the listed asset descriptions. When a pictured person is only a position guide to be replaced, define Subject labels only for the final visible people; do not define a Subject for the discarded guide. Describe unknown visual details by reference to the actual picture instead of guessing them. Do not invent unseen identity, clothing, props, motion, audio, or speech.]';
+}
+function simplePromptFor(key, intent, context){
+  const plain = ((intent || '') + (context ? ' ' + context : '')).replace(/\s+/g, ' ').trim();
+  if (!plain) return '';
+  if (key === 'minimaxref') {
+    const base = imageReplacementFallback(intent) || genericReferenceFallback(intent);
+    if (!base || !context) return base;
+    const audio = referenceFallbackAudio(intent + '\n' + context);
+    return base.replace(/\n\noverall_soundscape:\n[\s\S]*?\n\nnon_diegetic_music:\n[\s\S]*$/, '\n' + context.trim() + '\n\noverall_soundscape:\n' + audio.sound + '\n\nnon_diegetic_music:\n' + audio.music);
+  }
+  if (key === 'scail') {
+    if (/\b(?:put|replace|swap|edit|mask|inpaint|insert|transfer)\b/i.test(plain)) return '';
+    return plain.replace(/\bfrom\s+(?:image|picture|photo)\s*\d+\b/gi, '').replace(/\s+([,.!?])/g, '$1').replace(/\s{2,}/g, ' ').trim();
+  }
+  if (key === 'minimax') {
+    if (/\b(?:voice|speaks?|says?|dialogue|shot\s*[2-9]|cut\s+to)\b/i.test(plain)) return '';
+    const audio = referenceFallbackAudio(intent + (context ? '\n' + context : ''));
+    return 'integrated_multimodal_description: [Shot 1] ' + plain + '\n\noverall_soundscape: ' + audio.sound + '\n\nnon_diegetic_music: ' + audio.music;
+  }
+  if (key === 'wan') return plain + '\n\nNegative prompt: ' + WAN_NEG;
+  if (key === 'wanI2V') {
+    const motion = (plain.match(/[^.!?]+[.!?]?/g) || []).map(s => s.trim()).filter(s =>
+      /\b(?:jump\w*|walk\w*|run\w*|open\w*|clos\w*|turn\w*|mov\w*|cut\w*|spin\w*|danc\w*|nod\w*|blink\w*|rais\w*|lower\w*|fall\w*|climb\w*|fly|flies|flying|wav\w*|smil\w*|look\w*|stand\w* up|sit\w* down|camera|lens|pan\w*|tilt\w*|zoom\w*)\b/i.test(s) &&
+      !/\b(?:music|sound|audio|voice|speaks?|says?|whispers?|footsteps?|ambien\w*)\b/i.test(s));
+    return motion.length ? motion.join(' ') + '\n\nNegative prompt: ' + WAN_NEG : '';
+  }
+  if (key === 'ltx' || key === 'flux' || key === 'zimage' || key === 'krea2') return plain;
+  if (key === 'sdxl') {
+    if (/\bJuggernaut\b/i.test(intent)) return plain;
+    const negative = /\bRealVisXL\b/i.test(intent) ? 'bad hands, bad anatomy, ugly, deformed, (face asymmetry, eyes asymmetry, deformed eyes, deformed mouth, open mouth)' : SDXL_NEG;
+    return plain + '\n\nNegative prompt: ' + negative;
+  }
+  if (key === 'sdxlAnime' && !/\b(?:NoobAI|Animagine|Illustrious|Pony\s*V?7)\b/i.test(intent))
+    return 'score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up, source_anime, ' + plain + '\n(assumed: Pony V6)';
+  if (key === 'qwenimg') return plain + '\n\nNegative prompt: ' + QWENIMG_NEG;
+  return '';
+}
+function updateNegativeCopy(key, value){
+  const button = $('neg-' + key);
+  if (button) button.style.display = splitOutput(key, value).negativePrompt ? '' : 'none';
+}
 function copyOut(key){
-  navigator.clipboard.writeText($('out-'+key).textContent).then(()=>toast('Copied — paste it into ' + TARGETS[key].name));
+  const output = $('out-'+key).textContent;
+  if (!output.trim() || output.trim().startsWith('✗')) { toast('No prompt to copy yet'); return; }
+  if (busy) { toast('Wait for the prompt check to finish'); return; }
+  if (key === 'minimaxref' && (!lastRun || !lastRun.outputs || !lastRun.outputs[key])) { toast('Wait for the H3 reference check to finish'); return; }
+  if (splitSeverity(validate(key, output, sourceFor(key))).hard.length) { toast('This prompt still has issues; use Fix or revise it'); return; }
+  navigator.clipboard.writeText(pasteText(key, output)).then(()=>toast('Copied — paste it into ' + TARGETS[key].name));
+}
+function copyNegative(key){
+  const negative = splitOutput(key, $('out-'+key).textContent).negativePrompt;
+  if (negative) navigator.clipboard.writeText(negative).then(()=>toast('Negative prompt copied'));
 }
 
 /* ================= streaming generation ================= */
 async function streamChat(system, user, onDelta, temp) {
-  const res = await fetch(OLLAMA + '/api/chat', {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({
-      model: chatModel, stream: true, options: { temperature: temp == null ? 0.7 : temp },
-      messages: Array.isArray(user)
-        ? [{ role:'system', content: system }].concat(user)
-        : [{ role:'system', content: system }, { role:'user', content: user }]
-    })
-  });
-  if (!res.ok) throw new Error('HTTP ' + res.status);
-  const reader = res.body.getReader(); const dec = new TextDecoder(); let buf = '', full = '';
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buf += dec.decode(value, { stream:true });
-    let i;
-    while ((i = buf.indexOf('\n')) >= 0) {
-      const line = buf.slice(0, i).trim(); buf = buf.slice(i + 1);
-      if (!line) continue;
-      let j; try { j = JSON.parse(line); } catch(e) { continue; }
-      if (j.error) throw new Error(j.error);
-      const d = j.message && j.message.content || '';
-      if (d) { full += d; onDelta(full); }
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 120000);
+  try {
+    const res = await fetch(OLLAMA + '/api/chat', {
+      method:'POST', headers:{'Content-Type':'application/json'}, signal: controller.signal,
+      body: JSON.stringify({
+        model: chatModel, stream: true, options: { temperature: temp == null ? 0.7 : temp, num_predict: 1400 },
+        messages: Array.isArray(user)
+          ? [{ role:'system', content: system }].concat(user)
+          : [{ role:'system', content: system }, { role:'user', content: user }]
+      })
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const reader = res.body.getReader(); const dec = new TextDecoder(); let buf = '', full = '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream:true });
+      let i;
+      while ((i = buf.indexOf('\n')) >= 0) {
+        const line = buf.slice(0, i).trim(); buf = buf.slice(i + 1);
+        if (!line) continue;
+        let j; try { j = JSON.parse(line); } catch(e) { continue; }
+        if (j.error) throw new Error(j.error);
+        const d = j.message && j.message.content || '';
+        if (d) { full += d; onDelta(full); }
+      }
     }
-  }
-  // strip <think> blocks from reasoning models
-  return full.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+    // strip <think> blocks from reasoning models
+    return full.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+  } catch (e) {
+    if (controller.signal.aborted) throw new Error('The local model took too long. Try a shorter request or another model.');
+    throw e;
+  } finally { clearTimeout(timer); }
 }
 
 /* ================= format checker ================= */
 function hanCount(t){ return (t.match(/[一-鿿]/g) || []).length; }
+function inputIsChinese(t){ return hanCount(t || '') > 0 && hanCount(t || '') * 3 > ((t || '').match(/[A-Za-z]/g) || []).length; }
 function enWords(t){ return t.trim() ? t.trim().split(/\s+/).length : 0; }
 function isHanDominant(t){ return hanCount(t) > enWords(t) * 2 && hanCount(t) > 40; }
+function groundingIssues(key, intent, output){
+  if (!intent || !output) return [];
+  const source = intent.toLowerCase();
+  const positive = (output || '').split(/^\s*Negative prompt:/im)[0].replace(/^\s*\(assumed:[^\n]+\)/gim, '');
+  const visual = key === 'minimax' ? (positive.match(/integrated_multimodal_description:\s*([\s\S]*?)(?=\n\s*overall_soundscape:|$)/i) || [,''])[1] : positive;
+  const claims = visual.replace(/\bNo specific [^.!?]*[.!?]/gi, '').replace(/\b(?:the )?camera cuts? to\b/gi, 'cuts to');
+  const issues = [];
+  if (!/[一-鿿]/.test(intent) && !/\b(?:Chinese|Mandarin|Hanfu|China|Song dynasty|Tang dynasty)\b/i.test(intent) && (positive.match(/[一-鿿]/g) || []).length > 8)
+    issues.push('The output switches to Chinese although the request is in English.');
+  if (/^\s*Prompt:/i.test(positive)) issues.push('The output adds a Prompt label instead of starting with the prompt itself.');
+  if (/^\s*negative:\s*(?:N\/A|none)\s*$/im.test(positive)) issues.push('The output includes an unusable placeholder negative field.');
+  if (TARGETS[key] && TARGETS[key].group === 'image' && /(?:^|,)\s*(?:hair|eyes|clothing|outfit|pose|setting|composition|lighting|background|style)\s*(?=,|$)/im.test(positive))
+    issues.push('The output includes a bare detail category instead of a supplied detail.');
+  if (/\bsolo\b/i.test(positive) && /\b(?:enemies|people|crowd|soldiers|opponents|other characters)\b/i.test(source))
+    issues.push('The output says solo although the request includes other people or enemies.');
+  if (/\b(?:no specific [^.!?]*(?:requested|mentioned|provided)|not specified|not provided|the user did not mention)\b/i.test(positive) && !/\b(?:no specific|not specified|not provided)\b/i.test(intent))
+    issues.push('The output includes commentary about missing details instead of only the prompt.');
+  const cameraSource = /\b(?:camera|lens|angle|fram(?:e|ed|ing)|viewpoint|pov|close[ -]?up|wide[ -]?shot|medium[ -]?shot|pan|tilt|zoom|dolly|track|orbit|push[ -]?in|pull[ -]?back|tripod|摄像|镜头|运镜)\b/i;
+  if (!cameraSource.test(source) && /\b(?:camera|lens|establishing shot|wide shot|medium shot|close[ -]?up|tracking shot|dolly|pan(?:s|ning)?|tilt(?:s|ing)?|zoom(?:s|ing)?|pull(?:s)? back|push(?:es)? in|orbit(?:s|ing)?|static shot|fixed shot|50mm|85mm)\b/i.test(claims))
+    issues.push('The output adds camera or framing details not in the request.');
+  if (!/\b(?:shots?|cuts?|scene change|transition|at \d{1,2}:\d{2}|after \d+ seconds|second scene|next scene|镜头|切换)\b/i.test(source) && (/\[Shot [2-9]\]/i.test(positive) || /\b(?:cuts? to|hard cut|match cut|smash cut|dissolve(?:s)? to)\b/i.test(claims)))
+    issues.push('The output adds a shot or cut not in the request.');
+  if (!/\b(?:music|score|song|melody|orchestral|instrument|piano|guitar|drum|音乐|配乐|歌曲)\b/i.test(source)) {
+    const field = positive.match(/non_diegetic_music:\s*([^\n]*)/i);
+    if (field && !/^\s*(?:N\/A|none|no music)\s*$/i.test(field[1])) issues.push('The output invents music.');
+    if (!field && /\b(?:music|score|orchestral|melody|soundtrack|drums?|strings?|piano|guitar)\b/i.test(visual)) issues.push('The output invents music.');
+  }
+  if (!/\b(?:sound|audio|noise|ambien\w*|voice|speak\w*|say|says|said|whisper\w*|sing\w*|creak\w*|footstep\w*|explosion\w*|clash\w*|roar\w*|taps?|knocks?|rumbles?|rustles?|drips?|rings?|chirps?|thunder|music|score|声音|音频|说话|唱歌)\b/i.test(source)) {
+    const field = positive.match(/overall_soundscape:\s*([^\n]*)/i);
+    if (field && !/^\s*(?:N\/A|none|silent|silence)\s*$/i.test(field[1])) issues.push('The output invents sound.');
+    if (!field && /\b(?:audible|footsteps?|clash(?:es|ing)?|roar(?:s|ing)?|explosions?|soundscape|ambience|grunts?|panting)\b/i.test(visual)) issues.push('The output invents sound.');
+  }
+  const spoken = [...positive.matchAll(/<d>(?:\[[^\]]+\])?\s*([^<]+)<\/d>|\b(?:says|whispers|replies|shouts):?\s*["“]([^"”]+)["”]/gi)];
+  const speechWords = s => (s || '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+  if (spoken.some(m => { const line = speechWords(m[1] || m[2]); return line && !speechWords(intent).includes(line); }))
+    issues.push('The output invents or changes spoken words.');
+  const unsupported = [
+    ['weapon', /\bweapons?\b|武器/i], ['sword', /\b(?:swords?|blades?|katanas?)\b|剑/i],
+    ['knife', /\b(?:knives?|daggers?)\b|刀/i], ['gun', /\b(?:guns?|rifles?)\b|枪/i],
+    ['armor', /\b(?:armou?r|battle attire|combat gear|battle gear|warrior outfit|military uniform|helmets?|shields?)\b|盔甲|护甲/i],
+    ['debris', /\bdebris\b|碎片/i], ['projectile', /\bprojectiles?\b/i],
+    ['explosion', /\b(?:explosions?|fireballs?)\b|爆炸/i], ['smoke or flame', /\b(?:smoke|flames?)\b|火焰|烟雾/i],
+    ['sparks or blood', /\b(?:sparks?|blood)\b/i],
+    ['extra spin', /\b(?:spin(?:s|ning)?|spun|twirl(?:s|ed|ing)?)\b|旋转/i], ['extra dodge', /\b(?:dodg(?:e|es|ed|ing)|duck(?:s|ed|ing)?)\b|躲闪/i],
+    ['extra attack', /\b(?:throw(?:s|ing)?|threw|fire(?:s|d|ing)?|shoot(?:s|ing)?)\b/i], ['extra expression', /\b(?:smil(?:e|es|ed|ing)|laugh(?:s|ed|ing)?|weep(?:s|ing)?|wept)\b/i],
+    ['extra wave', /\b(?:wave(?:s|d)?|waving)\b/i],
+    ['expression', /\b(?:fierce|determined|angry|joyful|terrified|smiling)\s+(?:expression|look|face)\b/i],
+    ['3D style', /\b(?:3D CG|3D render(?:ing)?)\b/i], ['live-action style', /\blive[ -]?action\b/i],
+    ['anime style', /\banime\b/i], ['painting style', /\b(?:watercolor|oil painting|painterly)\b/i],
+    ['photorealistic style', /\bphotorealistic\b/i], ['cinematic style', /\bcinematic\b/i],
+    ['claymation style', /\bclaymation\b/i],
+    ['age', /\b(?:young|middle[ -]?aged|elderly|teenage|\d{1,2}[ -]?year[ -]?old)\b/i],
+    ['ethnicity', /\b(?:east asian|caucasian|african|latina?)\b/i],
+    ['coat or jacket', /\b(?:coats?|jackets?)\b/i], ['dress or skirt', /\b(?:dresses?|skirts?)\b/i],
+    ['shirt or trousers', /\b(?:shirts?|trousers?)\b/i], ['boots or shoes', /\b(?:boots?|shoes?)\b/i],
+    ['hat or cape', /\b(?:hats?|capes?|scarves?)\b/i],
+    ['hairstyle', /\b(?:hairstyles?|blond(?:e)?|brunette|braids?|curls?|curly hair|long hair|short hair)\b/i],
+    ['castle', /\bcastles?\b/i], ['ruins', /\bruins?\b/i], ['buildings', /\bbuildings?\b/i],
+    ['spotlight', /\bspotlights?\b/i], ['directional light', /\b(?:rim light|side light|backlight)\b/i],
+    ['moonlight or sunlight', /\b(?:moonlight|sunlight)\b/i], ['rain', /\brain\b/i],
+    ['snow', /\bsnow\b/i], ['fog or haze', /\b(?:fog|haze)\b/i], ['storm', /\bstorm\b/i],
+    ['blurred background', /\b(?:blurred background|streaks? of colo[u]?r)\b/i]
+  ];
+  for (const [label, re] of unsupported) if (re.test(visual) && !re.test(source)) issues.push('The output adds an unstated ' + label + '.');
+  for (const color of ['red','blue','green','yellow','orange','purple','pink','brown','black','white','gray','grey','gold','silver']) {
+    const re = new RegExp('\\b' + color + '\\b', 'i');
+    const aliases = color === 'gray' || color === 'grey' ? /\b(?:gray|grey)\b/i : re;
+    if (re.test(visual) && !aliases.test(source)) { issues.push('The output adds an unstated color: ' + color + '.'); break; }
+  }
+  return issues;
+}
 const CAM_FIXED = /(fixed camera|fixed shot|static shot|static camera|locked[- ]off|no camera movement|固定机位|固定镜头|镜头不移动|镜头位置保持不动)/i;
-const CAM_MOVE  = /\b(pan(s|ning)?|tilt(s|ing)?|push(es)? in|pull(s)? (out|back)|orbit|truck|dolly|crane|zoom)\b|镜头(推进|后拉|左移|右移|上摇|下摇)|环绕运镜|复合运镜/i;
+const CAM_MOVE  = /\b(pan(s|ning)?|tilt(s|ing)?|push(es)? in|pull(s)? (out|back)|orbit|truck|dolly|crane|zoom)\b|镜头(推进|后拉|左移|右移|上摇|下摇)|镜头(?:缓慢地?|快速地?|逐渐地?)?(?:向|往)?(?:左|右|上|下|前|后)(?:平)?(?:移|移动|摇|推|拉)|环绕运镜|复合运镜/i;
 // same alternation, global + no capture groups, so .match() counts OCCURRENCES.
 // (The non-global CAM_MOVE returns [full, ...capture groups], so `.length` there
 // is the group count, not a move count — never use it to count moves.)
-const CAM_MOVE_G = /\b(?:pans?|panning|tilts?|tilting|pushes? in|pulls? (?:out|back)|orbit|truck|dolly|crane|zoom)\b|镜头(?:推进|后拉|左移|右移|上摇|下摇)|环绕运镜|复合运镜/gi;
+const CAM_MOVE_G = /\b(?:pans?|panning|tilts?|tilting|pushes? in|pulls? (?:out|back)|orbit|truck|dolly|crane|zoom)\b|镜头(?:推进|后拉|左移|右移|上摇|下摇)|镜头(?:缓慢地?|快速地?|逐渐地?)?(?:向|往)?(?:左|右|上|下|前|后)(?:平)?(?:移|移动|摇|推|拉)|环绕运镜|复合运镜/gi;
 
 /* Severity tiers are carried in the message wording (see docs/CHANGELOG-2026-09-10.md
    §Deviations 1): a message prefixed 'advisory:' is non-blocking guidance; a message
@@ -1217,9 +1625,22 @@ function validate(key, text, intent) {
   const issues = [];
   const t = (text || '').trim();
   if (!t) return ['HARD: empty output'];
+  if (CHINESE_TARGETS.has(key) && /Output language:\s*(?:Chinese|中文)/i.test(intent || '') && !isChinesePrompt(key, t, intent))
+    issues.push('HARD: Chinese output was requested but the positive prompt is not Chinese');
+  groundingIssues(key, intent, t).forEach(x => issues.push('HARD: ' + x));
   if (/^(here('s| is)|sure|below is|certainly)/i.test(t)) issues.push('HARD: starts with chat filler instead of the prompt');
   if (/(\*\*|##|```)/.test(t)) issues.push('HARD: contains markdown formatting');
   const isVideoKey = ['wan','wanI2V','ltx','minimax','minimaxref','scail'].indexOf(key) !== -1;
+  if (TARGETS[key] && TARGETS[key].group === 'image') {
+    const visual = t.split(/^\s*Negative prompt:/im)[0];
+    if ((key === 'zimage' || key === 'qwenimg') && !inputIsChinese(intent) && hanCount(visual) > 40 && (!$('langSel') || $('langSel').value !== 'zh') && !/Output language:\s*(?:Chinese|中文)/i.test(intent || ''))
+      issues.push('HARD: English input produced a Chinese positive prompt — use English unless Chinese output was selected');
+    if (/\b(?:camera|view|lens)\s+(?:(?:slowly|quickly|gradually|gently)\s+)?(?:moves?|pushes?|pulls?|pans?|tilts?|zooms?|orbits?|tracks?|dollies?)\b/i.test(visual))
+      issues.push('HARD: a still image cannot show a camera move — describe one viewpoint or crop');
+    if (/\b(?:no dialogue|room ambience|soft footsteps|sound of|sounds of|can be heard|is heard|are heard|audible|audio track|background music plays)\b/i.test(visual))
+      issues.push('HARD: a still image cannot contain audible sound — describe only visible details');
+    if (/\bthen\b/i.test(visual)) issues.push('HARD: a still image cannot show a then/after sequence — choose one visible moment');
+  }
   if (isVideoKey && intent) {
     const seqRe = /\b(then|after that|afterwards?|next,|followed by|before (he|she|it|they|the))\b|然后|接着|之后|先.+再/i;
     // The OUTPUT side accepts the wider chronological vocabulary the vendors' own
@@ -1227,27 +1648,33 @@ function validate(key, text, intent) {
     // later…" (ltx23.md Pair 6), H3's are "…, then…" and cut times.
     const seqOutRe = /\b(then|after that|afterwards?|next,|followed by|before (he|she|it|they|the)|initially|a moment later|moments later|later,|subsequently|once (he|she|it|they|the)|finally|first,|second,|and only then|until)\b|然后|接着|之后|随后|先.+再|最后/i;
     const simRe = /\b(while|as (he|she|it|they|the)|at the same time|simultaneous|meanwhile)\b|同时|一边/i;
-    if (seqRe.test(intent) && !seqOutRe.test(t)) issues.push('HARD: the request SEQUENCES events (then/after) but the output has no sequencing words — verify the order of events survived (timing words are physics)');
+    if (seqRe.test(intent) && !seqOutRe.test(t)) issues.push((key === 'scail' ? 'advisory:' : 'HARD:') + ' the request SEQUENCES events (then/after) but the output has no sequencing words — verify the order of events survived');
     if (simRe.test(intent) && !simRe.test(t)) issues.push('HARD: the request has SIMULTANEOUS actions (while/as) but the output lost the simultaneity marker — verify the timing survived');
   }
   if (isVideoKey && (t.match(/\bwhile\b/gi) || []).length > 2) issues.push('HARD: 3+ "while" clauses — simultaneity soup; models render impossible overlapping motion, keep one simultaneous pairing per beat');
+  if (isVideoKey && /\bno dialogue\b/i.test(intent || '') && (/<d>/.test(t) || /\b(?:says|whispers|speaks):?\s*["“]/i.test(t)))
+    issues.push('HARD: the request says no dialogue but the output invents a spoken line');
 
   if (key === 'wan' || key === 'wanI2V') {
     if (!t.includes('Negative prompt:')) issues.push('HARD: missing "Negative prompt:" block');
     else if (!t.includes('色调艳丽')) issues.push('HARD: negative prompt is not the official Chinese list');
     const pos = t.split('Negative prompt:')[0].trim();
+    if (/\b(?:footsteps|footfalls|ambien(?:ce|t sound|t noise)|audible|sounds?|music|dialogue|echo(?:es)?)\b/i.test(pos))
+      issues.push('HARD: Wan outputs video only — remove audible sound and dialogue from the positive prompt');
     if (CAM_FIXED.test(pos) && CAM_MOVE.test(pos)) issues.push('HARD: contradiction: fixed camera + camera-movement verbs in the same prompt');
+    const requestedMove = /(?:camera|lens|shot|镜头)[^.!?\n]{0,35}(?:moves? closer|moves? (?:in|forward|back|away|left|right)|push(?:es)? in|pull(?:s)? (?:out|back)|pan(?:s)?|tilt(?:s)?|zoom(?:s)?|orbit(?:s)?|track(?:s)?|dolly|推进|后拉|左移|右移|上摇|下摇)/i.test(intent || '');
+    if (requestedMove && CAM_FIXED.test(pos)) issues.push('HARD: the request asks for a moving camera but the output says fixed camera');
+    if (requestedMove && !CAM_MOVE.test(pos) && !/(?:camera|lens|shot|镜头)[^.!?\n]{0,25}moves? (?:closer|in|forward|back|away|left|right)/i.test(pos))
+      issues.push('HARD: the requested camera move is missing from the output');
     if (/^\s*[-•]/m.test(pos)) issues.push('HARD: uses bullet points — Wan wants comma-separated phrases');
     if (key === 'wan') {
       // wan22.md §Validator suggestions: "35-140 English words or 60-200 Han
       // characters; WARN, DO NOT FAIL, outside band." Advisory by instruction.
       if (isHanDominant(pos)) {
         const h = hanCount(pos);
-        if (h < 60) issues.push('advisory: short for the T2V extender (' + h + ' Han chars, official band 60-200) — warn, not fail');
         if (h > 200) issues.push('advisory: long for the T2V extender (' + h + ' Han chars, official band 60-200) — over-expansion measurably harms motion and identity');
       } else {
         const w = enWords(pos);
-        if (w < 35) issues.push('advisory: short (' + w + ' words; the practical EN band is ~35-120) — warn, not fail');
         if (w > 140) issues.push('advisory: long (' + w + ' words; the practical EN band is ~35-120) — over-expansion measurably harms motion and identity');
       }
       if (/固定机位|镜头位置保持不动/.test(pos) && !/固定镜头/.test(pos))
@@ -1292,7 +1719,6 @@ function validate(key, text, intent) {
     const w = enWords(t);
     // D7 — length is version-split; default to 2.5 when the request names no version
     const isV23 = /\b2\.3\b/.test(intent || '');
-    if (w < 35) issues.push('advisory: short (' + w + ' words) — a single shot is roughly 4-8 descriptive sentences; no word floor is published, so this is craft guidance');
     if (isV23) {
       if (w > 150 && w <= 200) issues.push('HARD: over the 2.3 soft band (' + w + ' words, 40-150 soft) — the LTX-2 README\'s own hard figure is 200');
       if (w > 200) issues.push('HARD: too long (' + w + ' words) for LTX-2.3 — the README says "Keep within 200 words"');
@@ -1307,7 +1733,7 @@ function validate(key, text, intent) {
     const multiShot = cutRe.test(t) || (t.match(/\bshot\b/gi) || []).length > 1;
     if (multiShot) {
       if (!cutRe.test(t)) issues.push('HARD: reads as more than one shot but no transition is NAMED in prose — write "A hard cut transitions to...", "The view cuts to...", "A match cut connects...", "The image dissolves into..."');
-      if (!/(continues across the cut|continues over the cut|the (score|music|dialogue|ambience|hum|wind)[^.]{0,60}(continues|drops|stops|remains))/i.test(t))
+      if (/\b(?:audio|sound|music|score|dialogue|voice|ambien|rain|wind|hum)\b/i.test(intent || '') && !/(continues across the cut|continues over the cut|the (score|music|dialogue|ambience|hum|wind)[^.]{0,60}(continues|drops|stops|remains))/i.test(t))
         issues.push('HARD: a cut with no audio-continuity clause — state what the sound does across it ("the piano score continues across the cut" / "the dialogue drops; only wind remains")');
       const cuts = (t.match(/\b(hard cut|cuts? to|match cut|dissolves? into|smash cut|jump cut|cross ?fade|fades? to)\b/gi) || []).length;
       if (cuts + 1 > 4) issues.push('HARD: ' + (cuts + 1) + ' shots — the guide prefers 2-4, each with a clear job (establish -> detail -> reaction)');
@@ -1317,8 +1743,6 @@ function validate(key, text, intent) {
     // D7 — static camera is reported to fail in 2.5 I2V (USER-VERIFIED, one reporter)
     if (intent && /\b(static|locked[- ]?off|tripod|no camera movement)\b/i.test(intent))
       issues.push('advisory: static camera by prose is reported to fail in LTX-2.5 I2V (one user reports ~2 successes in ~50 attempts, with the failing prompt already following this advice) — route to the closed-set "Static" camera-control LoRA instead');
-    if (!/("|“)[^"”]+("|”)|no dialogue|no music|sound|audio|ambien|music|hum|rain|footstep|creak|clink|roar|wind|silence/i.test(t))
-      issues.push('HARD: no explicit audio content — LTX audio is not automatic (name sounds, dialogue, or "no music")');
   }
   if (key === 'minimax') {
     if (!/integrated_multimodal_description:/.test(t)) issues.push('HARD: missing integrated_multimodal_description: field');
@@ -1347,6 +1771,8 @@ function validate(key, text, intent) {
       if (!t.includes(sec)) issues.push('HARD: missing ' + sec + ' section');
     if (!/\[Shot 1\]/.test(t)) issues.push('HARD: missing [Shot 1] in detailed_description');
     if (!/<(Subject|Picture|Video|Audio) \d+>/.test(t)) issues.push('HARD: no reference labels like <Subject 1>');
+    if (/\[Shot 1\]\s+At \d{2}:\d{2}\.\d{3}/.test(t)) issues.push('HARD: [Shot 1] has no timestamp; only later shots have cut times');
+    referenceOutputIssues(intent, t).forEach(x => issues.push('HARD: ' + x));
     // D8 — reference-tag arithmetic against the local caps (9 images / 3 videos / 3 soundtracks / 3 audio, no total)
     ['Picture', 'Video', 'Audio'].forEach(function(kind){
       const nums = (t.match(new RegExp('<' + kind + ' (\\d+)>', 'g')) || []).map(function(s){ return +s.replace(/\D/g, ''); });
@@ -1367,33 +1793,34 @@ function validate(key, text, intent) {
       // 300 or above 550 English words; target 350-500." Warn = advisory: the corpus's
       // own OFFICIAL-PATTERN Ref2VA pairs (and the app's own worked example) run
       // 54-200 words because they are teaching exemplars, not shipped generations.
-      if (w < 300) issues.push('advisory: detailed_description is ' + w + ' words — the official generation target is 350-500 (warn below 300); a short one still validates, it just under-specifies the timeline');
       if (w > 550) issues.push('advisory: detailed_description is ' + w + ' words — above the 550 warn line for the 350-500 target');
     }
   }
   if (key === 'scail') {
-    if (!/PROMPT:/.test(t)) issues.push('HARD: missing PROMPT: field');
-    if (!/MODE:/.test(t)) issues.push('HARD: missing MODE: field');
-    if (!/YOU STILL NEED:/.test(t)) issues.push('HARD: missing YOU STILL NEED: field');
-    const p = (t.split('PROMPT:')[1] || '').split('MODE:')[0];
+    if (/\b(PROMPT:|MODE:|YOU STILL NEED:)/i.test(t)) issues.push('HARD: setup labels do not belong in the SCAIL-2 prompt field — output one video-description paragraph');
+    if (/\n\s*\n/.test(t)) issues.push('HARD: use one paragraph');
+    const p = t.trim();
+    if (/\b(?:footsteps|footfalls|ambien(?:ce|t sound|t noise)|audible|sounds?|music|dialogue|echo(?:es)?)\b/i.test(p))
+      issues.push('HARD: SCAIL-2 produces silent video — describe only what is visible');
     if (/\b(replace|swap|edit|mask|segment)\b|替换|蒙版/i.test(p)) issues.push('HARD: uses edit-instruction words (replace/swap/edit/mask) — describe the FINAL video instead');
     // scail2.md §Validator changes #3 — the official enhancer's own rule-1/rule-7 ban list
     if (/\b(the task is|gemini|editing software|photoshop|inpaint(ing)?|prompt)\b|分割|抠图|修图/i.test(p))
       issues.push('HARD: uses the official enhancer\'s banned vocabulary (the task is / Gemini / editing software / Photoshop / inpaint / prompt / 分割 / 抠图 / 修图) — the PROMPT is a description of the finished video, never an instruction about the pipeline');
     const w = enWords(p);
-    // scail2.md §Validator changes #1 — ONE 90-140 band for BOTH modes (the
-    // "animation 15-60 words" rule is retired); warn under ~60 and over ~160.
-    if (w < 60) issues.push('advisory: PROMPT is ' + w + ' words — the README says long detailed prompts beat short ones, and the enhancer band is 90-140 for BOTH modes (the old "animation 15-60 words" rule is retired)');
-    if (w > 160) issues.push('advisory: PROMPT is ' + w + ' words — over the ~160 warn line for the 90-140 band');
+    if (/\b(reference image|driving video|source footage)\b/i.test(p)) issues.push('HARD: describe only the finished video, not the input media');
+    // Detailed prompts help when the user supplied enough visual facts. A short request
+    // should stay short instead of inventing appearance or scenery to fill a word count.
+    if (w > 160) issues.push('advisory: prompt is ' + w + ' words — over the ~160 warn line for the 90-140-word enhancer band');
     // scail2.md §Validator changes #2 — text_len = 512 UMT5 tokens: block, don't warn
-    if (w > 360 || p.length > 2000) issues.push('HARD: PROMPT is ' + w + ' words / ' + p.length + ' characters — at the staff conversion of 0.75 words per token that is at or past text_len = 512 UMT5 tokens, where SCAIL-2 silently truncates the tail; shorten it, and make the expander length-aware so it cannot push a working prompt over');
-    if (hanCount(p) > 20) issues.push('HARD: PROMPT should be English — the official enhancer outputs English');
+    if (w > 360 || p.length > 2000) issues.push('HARD: prompt is ' + w + ' words / ' + p.length + ' characters — SCAIL-2 may truncate the tail; shorten it');
+    if (hanCount(p) > 20) issues.push('HARD: prompt should be English — the official enhancer outputs English');
   }
+  if (key === 'krea2' && !/\b(?:character sheet|isolated character|plain backdrop|flat background)\b/i.test(intent || '') && /\b(?:solid flat [\w -]*background|flat backdrop|no ground plane)\b/i.test(t))
+    issues.push('HARD: flat character-sheet background conflicts with the requested scene');
   if (key === 'sdxl') {
     if (!t.includes('Negative prompt:') && !/juggernaut|ragnarok/i.test((intent || '') + ' ' + t))
       issues.push('HARD: missing "Negative prompt:" block — SDXL relies on negatives (exception: Juggernaut XI / XIII Ragnarok, whose author says to start with none)');
     const pos = t.split('Negative prompt:')[0].trim();
-    if ((pos.match(/,/g) || []).length < 4) issues.push('HARD: not comma-separated keywords — reads like prose');
     const w = enWords(pos);
     if (w > 70) issues.push('HARD: too long (' + w + ' words) — CLIP reads ~75 tokens, trailing content fades');
     if ((pos.match(/\(\s*[^)]+:\s*\d/g) || []).length > 2) issues.push('HARD: too many (word:1.x) weights — 1-2 max, and they differ across UIs');
@@ -1457,23 +1884,24 @@ function validate(key, text, intent) {
       // flux.md §Validator changes — word band 30-80 (medium) with 80-300 ALLOWED for
       // genuinely complex scenes; the mechanical limit is the encoder's
       // max_sequence_length=512 (warn above 480 tokens ≈ 360 EN words), not 160.
-      if (w < 25) issues.push('advisory: short (' + w + ' words; BFL\'s ideal is 30-80) — make sure subject + action land in the first 20 words');
       if (w > 300) issues.push('advisory: ' + w + ' words — 30-80 is the official ideal and 80-300 is allowed for genuinely complex multi-object scenes; extra length does not improve quality, it collapses seed diversity');
       if (w > 360) issues.push('HARD: too long (' + w + ' words) — past ~480 tokens of the diffusers/ComfyUI default max_sequence_length=512, where the tail is truncated SILENTLY (BFL\'s "32K tokens" is a model capability, not the pipeline default)');
     }
     if (/\b(no|without|avoid)\b(?! other text)/i.test(t)) issues.push('HARD: negative phrasing ("no/without") — phrase positively (exception: "no other text")');
   }
   if (key === 'zimage') {
-    if (/negative prompt/i.test(t)) issues.push('HARD: contains a negative prompt — Z-Image-Turbo has no CFG (Base variant supports them)');
-    if (/masterpiece|best quality|8k|ultra.?hd|4k/i.test(t)) issues.push('HARD: meta-tags — officially banned in Z-Image\'s prompt guide');
-    if (/\([^)]+:\d/.test(t)) issues.push('HARD: uses (word:1.x) weighting — not supported');
-    const w = enWords(t), h = hanCount(t);
-    if (isHanDominant(t)) {
-      if (h < 90) issues.push('advisory: thin for Z-Image (' + h + ' Han chars; aim 120-450) — no floor is documented, the guide asks for concrete relational categories rather than a length');
+    const base = /\b(?:z[- ]?image\s+base|base variant|non[- ]turbo)\b/i.test(intent || '');
+    const hasNeg = /^\s*Negative prompt:/im.test(t);
+    const positive = t.split(/^\s*Negative prompt:/im)[0].trim();
+    if (hasNeg && !base) issues.push('HARD: Z-Image-Turbo has no CFG, so its negative prompt is inactive; use Base if you need negatives');
+    if (base && !hasNeg) issues.push('advisory: Z-Image Base supports negative prompts; add a short targeted list if needed');
+    if (/masterpiece|best quality|8k|ultra.?hd|4k/i.test(positive)) issues.push('HARD: meta-tags — officially banned in Z-Image\'s prompt guide');
+    if (/\([^)]+:\d/.test(positive)) issues.push('HARD: uses (word:1.x) weighting — not supported');
+    const w = enWords(positive), h = hanCount(positive);
+    if (isHanDominant(positive)) {
       if (h > 450) issues.push('HARD: too long (' + h + ' Han chars) — the default 512-token cap truncates the tail SILENTLY at roughly 450 Han characters; the vendor\'s own remedy is max_sequence_length=1024 in the diffusers call ("we\'ve handled this case in our pipeline")');
       if (h > 900) issues.push('HARD: far too long (' + h + ' Han chars) — past 1024 tokens, so it truncates even with max_sequence_length=1024 set');
     } else {
-      if (w < 55) issues.push('advisory: short for Z-Image (' + w + ' words; the guide asks for 80-300 of concrete relational detail) — no word floor is documented, so check the categories instead: subject and count, spatial relations, light/style');
       if (w > 360) issues.push('HARD: too long (' + w + ' words) — 512 tokens is about 380 English words at the staff conversion of 0.75 words/token, and the truncation is silent; the remedy is max_sequence_length=1024 in the diffusers call');
       if (w > 760) issues.push('HARD: far too long (' + w + ' words) — past 1024 tokens, so it truncates even with max_sequence_length=1024 set');
     }
@@ -1484,8 +1912,7 @@ function validate(key, text, intent) {
     // negative block and no no-text sentinel, and its rule is operation + target +
     // explicit preservation (§Validator changes #7).
     const isEdit = /\bedit(ing)?\b|edit-?25\d\d/i.test(intent || '') ||
-      /^\s*(replace|dress|change|remove|add|move|restore and colorize|perform inpainting|extend the image)\b/i.test(t) ||
-      /\b(image|picture|figure)\s*\d\b/i.test(t) || /图\s*\d/.test(t);
+      /^\s*(replace|dress|change|remove|add|move|restore and colorize|perform inpainting|extend the image)\b/i.test(t);
     if (isEdit) {
       if (!/\b(keep|preserve|maintain|unchanged|exactly as|change nothing else)\b|保持|不变|保留|不做任何改动/i.test(t))
         issues.push('HARD: edit prompt with no preservation clause — the official edit rewriter\'s shape is ONE imperative naming the changed property, then an explicit "keep … unchanged" list');
@@ -1506,8 +1933,6 @@ function validate(key, text, intent) {
     if (!QUOTED.test(pos)) {
       if (CARRIER.test(pos) && !SENTINEL.test(pos))
         issues.push('HARD: the image is described as carrying text but no exact string is quoted — transcribe EVERY visible string verbatim in quotes with its carrier, position, font style, colour and size; never write a placeholder like "a list of features"');
-      else if (!SENTINEL.test(pos))
-        issues.push('advisory: no quoted text and no no-text sentinel — the official rewriter\'s own examples close with "The image contains no recognizable text." / 图像中未出现其他文字。 so the model does not invent glyphs');
     }
     const w = enWords(pos), h = hanCount(pos);
     if (!isHanDominant(pos) && w > 260) issues.push('HARD: too long (' + w + ' words; official rewriter targets ~200, concise)');
@@ -1517,22 +1942,9 @@ function validate(key, text, intent) {
     if (/negative prompt/i.test(t)) issues.push('HARD: contains a negative prompt — Krea 2 Turbo runs CFG-free in Krea\'s own CLI/diffusers and at CFG 1.0 in ComfyUI (not 0.0); the official Turbo card\'s own snippet uses guidance_scale=3.5, an unresolved conflict)');
     if (/\([^)]+:\d/.test(t)) issues.push('HARD: uses (word:1.x) weighting — the stock Krea 2 tokenizer does not parse it at all, so "(red:1.3)" lands in the prompt as LITERAL TEXT; restate the color/element in different words instead');
     if (/masterpiece|best quality|8k|ultra.?hd/i.test(t)) issues.push('HARD: quality meta-tags — noise on Krea 2');
-    // Measured against the vendor's own 36 published widget prompts (krea-character-art.md
-    // §2026-09-10 official prompt-pair harvest): the medium is named in the first 80
-    // characters in only 24/36, disclosed past the midpoint in 8, and never named at all
-    // in 4 — so medium-first is craft guidance, not a format rule. `\bart\b` is bounded
-    // here because the old unanchored `art` matched inside words like "partially".
-    const MEDIUM = /\b(painting|illustration|drawing|watercolou?r|gouache|ink wash|linework|sketch|artwork|art study|study|render(ing)?|3d|cel animation|animation|collage|photograph(y)?|photo|print|etching|woodblock|comic|manga|concept art|graphic design|aesthetic|style)\b/i;
-    const mediumAt = t.search(MEDIUM);
-    if (mediumAt === -1) issues.push('advisory: no medium named anywhere — 4 of the vendor\'s 36 published prompts do the same, so this is not an error, but naming the medium ("a stylized digital painting with visible brushstrokes", "a minimalist flat-color illustration") is the single strongest style lever on Krea 2');
-    else if (mediumAt > Math.max(80, t.length * 0.34)) issues.push('advisory: the medium is disclosed late (' + Math.round(100 * mediumAt / t.length) + '% through the prompt) — the vendor does this too (its family-A house format discloses the medium at ~64% and pushes style into a trailing comma tail), but medium-first is the safer default');
-    if (/background/i.test(t) && !/(solid|flat|plain|uniform|seamless|pitch[- ]?black|single[- ]colou?r|monochromatic)[^.]{0,40}background|background[^.]{0,40}(solid|flat|plain|uniform|seamless|pitch[- ]?black|single[- ]colou?r|monochromatic)/i.test(t))
-      issues.push('advisory: background mentioned but not locked — the vendor\'s own lock wordings are "solid vibrant blue background", "pitch-black background", "plain white background", "The background is a solid, striking crimson red"; without one, gradients and environments sneak in');
-    // D5/X1 — 80-140 is CRAFT guidance. The vendor's 36 published prompts run 10-230
-    // words (median 101.5) and only 42% land inside the band, so it can never be an error.
+    // A brief source description should remain brief; only long outputs need a length warning.
     const w = enWords(t);
-    if (w < 80) issues.push('advisory: ' + w + ' words — the app\'s craft band is 80-140, but the vendor\'s own 36 published prompts run 10-230 words (median 101.5, 12 of them under 80), so short is legal; add concrete colour, spatial and texture facts only if the image needs them');
-    else if (w > 140) issues.push('advisory: ' + w + ' words — over the 80-140 craft band, though 9 of the vendor\'s own 36 published prompts are longer (max 230); what actually binds is the 512-position cap below');
+    if (w > 140) issues.push('advisory: ' + w + ' words — longer than the usual craft band; trim details that were not supplied by the user');
     // D5 — 80-140 is craft guidance; the hard ceiling is 512 conditioning positions (encoder.py max_length = 512)
     if (t.length > 2500) issues.push('HARD: ' + t.length + ' characters is past the reference cap of 512 conditioning positions — Krea\'s own encoder truncates there and ComfyUI does not, so behaviour above it is undefined (one controlled report: clean at 576 tokens, pure black at 640)');
     else if (t.length > 1400) issues.push('advisory: ' + t.length + ' characters — if prompt_enhance is on, the expansion can push the total over the cliff; turn it off or lower LLM_max_token');
@@ -1554,42 +1966,54 @@ function splitSeverity(issues){
 function renderCheck(key, issues) {
   const el = $('chk-' + key);
   if (!el) return;
-  if (!issues.length) { el.innerHTML = '<span class="okb">✓ format OK</span>'; return; }
+  if (!issues.length) { el.innerHTML = '<span class="okb" title="Format and grounding checks passed. Review the prompt for factual accuracy — these checks catch known patterns, not every possible change in meaning.">✓ format OK</span>'; return; }
   const sv = splitSeverity(issues);
   const tt = function(a){ return esc(a.join(' • ')).replace(/"/g, '&quot;'); };
   let h = '';
   if (sv.hard.length) h += '<span class="warnb" title="' + tt(sv.hard) + '">⚠ ' + sv.hard.length + ' issue' + (sv.hard.length > 1 ? 's' : '') + '</span>';
   if (sv.adv.length) h += (h ? ' ' : '') + '<span class="advb" title="' + tt(sv.adv) + '">ℹ ' + sv.adv.length + ' tip' + (sv.adv.length > 1 ? 's' : '') + '</span>';
   if (sv.hard.length) h += '<button class="fixbtn" onclick="fixOutput(\'' + key + '\')">Fix</button>';
-  else if (!h) h = '<span class="okb">✓ format OK</span>';
+  else if (!h) h = '<span class="okb" title="Format and grounding checks passed. Review the prompt for factual accuracy — these checks catch known patterns, not every possible change in meaning.">✓ format OK</span>';
   el.innerHTML = h;
 }
 
 async function fixOutput(key) {
   if (busy || !lastRun || appState !== 'ready') return;
+  const source = sourceFor(key);
+  if (key === 'minimaxref' && referenceInputIssues(source).length) { toast('Correct the numbered reference list first'); return; }
   busy = true;
   const pre = $('out-' + key);
   const prev = lastRun.outputs[key] || pre.textContent;
-  const issues = splitSeverity(validate(key, prev, lastRun.intent)).hard;
-  if (!issues.length) { renderCheck(key, validate(key, prev, lastRun.intent)); return; }
+  const issues = splitSeverity(validate(key, prev, source)).hard;
+  if (!issues.length) { renderCheck(key, validate(key, prev, source)); busy = false; return; }
   $('chk-' + key).innerHTML = '<span class="warnb">fixing…</span>';
-  const msg = 'Original request: "' + lastRun.intent + '"\n\n' +
+  const msg = 'Original request: "' + source + '"\n\n' +
     'Your previous output broke these format rules:\n- ' + issues.join('\n- ') + '\n\n' +
     'Your previous output was:\n' + prev + '\n\n' +
-    'Rewrite it so it fully complies with ALL formatting rules in your instructions. Output ONLY the corrected prompt, nothing else.' + ctxSuffix() + langSuffix();
+    'Rewrite it so it fully complies with ALL formatting rules in your instructions. Output ONLY the corrected prompt, nothing else.' + ctxSuffix() + langSuffix(key, source) + cameraSuffix(key, source) + referenceSuffix(key, source);
   try {
-    const fixed = await streamChat(TARGETS[key].system, msg, partial => {
+    const fixed = await streamChat(targetSystem(key), msg, partial => {
       const clean = partial.replace(/<think>[\s\S]*?(<\/think>|$)/g, '').trim();
       pre.innerHTML = esc(clean) + '<span class="cursor"></span>';
       pre.scrollTop = pre.scrollHeight;
-    });
+    }, 0.2);
     pre.textContent = fixed || prev;
+    const mismatches = splitSeverity(validate(key, pre.textContent, source)).hard;
+    if (mismatches.length) {
+      pre.textContent = prev;
+      renderCheck(key, validate(key, prev, source));
+      toast('Fix still had issues; the previous prompt was kept');
+      busy = false;
+      return;
+    }
+    updateNegativeCopy(key, pre.textContent);
     lastRun.outputs[key] = fixed || prev;
+    invalidateChineseVersion(key);
     if (lastRun.hist) {
       lastRun.hist.outputs[key] = fixed || prev;
       try { localStorage.setItem('ps_history', JSON.stringify(history)); } catch(e) {}
     }
-    renderCheck(key, validate(key, fixed || prev, lastRun.intent));
+    renderCheck(key, validate(key, fixed || prev, source));
   } catch(e) {
     pre.textContent = prev;
     renderCheck(key, issues);
@@ -1601,56 +2025,108 @@ async function fixOutput(key) {
 /* ================= per-output refinement ================= */
 async function refine(key) {
   if (busy || !lastRun || appState !== 'ready') return;
+  const source = sourceFor(key);
+  if (key === 'minimaxref' && referenceInputIssues(source).length) { toast('Correct the numbered reference list first'); return; }
   const input = $('ref-' + key);
   const change = input.value.trim();
   if (!change) { toast('Type what you want changed first'); return; }
+  const revisedSource = source + '\nRefinement: ' + change;
   busy = true;
   input.disabled = true;
   const pre = $('out-' + key);
   const prev = lastRun.outputs[key] || pre.textContent;
   $('chk-' + key).innerHTML = '<span class="warnb">revising…</span>';
-  const msg = 'Original request: "' + lastRun.intent + '"\n\n' +
+  const msg = 'Original request: "' + source + '"\n\n' +
     'Current prompt:\n' + prev + '\n\n' +
     'Requested change: "' + change + '"\n\n' +
-    'Rewrite the prompt applying ONLY this change. Keep everything else intact and fully comply with ALL formatting rules in your instructions. Output ONLY the revised prompt, nothing else.' + ctxSuffix() + langSuffix();
+    'Rewrite the prompt applying ONLY this change. Keep everything else intact and fully comply with ALL formatting rules in your instructions. Output ONLY the revised prompt, nothing else.' + ctxSuffix() + langSuffix(key, revisedSource) + cameraSuffix(key, revisedSource) + referenceSuffix(key, revisedSource);
   try {
-    const revised = await streamChat(TARGETS[key].system, msg, partial => {
+    const revised = await streamChat(targetSystem(key), msg, partial => {
       const clean = partial.replace(/<think>[\s\S]*?(<\/think>|$)/g, '').trim();
       pre.innerHTML = esc(clean) + '<span class="cursor"></span>';
       pre.scrollTop = pre.scrollHeight;
-    });
+    }, 0.2);
     pre.textContent = revised || prev;
+    const mismatches = splitSeverity(validate(key, pre.textContent, revisedSource)).hard;
+    if (mismatches.length) {
+      pre.textContent = prev;
+      renderCheck(key, validate(key, prev, source));
+      toast('Revision still had issues; the previous prompt was kept');
+      input.disabled = false;
+      busy = false;
+      return;
+    }
+    updateNegativeCopy(key, pre.textContent);
     lastRun.outputs[key] = revised || prev;
+    invalidateChineseVersion(key);
+    if (!lastRun.outputIntents) lastRun.outputIntents = {};
+    lastRun.outputIntents[key] = revisedSource;
     if (lastRun.hist) {
       lastRun.hist.outputs[key] = revised || prev;
+      if (!lastRun.hist.outputIntents) lastRun.hist.outputIntents = {};
+      lastRun.hist.outputIntents[key] = revisedSource;
       try { localStorage.setItem('ps_history', JSON.stringify(history)); } catch(e) {}
     }
-    renderCheck(key, validate(key, revised || prev, lastRun.intent));
+    renderCheck(key, validate(key, revised || prev, revisedSource));
     input.value = '';
     toast('Revised — tweak again or copy it');
   } catch(e) {
     pre.textContent = prev;
-    renderCheck(key, validate(key, prev));
+    renderCheck(key, validate(key, prev, source));
     toast('Revision failed: ' + e.message);
   }
   input.disabled = false;
   busy = false;
 }
 
+let simpleIntent = '';
+function needsMoreDetail(intent, keys){
+  const wordCount = (intent.match(/[\p{L}\p{N}]+/gu) || []).length;
+  const signals = [
+    /\b(?:red|blue|green|yellow|orange|purple|pink|brown|black|white|gr[ae]y|gold|silver)\b/i,
+    /\b(?:hair|eyes|face|coat|jacket|dress|skirt|shirt|trousers|boots|armor|armour|hat|cape)\b/i,
+    /\b(?:dawn|dusk|sunset|sunrise|night|morning|rain|snow|fog|storm|dock|street|room|forest|beach|mountain|river|boat|car|house|building|battlefield)\b/i,
+    /\b(?:camera|lens|close[ -]?up|wide shot|pan|tilt|zoom|dolly|tracking|overhead|side view|seen from above|viewed from above|pov)\b/i,
+    /\b(?:sound|audio|music|voice|says?|speaks?|whispers?|creak|footstep|clash|roar)\b/i,
+    /\b(?:then|after|before|while|until|next|followed by)\b/i,
+    /\b(?:anime|painting|photograph|photorealistic|watercolor|3d|cinematic|illustration)\b/i
+  ].filter(re => re.test(intent)).length;
+  if ((keys || []).includes('minimaxref')) return wordCount < 70 && signals < 3;
+  return (wordCount < 18 && signals < 3) || (wordCount < 35 && signals < 2);
+}
+function updateDetailHint(){
+  const input = $('intent'), hint = $('detailPrompt');
+  if (!input || !hint) return;
+  const intent = input.value.trim();
+  const keys = [...document.querySelectorAll('#chips input:checked')].map(i => i.dataset.key);
+  hint.style.display = intent && keys.length && needsMoreDetail(intent, keys) ? '' : 'none';
+}
+function addDetails(){
+  const input = $('intent');
+  input.focus();
+  input.setSelectionRange(input.value.length, input.value.length);
+}
 async function generate() {
   if (busy || appState !== 'ready') return;
   const intent = $('intent').value.trim();
   const keys = [...document.querySelectorAll('#chips input:checked')].map(i => i.dataset.key);
+  const context = loadCtx().trim();
   if (!intent) { toast('Describe the shot first'); return; }
   if (!keys.length) { toast('Pick at least one target model'); return; }
+  simpleIntent = needsMoreDetail(intent, keys) ? intent : '';
+  updateDetailHint();
   busy = true; $('goBtn').disabled = true; $('goBtn').textContent = 'Translating…';
 
   $('results').innerHTML = keys.map(k => `
     <div class="out">
       <div class="head"><h3>${TARGETS[k].name}</h3><span class="fmt">${TARGETS[k].fmt}</span>
         <span class="chk" id="chk-${k}"></span>
-        <span class="btns"><span class="more"><button class="more-btn" onclick="event.stopPropagation();closeMenus();this.parentElement.classList.toggle('open')">⋯</button><span class="more-list">${WF_MAP[k] ? `<button onclick="openWf('${k}')" title="Export a ready-wired ComfyUI workflow">⬇ ComfyUI workflow</button>` : ''}<button onclick="pinPrompt('${k}')" title="Save to pinned board">📌 Pin</button></span></span><button onclick="copyOut('${k}')">Copy</button></span></div>
+        <span class="btns"><span class="more"><button class="more-btn" onclick="event.stopPropagation();closeMenus();this.parentElement.classList.toggle('open')">⋯</button><span class="more-list">${WF_MAP[k] ? `<button onclick="openWf('${k}')" title="Export a ready-wired ComfyUI workflow">⬇ ComfyUI workflow</button>` : ''}<button onclick="pinPrompt('${k}')" title="Save to pinned board">📌 Pin</button></span></span>${chineseButton(k)}<button id="neg-${k}" style="display:none" onclick="copyNegative('${k}')">Copy negative</button><button onclick="copyOut('${k}')">Copy prompt</button></span></div>
       <pre id="out-${k}"><span class="cursor"></span></pre>
+      ${chinesePanel(k)}
+      <div class="scail-note" id="source-note-${k}">Text only. The checks catch common unsupported details; review every other detail against your request.</div>
+      ${k === 'scail' ? '<div class="scail-note">For richer detail, add “Reference: appearance and clothing. Driving: action, props, setting, camera, lighting” to your request. This translator reads text only. Supply the image, video, and masks in your SCAIL-2 workflow.</div>' : ''}
+      ${k === 'minimaxref' ? `<div class="scail-note" id="h3-note-${k}">List each connected asset as “picture 1 = …”, “picture 2 = …”, etc. Describe each asset’s role and any visual details that matter. This translator reads your text; it cannot inspect the pictures.</div>` : ''}
       <div class="refine">
         <input id="ref-${k}" placeholder="Tweak it: e.g. make it night time, slower camera, add rain…"
           onkeydown="if(event.key==='Enter')refine('${k}')">
@@ -1658,26 +2134,118 @@ async function generate() {
       </div>
     </div>`).join('');
 
-  const outputs = {};
-  lastRun = { intent, outputs, hist: null };
+  const outputs = {}, zhOutputs = {};
+  const chosenLanguage = $('langSel') && $('langSel').value;
+  const outputIntents = Object.fromEntries(keys.map(k => [k, intent + (context ? '\nProject context: ' + context : '') + (chosenLanguage === 'zh' ? '\nOutput language: Chinese.' : '')]));
+  lastRun = { intent, outputs, zhOutputs, outputIntents, hist: null };
   for (const k of keys) {
     const pre = $('out-' + k);
+    if (k === 'minimaxref') {
+      const inputIssues = referenceInputIssues(intent);
+      if (inputIssues.length) {
+        pre.textContent = '✗ ' + inputIssues.join(' ');
+        renderCheck(k, inputIssues.map(x => 'HARD: ' + x));
+        continue;
+      }
+    }
+    if (simpleIntent === intent) {
+      const simple = chosenLanguage === 'zh' && CHINESE_TARGETS.has(k) ? '' : simplePromptFor(k, intent, context);
+      if (simple && !splitSeverity(validate(k, simple, sourceFor(k))).hard.length) {
+        pre.textContent = simple;
+        outputs[k] = simple;
+        updateNegativeCopy(k, simple);
+        renderCheck(k, validate(k, simple, sourceFor(k)));
+        updateChineseButton(k, simple);
+        const note = $('source-note-' + k);
+        if (note) { note.textContent = 'Simple version: scene content comes from your words. A model’s standard negative list or control tags may still appear. Add details to the request for a richer prompt.'; note.style.display = ''; }
+        continue;
+      }
+    }
     try {
-      const final = await streamChat(TARGETS[k].system, intent + ctxSuffix() + langSuffix(), partial => {
+      let final = await streamChat(targetSystem(k), intent + ctxSuffix() + langSuffix(k, intent) + cameraSuffix(k, intent) + referenceSuffix(k, intent), partial => {
         const clean = partial.replace(/<think>[\s\S]*?(<\/think>|$)/g, '').trim();
         pre.innerHTML = esc(clean) + '<span class="cursor"></span>';
         pre.scrollTop = pre.scrollHeight;
-      });
-      pre.textContent = final || '(empty — try again or switch models)';
+      }, 0.2);
+      if (k === 'minimaxref' && referenceOutputIssues(intent, final).length) {
+        const firstIssues = referenceOutputIssues(intent, final);
+        pre.textContent = 'Checking reference labels…';
+        const repair = 'Original request and project context:\n' + sourceFor(k) + '\n\nThe previous attempt was invalid: ' + firstIssues.join(' ') +
+          '\nRegenerate the six sections from the original request. Use ONLY these actual asset labels: ' + [...listedReferenceLabels(intent)].join(', ') +
+          '. Do not introduce any other Picture, Video, or Audio label, and cite every listed asset. A replaced position guide must not become an extra Subject. Output only the six sections.' + referenceSuffix(k, intent);
+        final = await streamChat(targetSystem(k), repair, () => {}, 0.2);
+        const remaining = referenceOutputIssues(intent, final);
+        if (remaining.length) {
+          const fallback = chosenLanguage === 'zh' && CHINESE_TARGETS.has(k) ? '' : simplePromptFor(k, intent, context);
+          if (fallback && !splitSeverity(validate(k, fallback, sourceFor(k))).hard.length) {
+            final = fallback;
+            const note = $('h3-note-' + k);
+            if (note) note.textContent = 'The local model used unlisted assets, so this draft was built directly from your descriptions. It cannot include visual details you did not write.';
+          }
+          else {
+            pre.textContent = '✗ H3 multi-ref could not match the listed assets and roles. ' + remaining.join(' ');
+            renderCheck(k, remaining.map(x => 'HARD: ' + x));
+            continue;
+          }
+        }
+      }
+      if (groundingIssues(k, sourceFor(k), final).length) {
+        const firstIssues = groundingIssues(k, sourceFor(k), final);
+        pre.textContent = 'Checking against your description…';
+        const repair = 'Original request and project context:\n' + sourceFor(k) + '\n\nPrevious output:\n' + final +
+          '\n\nIt invented facts: ' + firstIssues.join(' ') +
+          '\nRewrite in the required target format using only facts from the original request. Short is correct. Do not add camera, shots, sound, style, props, clothing, action beats, or words of dialogue that were not supplied.' + referenceSuffix(k, intent);
+        final = await streamChat(targetSystem(k), repair, () => {}, 0.1);
+        const remaining = groundingIssues(k, sourceFor(k), final).concat(k === 'minimaxref' ? referenceOutputIssues(intent, final) : []);
+        if (remaining.length) {
+          const simple = chosenLanguage === 'zh' && CHINESE_TARGETS.has(k) ? '' : simplePromptFor(k, intent, context);
+          if (simple && !splitSeverity(validate(k, simple, sourceFor(k))).hard.length) {
+            final = simple;
+            const note = $('source-note-' + k);
+            if (note) { note.textContent = 'The local model added details you did not provide. This simpler draft uses your scene description directly, with only required model controls added.'; note.style.display = ''; }
+          } else {
+            pre.textContent = '✗ The local model kept adding unsupported details. ' + remaining.join(' ');
+            renderCheck(k, remaining.map(x => 'HARD: ' + x));
+            continue;
+          }
+        }
+      }
+      if (!final) { pre.textContent = '✗ The model returned an empty prompt. Try again or select another model.'; continue; }
+      let formatIssues = splitSeverity(validate(k, final, sourceFor(k))).hard;
+      if (formatIssues.length) {
+        pre.textContent = 'Checking the target format…';
+        const repair = 'Original request and project context:\n' + sourceFor(k) + '\n\nPrevious output:\n' + final +
+          '\n\nThe previous output has these blocking problems:\n- ' + formatIssues.join('\n- ') +
+          '\nRegenerate the complete prompt in the required target format. Preserve every fact and sequence in the original request. Add no scene detail absent from it. Output only the corrected prompt.' +
+          langSuffix(k, intent) + cameraSuffix(k, intent) + referenceSuffix(k, intent);
+        final = await streamChat(targetSystem(k), repair, () => {}, 0.1);
+        formatIssues = splitSeverity(validate(k, final, sourceFor(k))).hard;
+        if (formatIssues.length) {
+          const simple = chosenLanguage === 'zh' && CHINESE_TARGETS.has(k) ? '' : simplePromptFor(k, intent, context);
+          if (simple && !splitSeverity(validate(k, simple, sourceFor(k))).hard.length) {
+            final = simple;
+            const note = $('source-note-' + k);
+            if (note) { note.textContent = 'The local model could not produce a valid target prompt. This simpler draft uses your words and the required model controls.'; note.style.display = ''; }
+          } else {
+            pre.textContent = '✗ The local model could not produce a valid target prompt. ' + formatIssues.join(' ');
+            renderCheck(k, formatIssues);
+            continue;
+          }
+        }
+      }
+      pre.textContent = final;
+      updateNegativeCopy(k, pre.textContent);
       outputs[k] = final;
-      renderCheck(k, validate(k, final, intent));
+      renderCheck(k, validate(k, final, sourceFor(k)));
+      updateChineseButton(k, final);
     } catch(e) {
-      pre.innerHTML = `<span style="color:var(--err)">✗ ${esc(e.message)} — is Ollama still running? Re-run the launcher.</span>`;
+      const help = /HTTP|fetch failed|Failed to fetch/i.test(e.message) ? ' — is Ollama still running? Re-run the launcher.' : '';
+      pre.innerHTML = `<span style="color:var(--err)">✗ ${esc(e.message)}${help}</span>`;
     }
   }
 
   if (Object.keys(outputs).length) {
-    const entry = { intent, outputs, ts: Date.now() };
+    const entry = { intent, outputs, zhOutputs, outputIntents, ts: Date.now() };
     history.unshift(entry);
     lastRun.hist = entry;
     history = history.slice(0, 40);
@@ -1703,7 +2271,8 @@ function renderPins(force) {
   $('pinList').innerHTML = p.length ? p.map((x, i) =>
     `<div class="pin">
       <div class="pin-h"><b>${esc(x.name)}</b><span>
-        <button class="ghost" style="font-size:11px;padding:3px 9px" onclick="copyPin(${i})">Copy</button>
+        ${splitOutput('', x.text).negativePrompt ? `<button class="ghost" style="font-size:11px;padding:3px 9px" onclick="copyPinNegative(${i})">Negative</button>` : ''}
+        <button class="ghost" style="font-size:11px;padding:3px 9px" onclick="copyPin(${i})">Prompt</button>
         <button class="pin-x" onclick="delPin(${i})">✕</button></span></div>
       <div class="pin-t">${esc(x.text.slice(0, 120))}${x.text.length > 120 ? '…' : ''}</div>
     </div>`).join('')
@@ -1711,16 +2280,28 @@ function renderPins(force) {
 }
 function pinPrompt(key) {
   const pre = $('out-' + key);
+  if (busy) { toast('Wait for the prompt check to finish'); return; }
+  if (key === 'minimaxref' && (!lastRun || !lastRun.outputs || !lastRun.outputs[key])) { toast('Wait for the H3 reference check to finish'); return; }
   const text = (lastRun && lastRun.outputs[key]) || (pre && pre.textContent) || '';
   if (!text.trim() || text.startsWith('✗')) { toast('Nothing to pin yet'); return; }
   const p = loadPins();
-  p.unshift({ name: TARGETS[key].name, text: text.trim(), ts: Date.now() });
+  if (splitSeverity(validate(key, text, sourceFor(key))).hard.length) { toast('This prompt still has issues; use Fix or revise it'); return; }
+  p.unshift({ key, name: TARGETS[key].name, text: text.trim(), intent: sourceFor(key), ts: Date.now() });
   savePins(p);
   pinOpen = true;
   renderPins(true);
   toast('Pinned — available on both sides in split view');
 }
-function copyPin(i) { const p = loadPins(); if (p[i]) navigator.clipboard.writeText(p[i].text).then(() => toast('Copied')); }
+function copyPin(i) {
+  const p = loadPins(), pin = p[i];
+  if (!pin) return;
+  const key = pin.key || Object.keys(TARGETS).find(k => TARGETS[k].name === pin.name);
+  if (key && !pin.intent) { toast('This saved prompt has no request to verify against'); return; }
+  if (key && pin.intent && splitSeverity(validate(key, pin.text, pin.intent)).hard.length) { toast('This saved prompt has issues against its request'); return; }
+  if (pin.name === 'H3 multi-ref' && !pin.intent) { toast('This saved H3 prompt needs a verified asset list'); return; }
+  navigator.clipboard.writeText(pasteText(pin.name === 'SCAIL-2' ? 'scail' : '', pin.text)).then(() => toast('Copied'));
+}
+function copyPinNegative(i) { const p = loadPins(); if (p[i]) navigator.clipboard.writeText(splitOutput('', p[i].text).negativePrompt).then(() => toast('Negative prompt copied')); }
 function delPin(i) { const p = loadPins(); p.splice(i, 1); savePins(p); renderPins(true); }
 function clearPins() {
   if (!loadPins().length) return;
@@ -2463,7 +3044,7 @@ function toggleHelp(){
 }
 function closeAllPanels(){
   closeMenus();
-  ['askPanel','gotPanel','pickPanel','mdlPanel','histPanel','clipPanel','h3bPanel','metaPanel','stitchPanel'].forEach(function(id){
+  ['askPanel','gotPanel','pickPanel','mdlPanel','histPanel','clipPanel','h3bPanel','h3sPanel','metaPanel','stitchPanel'].forEach(function(id){
     const el = document.getElementById(id);
     if (el) el.classList.remove('open');
   });
@@ -2536,6 +3117,7 @@ function handleComfyDropQuick(file){
     if (!prompts.length) { toast('No prompt text found in that ' + src); return; }
     prompts.sort(function(a,b){ return b.length - a.length; });
     $('intent').value = prompts[0];
+    updateDetailHint();
     $('intent').focus();
     toast('Extracted prompt from ' + src + (prompts.length > 1 ? ' (' + prompts.length + ' text fields; longest loaded)' : '') + ' — edit and Translate');
   };
@@ -2586,6 +3168,7 @@ window.addEventListener('message', function(e){
       if (cb && !cb.checked) { cb.checked = true; cb.dispatchEvent(new Event('change')); }
       picked = TARGETS[d.target].name;
     }
+    updateDetailHint();
     toggleMeta(false);
     $('intent').focus();
     toast('Prompt loaded from ' + (d.source || 'file') + (picked ? ' — ' + picked + ' selected as a target' : (d.family ? ' — ' + d.family + ' has no Prompt Studio dialect; pick targets manually' : '')) + '. Edit and Translate.', 4200);
@@ -2656,10 +3239,11 @@ function renderGotchas(){
     .join('') || '<div style="padding:10px;color:var(--dim);font-size:12px">No match.</div>';
 }
 function loadCtx(){ try { return localStorage.getItem('ps_ctx') || ''; } catch(e) { return ''; } }
-function saveCtx(){ try { localStorage.setItem('ps_ctx', $('ctxText').value); } catch(e) {} updateCtxBtn(); }
+function saveCtx(){ try { localStorage.setItem('ps_ctx', $('ctxText').value); } catch(e) {} updateCtxBtn(); updateDetailHint(); }
 function toggleCtx(){
   const w = $('ctxWrap');
   w.style.display = w.style.display === 'none' ? 'block' : 'none';
+  $('ctxBtn').setAttribute('aria-expanded', w.style.display === 'block' ? 'true' : 'false');
   if (w.style.display === 'block') $('ctxText').focus();
 }
 function updateCtxBtn(){
@@ -2673,11 +3257,22 @@ function ctxSuffix(){
   return c ? '\n\n[Project context — fold these invariants into the prompt consistently; do not copy this note verbatim and do not contradict it: ' + c + ']' : '';
 }
 
-function langSuffix(){
-  const v = $('langSel') ? $('langSel').value : 'auto';
+function langSuffix(key, intent, override){
+  if (key === 'scail') return '\n\n[Output language preference: English only]';
+  const v = override || ($('langSel') ? $('langSel').value : 'auto');
   if (v === 'en') return '\n\n[Output language preference: English only]';
   if (v === 'zh') return '\n\n[Output language preference: native Chinese (中文)]';
+  if (key === 'zimage' || key === 'qwenimg' || key === 'wan' || key === 'wanI2V')
+    return inputIsChinese(intent)
+      ? '\n\n[Output language preference: native Chinese for the positive prompt; preserve exact quoted text]'
+      : '\n\n[Output language preference: English for the positive prompt; preserve exact quoted text. The fixed negative list may be Chinese.]';
   return '';
+}
+function cameraSuffix(key, intent){
+  if (key !== 'wan' && key !== 'wanI2V') return '';
+  const request = (intent || '').match(/[^.!?\n]*(?:\bcamera\b|镜头)[^.!?\n]*[.!?]?/i);
+  if (!request || CAM_FIXED.test(request[0])) return '';
+  return '\n\n[Camera instruction from the request: ' + request[0].trim() + ' Follow this camera behavior; do not use a fixed camera. Wan is video-only, so omit audible sound.]';
 }
 
 function saveAsk(){ try { sessionStorage.setItem('ps_ask', JSON.stringify(askMsgs)); } catch(e) {} }
@@ -2738,6 +3333,11 @@ function toggleH3B(){
   if (!f.src) f.src = f.dataset.src;
   p.classList.toggle('open');
 }
+function toggleH3S(){
+  const p = $('h3sPanel'), f = $('h3sFrame');
+  if (!f.src) f.src = f.dataset.src;
+  p.classList.toggle('open');
+}
 function toggleClips(){
   const p = $('clipPanel'), f = $('clipFrame');
   if (!f.src) f.src = f.dataset.src;   // lazy-load only when first opened
@@ -2770,20 +3370,24 @@ function renderHist() {
 function loadHist(i) {
   const h = history[i];
   $('intent').value = h.intent;
+  updateDetailHint();
   $('results').innerHTML = Object.keys(h.outputs).map(k => `
     <div class="out">
       <div class="head"><h3>${TARGETS[k].name}</h3><span class="fmt">${TARGETS[k].fmt}</span>
         <span class="chk" id="chk-${k}"></span>
-        <span class="btns"><span class="more"><button class="more-btn" onclick="event.stopPropagation();closeMenus();this.parentElement.classList.toggle('open')">⋯</button><span class="more-list">${WF_MAP[k] ? `<button onclick="openWf('${k}')" title="Export a ready-wired ComfyUI workflow">⬇ ComfyUI workflow</button>` : ''}<button onclick="pinPrompt('${k}')" title="Save to pinned board">📌 Pin</button></span></span><button onclick="copyOut('${k}')">Copy</button></span></div>
+        <span class="btns"><span class="more"><button class="more-btn" onclick="event.stopPropagation();closeMenus();this.parentElement.classList.toggle('open')">⋯</button><span class="more-list">${WF_MAP[k] ? `<button onclick="openWf('${k}')" title="Export a ready-wired ComfyUI workflow">⬇ ComfyUI workflow</button>` : ''}<button onclick="pinPrompt('${k}')" title="Save to pinned board">📌 Pin</button></span></span>${chineseButton(k)}<button id="neg-${k}" style="display:none" onclick="copyNegative('${k}')">Copy negative</button><button onclick="copyOut('${k}')">Copy prompt</button></span></div>
       <pre id="out-${k}">${esc(h.outputs[k])}</pre>
+      ${chinesePanel(k)}
+      <div class="scail-note">Text only. The checks catch common unsupported details; review every other detail against your request.</div>
+      ${k === 'scail' ? '<div class="scail-note">For richer detail, add “Reference: appearance and clothing. Driving: action, props, setting, camera, lighting” to your request. This translator reads text only. Supply the image, video, and masks in your SCAIL-2 workflow.</div>' : ''}
       <div class="refine">
         <input id="ref-${k}" placeholder="Tweak it: e.g. make it night time, slower camera, add rain…"
           onkeydown="if(event.key==='Enter')refine('${k}')">
         <button onclick="refine('${k}')">Apply</button>
       </div>
     </div>`).join('');
-  lastRun = { intent: h.intent, outputs: h.outputs, hist: h };
-  Object.keys(h.outputs).forEach(k => renderCheck(k, validate(k, h.outputs[k], h.intent)));
+  lastRun = { intent: h.intent, outputs: h.outputs, zhOutputs: h.zhOutputs || {}, outputIntents: h.outputIntents || {}, hist: h };
+  Object.keys(h.outputs).forEach(k => { updateNegativeCopy(k, h.outputs[k]); renderCheck(k, validate(k, h.outputs[k], sourceFor(k))); updateChineseButton(k, h.outputs[k]); });
   toggleHist();
 }
 </script>
