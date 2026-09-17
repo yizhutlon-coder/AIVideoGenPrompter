@@ -98,7 +98,7 @@
 <body>
 <div class="app">
   <h1>🎬 H3 Builder</h1>
-  <p class="sub">Hand-craft MiniMax H3 prompts in the official dialect — modes, reference-tag budgeting, and live rule checking. Fully offline; nothing leaves this page.</p>
+  <p class="sub">Hand-craft MiniMax H3 prompts in the official dialect — modes, reference-tag budgeting, and live rule checking. Fully offline; nothing leaves this page. Comfortable with the dialect? <b>H3 Studio</b> adds saved projects, reference jobs, and a per-shot timeline x-ray.</p>
 
   <div class="cols">
     <div><!-- left column -->
@@ -247,7 +247,7 @@ function renderMedia(){
   var b = computeTags();
   var over = function(v, lim){ return v > lim ? ' class="over"' : ''; };
   $('budget').innerHTML =
-    'files <b' + over(b.files,12) + '>' + b.files + '</b>/12 · pictures <b' + over(b.pics,9) + '>' + b.pics + '</b>/9 · ' +
+    'files <b' + over(b.files,12) + '>' + b.files + '</b> (12 = hosted cap; local has none) · pictures <b' + over(b.pics,9) + '>' + b.pics + '</b>/9 · ' +
     'videos <b' + over(b.vids,3) + '>' + b.vids + '</b>/3 (<b' + over(b.vidSec,15) + '>' + b.vidSec + '</b>/15s) · ' +
     '♪ audio <b' + over(b.audios,3) + '>' + b.audios + '</b>/3 (<b' + over(b.audSec,15) + '>' + b.audSec + '</b>/15s)' +
     '<br><span style="font-size:10.5px">tags number by arrival order — soundtracks before standalone clips; toggling ◉ renumbers everything after it</span>';
@@ -403,7 +403,7 @@ function check(){
   var full = assemble();
 
   // media budgets
-  if (b.files > 12) E('Over the 12-file reference cap (' + b.files + ') — soundtracks count as files.');
+  if (b.files > 12) W('Over 12 total reference files (' + b.files + ') — fine locally (ComfyUI’s node allows 9 pictures + 3 videos + 3 audio + soundtracks, no total cap), but the 12-total limit is reported on hosted/API paths, and every attached file spends attention. Soundtracks count as files.');
   if (b.pics > 9) E('More than 9 pictures.');
   if (b.vids > 3) E('More than 3 videos.');
   if (b.audios > 3) E('More than 3 audio references (video soundtracks count).');
