@@ -42,7 +42,8 @@ For each model, answer with sources:
 ## Source and evidence standards
 
 - Prefer, in order: official repo/docs/model cards → staff posts in HF discussions/issues → maintainer blogs (Comfy, BFL, Lightricks) → high-quality community tests with methodology (side-by-side grids, fixed seeds) → tutorials/lore. **Chinese official docs outrank English mirrors for Alibaba-family models.**
-- Label every claim: `[OFFICIAL]`, `[STAFF]`, `[TESTED]` (community with methodology), `[LORE]` (consensus without test), `[SPECULATION]`. Include URL + access date. If sources conflict, keep both and say so.
+- Label every claim: `[OFFICIAL]`, `[STAFF]`, `[TESTED]` (community with methodology), `[LORE]` (consensus without test), `[SPECULATION]`. Include URL + access date. If sources conflict, keep both and say so — **but only within a rung of the ladder above. Across rungs the higher rung wins and the lower is recorded as superseded.** See `RESEARCH-PLAN-2026-09.md` rule 2a for the full conflict rule.
+- **An uncorroborated unofficial claim is a point of interest, not a finding.** A single-source claim below the `[TESTED]` rung that would change app guidance if true must get a bounded confirm/disprove pass (~5 fetches, on a *different* surface — the vendor's docs, a second independent source, or the same author's other posts) **before** it is written up. Corroborated → publish at the earned grade; contradicted → publish the disproof; neither → park it under "Open — unconfirmed" with the surfaces searched and what would settle it, and keep it out of headlines, flags and recommendations. Full rule and worked examples: `RESEARCH-PLAN-2026-09.md` rule 2b.
 - Quote official rewriter system prompts and official example prompts **verbatim in fenced blocks** — do not paraphrase them.
 - It is fine (and useful) to report "no reliable information found" for a subtopic.
 
