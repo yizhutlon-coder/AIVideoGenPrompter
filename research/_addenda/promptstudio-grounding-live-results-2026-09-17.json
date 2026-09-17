@@ -1,0 +1,437 @@
+{
+  "created": "2026-09-17T19:12:25.462Z",
+  "results": [
+    {
+      "key": "wan",
+      "mode": "simple",
+      "offered": true,
+      "networkCalls": 0,
+      "output": "The woman from image 1 jumps around the battlefield cutting down enemies.\n\nNegative prompt: 色调艳丽，过曝，静态，细节模糊不清，字幕，风格，作品，画作，画面，静止，整体发灰，最差质量，低质量，JPEG压缩残留，丑陋的，残缺的，多余的手指，画得不好的手部，画得不好的脸部，畸形的，毁容的，形态畸形的肢体，手指融合，静止不动的画面，杂乱的背景，三条腿，背景人很多，倒着走",
+      "hardIssues": []
+    },
+    {
+      "key": "wanI2V",
+      "mode": "simple",
+      "offered": true,
+      "networkCalls": 0,
+      "output": "The woman from image 1 jumps around the battlefield cutting down enemies.\n\nNegative prompt: 色调艳丽，过曝，静态，细节模糊不清，字幕，风格，作品，画作，画面，静止，整体发灰，最差质量，低质量，JPEG压缩残留，丑陋的，残缺的，多余的手指，画得不好的手部，画得不好的脸部，畸形的，毁容的，形态畸形的肢体，手指融合，静止不动的画面，杂乱的背景，三条腿，背景人很多，倒着走",
+      "hardIssues": []
+    },
+    {
+      "key": "ltx",
+      "mode": "simple",
+      "offered": true,
+      "networkCalls": 0,
+      "output": "The woman from image 1 jumps around the battlefield cutting down enemies.",
+      "hardIssues": []
+    },
+    {
+      "key": "minimax",
+      "mode": "simple",
+      "offered": true,
+      "networkCalls": 0,
+      "output": "integrated_multimodal_description: [Shot 1] The woman from image 1 jumps around the battlefield cutting down enemies.\n\noverall_soundscape: N/A\n\nnon_diegetic_music: N/A",
+      "hardIssues": []
+    },
+    {
+      "key": "minimaxref",
+      "mode": "simple",
+      "offered": true,
+      "networkCalls": 0,
+      "output": "subject_definitions:\n<Subject 1> = the final character from <Picture 1>; The character reference. The final outfit comes from <Picture 2>.\n<Picture 2> = The battlefield, outfit, and position guide to be replaced by the woman in <Picture 1>.\n\nsummary:\n[reference generation] The woman from <Picture 1> jumps around the battlefield cutting down enemies.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): fully_preserved - identity from <Picture 1>.\n<Picture 2> (applies in [Shot 1]): attribute_transfer - only the roles stated by the user.\n\ndetailed_description:\n[Shot 1] The woman from <Picture 1> jumps around the battlefield cutting down enemies. Use <Picture 1> for the final character and <Picture 2> only for its stated reference roles. The final outfit comes from <Picture 2>. The person being replaced in <Picture 2> does not appear.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+      "hardIssues": []
+    },
+    {
+      "key": "scail",
+      "mode": "simple",
+      "offered": true,
+      "networkCalls": 0,
+      "output": "The woman jumps around the battlefield cutting down enemies.",
+      "hardIssues": []
+    },
+    {
+      "key": "sdxl",
+      "mode": "simple",
+      "offered": true,
+      "networkCalls": 0,
+      "output": "The woman from image 1 jumps around the battlefield cutting down enemies.\n\nNegative prompt: lowres, worst quality, low quality, jpeg artifacts, blurry, deformed, disfigured, watermark, text, signature, cropped, bad anatomy, extra limbs, mutated hands",
+      "hardIssues": []
+    },
+    {
+      "key": "sdxlAnime",
+      "mode": "simple",
+      "offered": true,
+      "networkCalls": 0,
+      "output": "score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up, source_anime, The woman from image 1 jumps around the battlefield cutting down enemies.\n(assumed: Pony V6)",
+      "hardIssues": []
+    },
+    {
+      "key": "flux",
+      "mode": "simple",
+      "offered": true,
+      "networkCalls": 0,
+      "output": "The woman from image 1 jumps around the battlefield cutting down enemies.",
+      "hardIssues": []
+    },
+    {
+      "key": "zimage",
+      "mode": "simple",
+      "offered": true,
+      "networkCalls": 0,
+      "output": "The woman from image 1 jumps around the battlefield cutting down enemies.",
+      "hardIssues": []
+    },
+    {
+      "key": "qwenimg",
+      "mode": "simple",
+      "offered": true,
+      "networkCalls": 0,
+      "output": "The woman from image 1 jumps around the battlefield cutting down enemies.\n\nNegative prompt: 低分辨率，低画质，肢体畸形，手指畸形，画面过饱和，蜡像感，人脸无细节，过度光滑，画面具有AI感。构图混乱。文字模糊，扭曲。",
+      "hardIssues": []
+    },
+    {
+      "key": "krea2",
+      "mode": "simple",
+      "offered": true,
+      "networkCalls": 0,
+      "output": "The woman from image 1 jumps around the battlefield cutting down enemies.",
+      "hardIssues": []
+    },
+    {
+      "key": "wan",
+      "mode": "context-simple",
+      "networkCalls": 0,
+      "output": "The woman from image 1 jumps around the battlefield cutting down enemies. Painterly style with muted colors.\n\nNegative prompt: 色调艳丽，过曝，静态，细节模糊不清，字幕，风格，作品，画作，画面，静止，整体发灰，最差质量，低质量，JPEG压缩残留，丑陋的，残缺的，多余的手指，画得不好的手部，画得不好的脸部，畸形的，毁容的，形态畸形的肢体，手指融合，静止不动的画面，杂乱的背景，三条腿，背景人很多，倒着走",
+      "hardIssues": []
+    },
+    {
+      "key": "wanI2V",
+      "mode": "context-simple",
+      "networkCalls": 0,
+      "output": "The woman from image 1 jumps around the battlefield cutting down enemies.\n\nNegative prompt: 色调艳丽，过曝，静态，细节模糊不清，字幕，风格，作品，画作，画面，静止，整体发灰，最差质量，低质量，JPEG压缩残留，丑陋的，残缺的，多余的手指，画得不好的手部，画得不好的脸部，畸形的，毁容的，形态畸形的肢体，手指融合，静止不动的画面，杂乱的背景，三条腿，背景人很多，倒着走",
+      "hardIssues": []
+    },
+    {
+      "key": "ltx",
+      "mode": "context-simple",
+      "networkCalls": 0,
+      "output": "The woman from image 1 jumps around the battlefield cutting down enemies. Painterly style with muted colors.",
+      "hardIssues": []
+    },
+    {
+      "key": "minimax",
+      "mode": "context-simple",
+      "networkCalls": 0,
+      "output": "integrated_multimodal_description: [Shot 1] The woman from image 1 jumps around the battlefield cutting down enemies. Painterly style with muted colors.\n\noverall_soundscape: N/A\n\nnon_diegetic_music: N/A",
+      "hardIssues": []
+    },
+    {
+      "key": "minimaxref",
+      "mode": "context-simple",
+      "networkCalls": 0,
+      "output": "subject_definitions:\n<Subject 1> = the final character from <Picture 1>; The character reference. The final outfit comes from <Picture 2>.\n<Picture 2> = The battlefield, outfit, and position guide to be replaced by the woman in <Picture 1>.\n\nsummary:\n[reference generation] The woman from <Picture 1> jumps around the battlefield cutting down enemies.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): fully_preserved - identity from <Picture 1>.\n<Picture 2> (applies in [Shot 1]): attribute_transfer - only the roles stated by the user.\n\ndetailed_description:\n[Shot 1] The woman from <Picture 1> jumps around the battlefield cutting down enemies. Use <Picture 1> for the final character and <Picture 2> only for its stated reference roles. The final outfit comes from <Picture 2>. The person being replaced in <Picture 2> does not appear.\nPainterly style with muted colors.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+      "hardIssues": []
+    },
+    {
+      "key": "scail",
+      "mode": "context-simple",
+      "networkCalls": 0,
+      "output": "The woman jumps around the battlefield cutting down enemies. Painterly style with muted colors.",
+      "hardIssues": []
+    },
+    {
+      "key": "sdxl",
+      "mode": "context-simple",
+      "networkCalls": 0,
+      "output": "The woman from image 1 jumps around the battlefield cutting down enemies. Painterly style with muted colors.\n\nNegative prompt: lowres, worst quality, low quality, jpeg artifacts, blurry, deformed, disfigured, watermark, text, signature, cropped, bad anatomy, extra limbs, mutated hands",
+      "hardIssues": []
+    },
+    {
+      "key": "sdxlAnime",
+      "mode": "context-simple",
+      "networkCalls": 0,
+      "output": "score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up, source_anime, The woman from image 1 jumps around the battlefield cutting down enemies. Painterly style with muted colors.\n(assumed: Pony V6)",
+      "hardIssues": []
+    },
+    {
+      "key": "flux",
+      "mode": "context-simple",
+      "networkCalls": 0,
+      "output": "The woman from image 1 jumps around the battlefield cutting down enemies. Painterly style with muted colors.",
+      "hardIssues": []
+    },
+    {
+      "key": "zimage",
+      "mode": "context-simple",
+      "networkCalls": 0,
+      "output": "The woman from image 1 jumps around the battlefield cutting down enemies. Painterly style with muted colors.",
+      "hardIssues": []
+    },
+    {
+      "key": "qwenimg",
+      "mode": "context-simple",
+      "networkCalls": 0,
+      "output": "The woman from image 1 jumps around the battlefield cutting down enemies. Painterly style with muted colors.\n\nNegative prompt: 低分辨率，低画质，肢体畸形，手指畸形，画面过饱和，蜡像感，人脸无细节，过度光滑，画面具有AI感。构图混乱。文字模糊，扭曲。",
+      "hardIssues": []
+    },
+    {
+      "key": "krea2",
+      "mode": "context-simple",
+      "networkCalls": 0,
+      "output": "The woman from image 1 jumps around the battlefield cutting down enemies. Painterly style with muted colors.",
+      "hardIssues": []
+    },
+    {
+      "key": "wan",
+      "mode": "rich-live",
+      "input": "A woman in a red coat stands on a blue dock at dawn. She opens a black umbrella, then walks toward a green boat. The camera pans left. Rain taps the umbrella. No music.",
+      "networkCalls": 2,
+      "output": "A woman in a red coat stands on a blue dock at dawn. She opens a black umbrella, then walks toward a green boat. The camera pans left. Rain taps the umbrella.\n\nNegative prompt: 色调艳丽，过曝，静态，细节模糊不清，字幕，风格，作品，画作，画面，静止，整体发灰，最差质量，低质量，JPEG压缩残留，丑陋的，残缺的，多余的手指，画得不好的手部，画得不好的脸部，畸形的，毁容的，形态畸形的肢体，手指融合，静止不动的画面，杂乱的背景，三条腿，背景人很多，倒着走",
+      "displayed": "A woman in a red coat stands on a blue dock at dawn. She opens a black umbrella, then walks toward a green boat. The camera pans left. Rain taps the umbrella.\n\nNegative prompt: 色调艳丽，过曝，静态，细节模糊不清，字幕，风格，作品，画作，画面，静止，整体发灰，最差质量，低质量，JPEG压缩残留，丑陋的，残缺的，多余的手指，画得不好的手部，画得不好的脸部，畸形的，毁容的，形态畸形的肢体，手指融合，静止不动的画面，杂乱的背景，三条腿，背景人很多，倒着走",
+      "check": "<span class=\"okb\">✓ format OK</span>",
+      "hardIssues": [],
+      "sourceNote": ""
+    },
+    {
+      "key": "wanI2V",
+      "mode": "rich-live",
+      "input": "A woman in a red coat stands on a blue dock at dawn. She opens a black umbrella, then walks toward a green boat. The camera pans left. Rain taps the umbrella. No music.",
+      "networkCalls": 2,
+      "output": "She opens a black umbrella, then walks toward a green boat. The camera pans left.\n\nNegative prompt: 色调艳丽，过曝，静态，细节模糊不清，字幕，风格，作品，画作，画面，静止，整体发灰，最差质量，低质量，JPEG压缩残留，丑陋的，残缺的，多余的手指，画得不好的手部，画得不好的脸部，畸形的，毁容的，形态畸形的肢体，手指融合，静止不动的画面，杂乱的背景，三条腿，背景人很多，倒着走",
+      "displayed": "She opens a black umbrella, then walks toward a green boat. The camera pans left.\n\nNegative prompt: 色调艳丽，过曝，静态，细节模糊不清，字幕，风格，作品，画作，画面，静止，整体发灰，最差质量，低质量，JPEG压缩残留，丑陋的，残缺的，多余的手指，画得不好的手部，画得不好的脸部，畸形的，毁容的，形态畸形的肢体，手指融合，静止不动的画面，杂乱的背景，三条腿，背景人很多，倒着走",
+      "check": "<span class=\"okb\">✓ format OK</span>",
+      "hardIssues": [],
+      "sourceNote": "The local model added details you did not provide. This simpler draft uses your scene description directly, with only required model controls added."
+    },
+    {
+      "key": "ltx",
+      "mode": "rich-live",
+      "input": "A woman in a red coat stands on a blue dock at dawn. She opens a black umbrella, then walks toward a green boat. The camera pans left. Rain taps the umbrella. No music.",
+      "networkCalls": 1,
+      "output": "A woman in a red coat stands on a blue dock at dawn. She opens a black umbrella, then walks toward a green boat. The camera pans left. Rain taps the umbrella; no music.",
+      "displayed": "A woman in a red coat stands on a blue dock at dawn. She opens a black umbrella, then walks toward a green boat. The camera pans left. Rain taps the umbrella; no music.",
+      "check": "<span class=\"okb\">✓ format OK</span>",
+      "hardIssues": [],
+      "sourceNote": ""
+    },
+    {
+      "key": "minimax",
+      "mode": "rich-live",
+      "input": "A woman in a red coat stands on a blue dock at dawn. She opens a black umbrella, then walks toward a green boat. The camera pans left. Rain taps the umbrella. No music.",
+      "networkCalls": 1,
+      "output": "integrated_multimodal_description: [Shot 1] A woman in a red coat stands on a blue dock at dawn. She opens a black umbrella. The camera pans left. She then walks toward a green boat. Rain taps the umbrella.\n\noverall_soundscape: Rain taps the umbrella.\n\nnon_diegetic_music: N/A",
+      "displayed": "integrated_multimodal_description: [Shot 1] A woman in a red coat stands on a blue dock at dawn. She opens a black umbrella. The camera pans left. She then walks toward a green boat. Rain taps the umbrella.\n\noverall_soundscape: Rain taps the umbrella.\n\nnon_diegetic_music: N/A",
+      "check": "<span class=\"okb\">✓ format OK</span>",
+      "hardIssues": [],
+      "sourceNote": ""
+    },
+    {
+      "key": "minimaxref",
+      "mode": "rich-live",
+      "input": "picture 1 = a woman with short black hair and a red coat; use her identity.\npicture 2 = a blue dock at dawn, a green boat, a black umbrella, and a woman who is only a position guide; use its scene and outfit.\nReplace the woman in picture 2 with the woman in picture 1. She opens the umbrella, then walks toward the boat. The camera pans left. Rain taps the umbrella. No music.",
+      "networkCalls": 2,
+      "output": "subject_definitions:\n<Subject 1> = the final character from <Picture 1>; A woman with short black hair and a red coat; use her identity. The final outfit comes from <Picture 2>.\n<Picture 2> = A blue dock at dawn, a green boat, a black umbrella, and a woman who is only a position guide; use its scene and outfit.\n\nsummary:\n[reference generation] Replace the woman in <Picture 2> with the woman in <Picture 1>. She opens the umbrella, then walks toward the boat. The camera pans left. Rain taps the umbrella. No music.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): fully_preserved - identity from <Picture 1>.\n<Picture 2> (applies in [Shot 1]): attribute_transfer - only the roles stated by the user.\n\ndetailed_description:\n[Shot 1] Replace the woman in <Picture 2> with the woman in <Picture 1>. She opens the umbrella, then walks toward the boat. The camera pans left. Rain taps the umbrella. No music. Use <Picture 1> for the final character and <Picture 2> only for its stated reference roles. The final outfit comes from <Picture 2>. The person being replaced in <Picture 2> does not appear.\n\noverall_soundscape:\nRain taps the umbrella.\n\nnon_diegetic_music:\nN/A",
+      "displayed": "subject_definitions:\n<Subject 1> = the final character from <Picture 1>; A woman with short black hair and a red coat; use her identity. The final outfit comes from <Picture 2>.\n<Picture 2> = A blue dock at dawn, a green boat, a black umbrella, and a woman who is only a position guide; use its scene and outfit.\n\nsummary:\n[reference generation] Replace the woman in <Picture 2> with the woman in <Picture 1>. She opens the umbrella, then walks toward the boat. The camera pans left. Rain taps the umbrella. No music.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): fully_preserved - identity from <Picture 1>.\n<Picture 2> (applies in [Shot 1]): attribute_transfer - only the roles stated by the user.\n\ndetailed_description:\n[Shot 1] Replace the woman in <Picture 2> with the woman in <Picture 1>. She opens the umbrella, then walks toward the boat. The camera pans left. Rain taps the umbrella. No music. Use <Picture 1> for the final character and <Picture 2> only for its stated reference roles. The final outfit comes from <Picture 2>. The person being replaced in <Picture 2> does not appear.\n\noverall_soundscape:\nRain taps the umbrella.\n\nnon_diegetic_music:\nN/A",
+      "check": "<span class=\"okb\">✓ format OK</span>",
+      "hardIssues": [],
+      "sourceNote": "The local model could not produce a valid target prompt. This simpler draft uses your words and the required model controls."
+    },
+    {
+      "key": "scail",
+      "mode": "rich-live",
+      "input": "A woman in a red coat stands on a blue dock at dawn. She opens a black umbrella, then walks toward a green boat. The camera pans left. Rain taps the umbrella. No music.",
+      "networkCalls": 1,
+      "output": "A woman in a red coat stands on a blue dock at dawn. She opens a black umbrella, then walks toward a green boat. The camera pans left. Rain taps the umbrella.",
+      "displayed": "A woman in a red coat stands on a blue dock at dawn. She opens a black umbrella, then walks toward a green boat. The camera pans left. Rain taps the umbrella.",
+      "check": "<span class=\"okb\">✓ format OK</span>",
+      "hardIssues": [],
+      "sourceNote": ""
+    },
+    {
+      "key": "sdxl",
+      "mode": "rich-live",
+      "input": "A woman in a red coat holds a black umbrella beside a green boat at a blue dock at dawn. Rain falls. Side view. Editorial photograph.",
+      "networkCalls": 1,
+      "output": "Woman in a red coat holding a black umbrella beside a green boat at a blue dock at dawn, rain falling, side view, editorial photograph\n\nNegative prompt: lowres, worst quality, low quality, jpeg artifacts, blurry, deformed, disfigured, watermark, text, signature, cropped, bad anatomy, extra limbs, mutated hands",
+      "displayed": "Woman in a red coat holding a black umbrella beside a green boat at a blue dock at dawn, rain falling, side view, editorial photograph\n\nNegative prompt: lowres, worst quality, low quality, jpeg artifacts, blurry, deformed, disfigured, watermark, text, signature, cropped, bad anatomy, extra limbs, mutated hands",
+      "check": "<span class=\"okb\">✓ format OK</span>",
+      "hardIssues": [],
+      "sourceNote": ""
+    },
+    {
+      "key": "sdxlAnime",
+      "mode": "rich-live",
+      "input": "Anime illustration of a woman in a red coat holding a black umbrella beside a green boat at a blue dock at dawn. Rain falls. Side view.",
+      "networkCalls": 2,
+      "output": "score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up, source_anime, solo, red coat, black umbrella, green boat, blue dock, rain, dawn, side view (assumed: Pony V6)",
+      "displayed": "score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up, source_anime, solo, red coat, black umbrella, green boat, blue dock, rain, dawn, side view (assumed: Pony V6)",
+      "check": "<span class=\"okb\">✓ format OK</span>",
+      "hardIssues": [],
+      "sourceNote": ""
+    },
+    {
+      "key": "flux",
+      "mode": "rich-live",
+      "input": "A woman in a red coat holds a black umbrella beside a green boat at a blue dock at dawn. Rain falls. Side view. Editorial photograph.",
+      "networkCalls": 1,
+      "output": "A woman in a red coat holds a black umbrella beside a green boat at a blue dock at dawn. Rain falls. Side view.",
+      "displayed": "A woman in a red coat holds a black umbrella beside a green boat at a blue dock at dawn. Rain falls. Side view.",
+      "check": "<span class=\"okb\">✓ format OK</span>",
+      "hardIssues": [],
+      "sourceNote": ""
+    },
+    {
+      "key": "zimage",
+      "mode": "rich-live",
+      "input": "A woman in a red coat holds a black umbrella beside a green boat at a blue dock at dawn. Rain falls. Side view. Editorial photograph.",
+      "networkCalls": 2,
+      "output": "A woman in a red coat holds a black umbrella beside a green boat at a blue dock at dawn. Rain falls. Side view. Editorial photograph.",
+      "displayed": "A woman in a red coat holds a black umbrella beside a green boat at a blue dock at dawn. Rain falls. Side view. Editorial photograph.",
+      "check": "<span class=\"okb\">✓ format OK</span>",
+      "hardIssues": [],
+      "sourceNote": "The local model could not produce a valid target prompt. This simpler draft uses your words and the required model controls."
+    },
+    {
+      "key": "qwenimg",
+      "mode": "rich-live",
+      "input": "A woman in a red coat holds a black umbrella beside a green boat at a blue dock at dawn. Rain falls. Side view. Editorial photograph.",
+      "networkCalls": 1,
+      "output": "A woman in a red coat holds a black umbrella beside a green boat at a blue dock at dawn. Rain falls. Side view.\n\nNegative prompt: 低分辨率，低画质，肢体畸形，手指畸形，画面过饱和，蜡像感，人脸无细节，过度光滑，画面具有AI感。构图混乱。文字模糊，扭曲。",
+      "displayed": "A woman in a red coat holds a black umbrella beside a green boat at a blue dock at dawn. Rain falls. Side view.\n\nNegative prompt: 低分辨率，低画质，肢体畸形，手指畸形，画面过饱和，蜡像感，人脸无细节，过度光滑，画面具有AI感。构图混乱。文字模糊，扭曲。",
+      "check": "<span class=\"okb\">✓ format OK</span>",
+      "hardIssues": [],
+      "sourceNote": ""
+    },
+    {
+      "key": "krea2",
+      "mode": "rich-live",
+      "input": "A woman in a red coat holds a black umbrella beside a green boat at a blue dock at dawn. Rain falls. Side view. Editorial photograph.",
+      "networkCalls": 1,
+      "output": "A woman in a red coat holds a black umbrella beside a green boat at a blue dock at dawn. Rain falls. Side view.",
+      "displayed": "A woman in a red coat holds a black umbrella beside a green boat at a blue dock at dawn. Rain falls. Side view.",
+      "check": "<span class=\"okb\">✓ format OK</span>",
+      "hardIssues": [],
+      "sourceNote": ""
+    },
+    {
+      "key": "wan",
+      "mode": "sparse-live",
+      "input": "The woman from image 1 jumps around the battlefield cutting down enemies.",
+      "networkCalls": 1,
+      "output": "A woman jumps around the battlefield cutting down enemies.\n\nNegative prompt: 色调艳丽，过曝，静态，细节模糊不清，字幕，风格，作品，画作，画面，静止，整体发灰，最差质量，低质量，JPEG压缩残留，丑陋的，残缺的，多余的手指，画得不好的手部，画得不好的脸部，畸形的，毁容的，形态畸形的肢体，手指融合，静止不动的画面，杂乱的背景，三条腿，背景人很多，倒着走",
+      "displayed": "A woman jumps around the battlefield cutting down enemies.\n\nNegative prompt: 色调艳丽，过曝，静态，细节模糊不清，字幕，风格，作品，画作，画面，静止，整体发灰，最差质量，低质量，JPEG压缩残留，丑陋的，残缺的，多余的手指，画得不好的手部，画得不好的脸部，畸形的，毁容的，形态畸形的肢体，手指融合，静止不动的画面，杂乱的背景，三条腿，背景人很多，倒着走",
+      "hardIssues": [],
+      "sourceNote": ""
+    },
+    {
+      "key": "wanI2V",
+      "mode": "sparse-live",
+      "input": "The woman from image 1 jumps around the battlefield cutting down enemies.",
+      "networkCalls": 2,
+      "output": "The woman jumps around the battlefield, cutting down enemies.\n\nNegative prompt: 色调艳丽，过曝，静态，细节模糊不清，字幕，风格，作品，画作，画面，静止，整体发灰，最差质量，低质量，JPEG压缩残留，丑陋的，残缺的，多余的手指，画得不好的手部，画得不好的脸部，畸形的，毁容的，形态畸形的肢体，手指融合，静止不动的画面，杂乱的背景，三条腿，背景人很多，倒着走",
+      "displayed": "The woman jumps around the battlefield, cutting down enemies.\n\nNegative prompt: 色调艳丽，过曝，静态，细节模糊不清，字幕，风格，作品，画作，画面，静止，整体发灰，最差质量，低质量，JPEG压缩残留，丑陋的，残缺的，多余的手指，画得不好的手部，画得不好的脸部，畸形的，毁容的，形态畸形的肢体，手指融合，静止不动的画面，杂乱的背景，三条腿，背景人很多，倒着走",
+      "hardIssues": [],
+      "sourceNote": ""
+    },
+    {
+      "key": "ltx",
+      "mode": "sparse-live",
+      "input": "The woman from image 1 jumps around the battlefield cutting down enemies.",
+      "networkCalls": 1,
+      "output": "The woman jumps around the battlefield, cutting down enemies.",
+      "displayed": "The woman jumps around the battlefield, cutting down enemies.",
+      "hardIssues": [],
+      "sourceNote": ""
+    },
+    {
+      "key": "minimax",
+      "mode": "sparse-live",
+      "input": "The woman from image 1 jumps around the battlefield cutting down enemies.",
+      "networkCalls": 2,
+      "output": "integrated_multimodal_description: [Shot 1] A woman jumps around the battlefield, cutting down enemies.\n\noverall_soundscape: N/A\n\nnon_diegetic_music: N/A",
+      "displayed": "integrated_multimodal_description: [Shot 1] A woman jumps around the battlefield, cutting down enemies.\n\noverall_soundscape: N/A\n\nnon_diegetic_music: N/A",
+      "hardIssues": [],
+      "sourceNote": ""
+    },
+    {
+      "key": "minimaxref",
+      "mode": "sparse-live",
+      "input": "picture 1 = the character reference.\npicture 2 = the battlefield, outfit, and position guide to be replaced by the woman in picture 1.\nThe woman from picture 1 jumps around the battlefield cutting down enemies.",
+      "networkCalls": 1,
+      "output": "subject_definitions:\n<Subject 1> = the woman from <Picture 1>.\n<Subject 1> (appears in [Shot 1]): fully_preserved - identity from <Picture 1>.\n<Picture 2> = the battlefield, outfit, and position guide to be replaced by the woman in <Picture 1>; setting and outfit reference only.\n\nsummary:\n[reference generation] <Subject 1> jumps around the battlefield from <Picture 2>, cutting down enemies.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): fully_preserved - identity from <Picture 1>.\n<Picture 2> (applies in [Shot 1]): attribute_transfer - battlefield and outfit only.\n\ndetailed_description:\n[Shot 1] <Subject 1> (S1) jumps around the battlefield from <Picture 2>, cutting down enemies. The battlefield and outfit from <Picture 2> are used as references for the setting and attire.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+      "displayed": "subject_definitions:\n<Subject 1> = the woman from <Picture 1>.\n<Subject 1> (appears in [Shot 1]): fully_preserved - identity from <Picture 1>.\n<Picture 2> = the battlefield, outfit, and position guide to be replaced by the woman in <Picture 1>; setting and outfit reference only.\n\nsummary:\n[reference generation] <Subject 1> jumps around the battlefield from <Picture 2>, cutting down enemies.\n\nretention_analysis:\n<Subject 1> (appears in [Shot 1]): fully_preserved - identity from <Picture 1>.\n<Picture 2> (applies in [Shot 1]): attribute_transfer - battlefield and outfit only.\n\ndetailed_description:\n[Shot 1] <Subject 1> (S1) jumps around the battlefield from <Picture 2>, cutting down enemies. The battlefield and outfit from <Picture 2> are used as references for the setting and attire.\n\noverall_soundscape:\nN/A\n\nnon_diegetic_music:\nN/A",
+      "hardIssues": [],
+      "sourceNote": ""
+    },
+    {
+      "key": "scail",
+      "mode": "sparse-live",
+      "input": "The woman from image 1 jumps around the battlefield cutting down enemies.",
+      "networkCalls": 2,
+      "output": "A woman jumps around the battlefield, cutting down enemies.",
+      "displayed": "A woman jumps around the battlefield, cutting down enemies.",
+      "hardIssues": [],
+      "sourceNote": ""
+    },
+    {
+      "key": "sdxl",
+      "mode": "sparse-live",
+      "input": "The woman from image 1 jumps around the battlefield cutting down enemies.",
+      "networkCalls": 1,
+      "output": "Woman jumping and cutting down enemies in a battlefield\n\nNegative prompt: lowres, worst quality, low quality, jpeg artifacts, blurry, deformed, disfigured, watermark, text, signature, cropped, bad anatomy, extra limbs, mutated hands",
+      "displayed": "Woman jumping and cutting down enemies in a battlefield\n\nNegative prompt: lowres, worst quality, low quality, jpeg artifacts, blurry, deformed, disfigured, watermark, text, signature, cropped, bad anatomy, extra limbs, mutated hands",
+      "hardIssues": [],
+      "sourceNote": ""
+    },
+    {
+      "key": "sdxlAnime",
+      "mode": "sparse-live",
+      "input": "The woman from image 1 jumps around the battlefield cutting down enemies.",
+      "networkCalls": 2,
+      "output": "score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up, source_anime, The woman from image 1 jumps around the battlefield cutting down enemies.\n(assumed: Pony V6)",
+      "displayed": "score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up, source_anime, The woman from image 1 jumps around the battlefield cutting down enemies.\n(assumed: Pony V6)",
+      "hardIssues": [],
+      "sourceNote": "The local model added details you did not provide. This simpler draft uses your scene description directly, with only required model controls added."
+    },
+    {
+      "key": "flux",
+      "mode": "sparse-live",
+      "input": "The woman from image 1 jumps around the battlefield cutting down enemies.",
+      "networkCalls": 2,
+      "output": "A woman jumps around the battlefield, cutting down enemies.",
+      "displayed": "A woman jumps around the battlefield, cutting down enemies.",
+      "hardIssues": [],
+      "sourceNote": ""
+    },
+    {
+      "key": "zimage",
+      "mode": "sparse-live",
+      "input": "The woman from image 1 jumps around the battlefield cutting down enemies.",
+      "networkCalls": 2,
+      "output": "The woman from image 1 jumps around the battlefield cutting down enemies.",
+      "displayed": "The woman from image 1 jumps around the battlefield cutting down enemies.",
+      "hardIssues": [],
+      "sourceNote": "The local model could not produce a valid target prompt. This simpler draft uses your words and the required model controls."
+    },
+    {
+      "key": "qwenimg",
+      "mode": "sparse-live",
+      "input": "The woman from image 1 jumps around the battlefield cutting down enemies.",
+      "networkCalls": 2,
+      "output": "The woman from image 1 jumps around the battlefield cutting down enemies.\n\nNegative prompt: 低分辨率，低画质，肢体畸形，手指畸形，画面过饱和，蜡像感，人脸无细节，过度光滑，画面具有AI感。构图混乱。文字模糊，扭曲。",
+      "displayed": "The woman from image 1 jumps around the battlefield cutting down enemies.\n\nNegative prompt: 低分辨率，低画质，肢体畸形，手指畸形，画面过饱和，蜡像感，人脸无细节，过度光滑，画面具有AI感。构图混乱。文字模糊，扭曲。",
+      "hardIssues": [],
+      "sourceNote": "The local model added details you did not provide. This simpler draft uses your scene description directly, with only required model controls added."
+    },
+    {
+      "key": "krea2",
+      "mode": "sparse-live",
+      "input": "The woman from image 1 jumps around the battlefield cutting down enemies.",
+      "networkCalls": 2,
+      "output": "The woman from image 1 jumps around the battlefield cutting down enemies.",
+      "displayed": "The woman from image 1 jumps around the battlefield cutting down enemies.",
+      "hardIssues": [],
+      "sourceNote": "The local model added details you did not provide. This simpler draft uses your scene description directly, with only required model controls added."
+    }
+  ]
+}
