@@ -106,7 +106,7 @@
 <body>
 <div class="app">
   <h1>🎬 H3 Studio <span style="font-size:12px;color:var(--dim);font-family:var(--font-body)">advanced workbench — learning the dialect? start with the simpler H3 Builder</span></h1>
-  <p class="sub">Production H3 prompting: describe it and the local LLM builds the project, then iterate by talking; projects survive reloads, every reference has one clear job, and a per-shot timeline x-ray keeps beats countable. Talks only to your own Ollama at 127.0.0.1 — nothing leaves this machine.</p>
+  <p class="sub">Production H3 prompting: straightforward requests become literal projects from your words; complex requests use your local Ollama model. Projects survive reloads, every reference has one clear job, and a per-shot timeline x-ray keeps beats countable. AI requests go only to Ollama at 127.0.0.1.</p>
 
   <div class="cols">
     <div><!-- left column -->
@@ -123,7 +123,7 @@
       </div>
 
       <div class="card" id="aiCard">
-        <h3>🤖 Describe it — the local LLM sets everything up</h3>
+        <h3>🤖 Describe it — build a project from your words</h3>
         <div id="aiStatus" class="hint"></div>
         <div class="ai-log" id="aiLog" style="display:none"></div>
         <textarea id="aiIn" rows="3" placeholder="e.g. 10 seconds, two shots: my knight character (photo reference) walks into a torchlit hall and says 'Who goes there?' — then cut to a close-up as he draws his sword. Moody, cinematic."></textarea>
@@ -131,7 +131,7 @@
           <button class="primary" id="aiGo" onclick="aiSend()" style="padding:7px 14px;font-size:12.5px">Build / change it</button>
           <select id="aiModel" style="flex:0 0 auto;width:auto;font-size:11.5px"></select>
         </div>
-        <div class="hint" style="margin-top:5px">The first message sets up the whole project — mode, duration, references with jobs, every text section. After that, keep talking: “make shot 2 slower”, “add rain sounds”, “shorten the line”. Each AI change is backed up first (⤺ Restore previous = undo), and the Checks card audits whatever it wrote.</div>
+        <div class="hint" style="margin-top:5px">Short, clear requests are copied into a simple project without asking Ollama to fill gaps. More complex builds and follow-up changes use the selected local model. Describe every asset and detail you want included; review the result and the Checks card. ⤺ Restore previous undoes the last applied change.</div>
       </div>
 
       <div class="card">
@@ -165,11 +165,11 @@
       <details class="card" style="display:block">
         <summary>📖 Format cheat sheet</summary>
         <div class="hint">
-          <b>[Shot 1]</b> opens with a style keyword and has NO timestamp. Later shots: <b>[Shot N] At MM:SS.mmm, the camera cuts to…</b> — cut only when the shot adds new information; distance/angle changes are camera motion.<br><br>
+          <b>[Shot 1]</b> has NO timestamp. Later shots: <b>[Shot N] At MM:SS.mmm, the camera cuts to…</b> — specify a cut time when you request another shot. Add style and camera details only when you want them.<br><br>
           <b>Camera</b> = motion type + amplitude + speed as a natural sentence. ONE camera authority per shot; omit amplitude/speed when medium/normal — extra camera words spend adherence.<br><br>
           <b>Dialogue</b>: identity + delivery outside, exact words inside: The woman (S1) says: <b>&lt;d&gt;[English] I get off at the next station.&lt;/d&gt;</b> Speaker IDs stay stable. On-screen text goes in "double quotes" verbatim.<br><br>
-          <b>Beat budget</b> (official): 5s → 3-4 beats · 10s → 5-7 · 15s → 6-9. One primary action per beat — the x-ray above counts your sentences per shot against this.<br><br>
-          <b>References</b>: every attached asset gets ONE job and must be cited or it bleeds into the output; two references claiming the same job compete for it. Retention markers: fully_preserved · partially_preserved · attribute_transfer · weak_reference (visuals) / fully_copy · partially_copy · reference (audio).
+          <b>Optional planning guide</b>: a <a href="https://github.com/MiniMax-AI/MiniMax-H3/blob/main/skills/minimalist-product-ad-generator/SKILL.cn.md" target="_blank" rel="noopener noreferrer">MiniMax product-ad workflow</a> suggests 5s → 3-4 beats · 10s → 5-7 · 15s → 6-9. These are not general H3 limits; use fewer beats for a simple request. The x-ray above counts sentences per shot.<br><br>
+          <b>References</b>: assign each connected asset one clear job. Use &lt;Subject N&gt; for reusable visible content, citing its source image; a standalone &lt;Picture N&gt; is for a frame or storyboard anchor. <b>fully_copy</b> requests the entire source audio as the entire final track; <b>partially_copy</b> copies a portion; <b>reference</b> uses timbre or content without copying the signal. <a href="https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/main/docs/VIDEO_PROMPT_WRITING_GUIDE_ref_en.md" target="_blank" rel="noopener noreferrer">MiniMax reference guide</a>.
         </div>
       </details>
     </div>
@@ -227,7 +227,7 @@ var lastChecks = [];   // most recent check() results, for Locate buttons
 var JOBS = {
   pic: ['', 'identity — subject look', 'frame anchor (first/last)', 'wardrobe transfer', 'scale / placement', 'continuity — previous generation', 'storyboard / composition', 'lighting integration', 'environment view'],
   vid: ['', 'motion / performance source', 'camera reference', 'continuation source', 'timing / structure', 'edit plate (insert / replace)'],
-  aud: ['', 'voice timbre', 'exact dialogue performance', 'copied source audio', 'music style', 'sound texture']
+  aud: ['', 'voice timbre', 'exact dialogue performance', 'copied source audio (entire final track)', 'copied segment or layer', 'music style', 'sound texture']
 };
 /* jobs where two active references would silently compete for the same attribute */
 var JOB_EXCLUSIVE = ['frame anchor (first/last)', 'wardrobe transfer', 'scale / placement', 'continuity — previous generation', 'lighting integration', 'camera reference', 'continuation source', 'timing / structure', 'edit plate (insert / replace)'];
@@ -240,8 +240,9 @@ var JOB_RETAIN = {
   'motion / performance source':'attribute_transfer', 'camera reference':'attribute_transfer',
   'continuation source':'partially_preserved', 'timing / structure':'weak_reference',
   'edit plate (insert / replace)':'partially_preserved',
-  'voice timbre':'reference', 'exact dialogue performance':'fully_copy',
-  'copied source audio':'fully_copy', 'music style':'reference', 'sound texture':'reference'
+  'voice timbre':'reference', 'exact dialogue performance':'reference',
+  'copied source audio':'fully_copy', 'copied source audio (entire final track)':'fully_copy',
+  'copied segment or layer':'partially_copy', 'music style':'reference', 'sound texture':'reference'
 };
 
 /* ================= project persistence ================= */
@@ -290,7 +291,7 @@ function openProject(file){
     if (!p) { $('projNote').textContent = '⚠ Not valid JSON.'; return; }
     if (p.v !== 1) { $('projNote').textContent = '⚠ Unrecognized project version — nothing changed (your ⤺ backup is untouched).'; return; }
     backupNow();
-    if (applyProject(p)) { refresh(); $('projNote').textContent = '✓ project loaded (previous state in ⤺)'; }
+    if (applyProject(p)) { resetAIConversation(); refresh(); $('projNote').textContent = '✓ project loaded (previous state in ⤺)'; }
     else $('projNote').textContent = '⚠ Could not apply that project.';
   };
   r.readAsText(file);
@@ -301,12 +302,14 @@ function restorePrev(){
   var cur = projectState();
   if (applyProject(p)) {
     try { localStorage.setItem(BAK_KEY, JSON.stringify(cur)); } catch(e){}   // swap: pressing again toggles back
+    resetAIConversation();
     refresh(); $('projNote').textContent = '✓ restored — press again to swap back';
   }
 }
 function newProject(){
   backupNow();
   mode = 'T2VA'; media = []; fields = {}; $('dur').value = 8;
+  resetAIConversation();
   refresh(); $('projNote').textContent = '✓ fresh project (previous state in ⤺)';
 }
 
@@ -314,17 +317,20 @@ function newProject(){
 var OLLAMA = 'http://127.0.0.1:11434';
 var aiBusy = false;
 var aiTurns = [];   // short intent history; the project JSON itself is the authoritative state
+function resetAIConversation(){ aiTurns = []; var log = $('aiLog'); if (log) { log.innerHTML = ''; log.style.display = 'none'; } }
 
 function aiModels(){
   fetch(OLLAMA + '/api/tags').then(function(r){ return r.json(); }).then(function(j){
-    var names = (j.models || []).map(function(m){ return m.name; });
+    var names = (j.models || []).filter(function(m){ return Number(m.size) > 0 && !/(?:^|[:\-])cloud(?:$|[:\-])/i.test(m.name); }).map(function(m){ return m.name; });
     if (!names.length) { $('aiStatus').textContent = '⚠ Ollama runs but has no models — download one in Prompt Studio (⚙ Models).'; return; }
     var saved = ''; try { saved = localStorage.getItem('h3s_model') || ''; } catch(e){}
     var pick = names.indexOf(saved) >= 0 ? saved : (names.filter(function(n){ return /qwen/i.test(n); })[0] || names[0]);
-    $('aiModel').innerHTML = names.map(function(n){ return '<option' + (n === pick ? ' selected' : '') + '>' + esc(n) + '</option>'; }).join('');
+    $('aiModel').replaceChildren.apply($('aiModel'), names.map(function(n){
+      var option = document.createElement('option'); option.value = n; option.textContent = n; option.selected = n === pick; return option;
+    }));
     $('aiStatus').textContent = '';
   }).catch(function(){
-    $('aiStatus').textContent = '⚠ Can’t reach Ollama at 127.0.0.1:11434 — start it with "!START HERE.bat" (it sets the needed OLLAMA_ORIGINS), then reload this panel.';
+    $('aiStatus').textContent = '⚠ Can’t reach Ollama at 127.0.0.1:11434 — start Prompt Studio with "!START HERE.bat", then reload this panel.';
   });
 }
 
@@ -335,12 +341,12 @@ function aiRules(){
     'text keys when mode=REF: "subj","summ","ret","dd","ss","mus". Otherwise: "imd","ss","mus". Include EVERY text key for the mode and the FULL media array on every reply — a reply missing keys is rejected.',
     'Jobs for pic: ' + JOBS.pic.slice(1).join(' | ') + '. For vid: ' + JOBS.vid.slice(1).join(' | ') + '. For aud: ' + JOBS.aud.slice(1).join(' | ') + '.',
     'Mode choice: character/style/audio references → REF. One starting image → I2VA. First+last images → FL2VA. Only an ending image → L2VA. Pure text → T2VA. Only include media the user actually has or clearly implies.',
-    'DIALECT RULES (strict): [Shot 1] opens with a style keyword and has NO timestamp. Later shots: "[Shot N] At MM:SS.mmm, the camera cuts to ..." with strictly increasing times that stay under dur. Beat budget: 5s→3-4, 10s→5-7, 15s→6-9 — one primary action per sentence; do not overpack.',
+    'DIALECT RULES: [Shot 1] has NO timestamp. Later shots: "[Shot N] At MM:SS.mmm, the camera cuts to ..." with strictly increasing times that stay under dur. Use only the shots and cut times the user asks for; do not invent style, camera motion, or extra actions.',
     'Dialogue: Identity (S1) says: <d>[English] exact words.</d> — identity and delivery outside the tag, exact words inside; speaker IDs stay stable. On-screen text goes in "double quotes".',
     'Camera: a natural sentence like "The camera pushes in toward ...". ONE camera move per shot. Omit amplitude/speed words unless small/large or slow/fast genuinely matters.',
     'Never use arrows, plus-as-syntax, or [CUT TO]. Timing words are physics: while/as = simultaneous, then/after = sequence — honor the user’s timing words exactly. Preserve the user’s own content words; never pad with quality adjectives like "masterpiece" or "cinematic 8k".',
-    'REF sections: subj = one line per <Subject N>, naming its source tag (<Picture N>/<Video N>/<Audio N>) and ONE narrow role. summ starts with bracketed task type(s) like [reference generation + audio reference]. ret = one line per label with a marker: fully_preserved / partially_preserved / attribute_transfer / weak_reference (visuals), fully_copy / partially_copy / reference (audio). dd = style sentence(s) then the [Shot N] timeline, 350-500 words. Every attached tag MUST be cited in the text. Tags number by ARRIVAL ORDER and video soundtracks take <Audio n> numbers BEFORE standalone audio clips.',
-    'ss = ambience/physical sound only (or N/A for true silence). mus = non-diegetic score or N/A.',
+    'REF sections: subj defines reusable people, scenes, clothing and props as <Subject N>, citing their source <Picture N> or <Video N>; standalone <Picture N> only for a frame or storyboard anchor. Give each separately used <Video N> and <Audio N> one narrow role. summ starts with bracketed task type(s) like [reference generation + audio reference]. ret = one line per defined content label with a marker: fully_preserved / partially_preserved / attribute_transfer / weak_reference (visuals), fully_copy / partially_copy / reference (audio). Audio fully_copy means the COMPLETE source track is the COMPLETE final track; partially_copy means an actual copied portion or layer; reference means timbre/content without copying the signal. dd = the [Shot N] timeline, with only user-provided details; short is fine. Every attached tag MUST be cited in the text. Tags number by ARRIVAL ORDER and video soundtracks take <Audio n> numbers BEFORE standalone audio clips.',
+    'ss = ambience/physical sound only, or N/A when unspecified or absent. mus = non-diegetic score, or N/A when unspecified or absent.',
     'When given a current project JSON and a change request: return the FULL updated JSON, changing ONLY what the request requires — keep every other field byte-identical.'
   ].join('\n');
 }
@@ -387,43 +393,207 @@ function extractJson(s){
   }
   return null;
 }
+function aiProjectIssues(p, msg, startingEmpty){
+  if (!p) return ['The model did not return the complete project JSON.'];
+  var issues = [];
+  var body = p.mode === 'REF' ? p.text.dd : p.text.imd;
+  if (p.mode === 'T2VA' && p.media.length) issues.push('Text-only mode cannot have reference media.');
+  if (/\b(?:text[- ]only|no references?|without references?)\b/i.test(msg) && p.media.length)
+    issues.push('The request explicitly excludes reference media.');
+  if (startingEmpty && p.media.length && !/\b(?:picture|image|photo|reference|first frame|last frame|source video|audio reference)\b/i.test(msg))
+    issues.push('The model invented a reference asset.');
+  if (startingEmpty && /\bno\s+(?:video|clip)(?:\s+or\s+audio)?\s+references?\b/i.test(msg) && p.media.some(function(m){ return m.kind === 'vid'; }))
+    issues.push('The request excludes video references.');
+  if (startingEmpty && /\bno\s+(?:(?:video|clip)\s+or\s+)?(?:audio|sound)(?:\s+or\s+video)?\s+references?\b/i.test(msg) && p.media.some(function(m){ return m.kind === 'aud'; }))
+    issues.push('The request excludes audio references.');
+  if (startingEmpty && /\b(?:use\s+)?only\s+(?:these\s+)?(?:one|two|three|\d+)\s+(?:pictures|images|photos)\b/i.test(msg) && p.media.some(function(m){ return m.kind !== 'pic'; }))
+    issues.push('The request allows only picture references.');
+  if (p.mode === 'REF' && !p.media.length) issues.push('Reference mode needs a real reference asset.');
+  if (!/\[Shot 1\]/.test(body)) issues.push('The timeline needs [Shot 1].');
+  if (/\[Shot 1\]\s*At\b/.test(body)) issues.push('[Shot 1] cannot have a timestamp.');
+  var matches = [...body.matchAll(/\[Shot (\d+)\](?:\s*At (\d{2}):(\d{2})\.(\d{3}))?/g)];
+  var previous = 0;
+  matches.forEach(function(m, i){
+    if (+m[1] !== i + 1) issues.push('Shot numbers must be sequential.');
+    if (i > 0 && !m[2]) issues.push('[Shot ' + m[1] + '] needs a cut time.');
+    if (m[2]) {
+      var at = (+m[2])*60 + (+m[3]) + (+m[4])/1000;
+      if (i > 0 && (at <= previous || at >= p.dur)) issues.push('Cut times must increase and stay within the duration.');
+      previous = at;
+    }
+  });
+  if (!p.text.ss.trim() || !p.text.mus.trim()) issues.push('Soundscape and music must contain a description or N/A.');
+  return [...new Set(issues)];
+}
+function aiEditIssues(p, before, msg){
+  if (!p || !before) return [];
+  var issues = [];
+  if (!/\b(?:mode|T2VA|I2VA|FL2VA|L2VA|first frame|last frame|reference mode|text[- ]only)\b/i.test(msg) && p.mode !== before.mode)
+    issues.push('The model changed the mode without being asked.');
+  if (!/\b(?:add|remove|delete|replace|change|swap|disable|enable|attach)\b.{0,60}\b(?:picture|image|photo|video|clip|audio|reference)\b/i.test(msg) && JSON.stringify(p.media) !== JSON.stringify(before.media))
+    issues.push('The model changed reference assets without being asked.');
+  if (!/\b(?:duration|video length|clip length|\d+\s*seconds?)\b/i.test(msg) && p.dur !== before.dur)
+    issues.push('The model changed the duration without being asked.');
+  if (!/\b(?:sounds?|soundscape|audio|ambien\w*|noise|music|score)\b/i.test(msg) && p.text.ss !== before.text.ss)
+    issues.push('The model changed the soundscape without being asked.');
+  if (!/\b(?:music|score|soundtrack)\b/i.test(msg) && p.text.mus !== before.text.mus)
+    issues.push('The model changed the music without being asked.');
+  return issues;
+}
+function aiDurationFromRequest(msg){
+  var m = msg.match(/\b(\d{1,2})[ -]?(?:second|sec|s)\s+(?:video|clip|scene)\b|\b(?:video|clip|scene|duration|length)\s*(?:of|:|=)?\s*(\d{1,2})\s*(?:seconds?|secs?|s)\b/i);
+  return Math.max(5, Math.min(15, +(m && (m[1] || m[2]) || 8)));
+}
+function aiNamedPictures(msg){
+  var found = new Map(), re = /(?:<\s*)?(?:picture|image|photo)\s*(\d+)(?:\s*>)?/gi, m;
+  while ((m = re.exec(msg)) !== null) {
+    var n = +m[1];
+    if (found.has(n)) continue;
+    var tail = msg.slice(re.lastIndex).match(/^\s*(?:is|=|:|supplies|shows|provides)\s*([^.!?\n]+)/i);
+    found.set(n, tail ? tail[1].trim() : 'Picture ' + n);
+  }
+  var nums = [...found.keys()].sort(function(a,b){ return a-b; });
+  if (nums.some(function(n,i){ return n !== i+1; })) return null; // gaps would silently renumber the user's tags
+  return nums.map(function(n){ return { n:n, desc:found.get(n) }; });
+}
+function aiLiteralAction(s){
+  return s.replace(/^\s*(?:text[- ]only\s*)?(?:\d{1,2}[ -]?(?:second|sec|s)\s*)?(?:video|clip|scene)\s*:\s*/i, '')
+    .replace(/^\s*make\s+(?:an?\s+)?\d{1,2}[ -]?(?:second|sec|s)\s+(?:video|clip)\s+where\s+/i, '')
+    .replace(/^\s*make\s+(?:an?\s+)?(?:video|clip)\s+\d{1,2}\s*(?:seconds?|secs?|s)\s+long\s+where\s+/i, '')
+    .replace(/\s+for\s+\d{1,2}\s*seconds?\s*$/i, '')
+    .trim().replace(/[.!?]+$/, '').trim();
+}
+function aiSentenceStart(s){ return s.replace(/^\w/, function(c){ return c.toUpperCase(); }); }
+function aiHasAction(s){
+  return /\b(?:walk\w*|jump\w*|cut\w*|stand\w*|sit\w*|run\w*|open\w*|clos\w*|turn\w*|mov\w*|fall\w*|rais\w*|look\w*|danc\w*|fly|flies|flying|smil\w*|wav\w*|fight\w*|swim\w*|driv\w*|rid\w*|hold\w*|point\w*|pick\w*|throw\w*|enter\w*|exit\w*|climb\w*|kneel\w*|crouch\w*|spin\w*|swing\w*)\b/i.test(s);
+}
+function aiActionSentences(msg){
+  var sentences = msg.split(/[.!?](?:\s|$)/).map(function(s){ return s.trim(); }).filter(Boolean);
+  var actions = sentences.filter(function(s){
+    return !/^(?:picture|image|photo)\s*\d+\b/i.test(s) &&
+      !/^(?:keep only|no |use only|nothing else|do not)\b/i.test(s) &&
+      aiHasAction(s);
+  });
+  return actions.map(aiLiteralAction).filter(Boolean);
+}
+function aiActionSentence(msg){
+  return aiActionSentences(msg).join('. ');
+}
+function aiSafeSimpleProject(msg){
+  // A conservative recovery path for short, explicitly described scenes. It
+  // copies the user's actions and assets; it never asks the model to imagine them.
+  var positiveRequest = msg.replace(/(?:^|[.!?]\s*)no\s+[^.!?]+/gi, '');
+  if (msg.length > 900 || /\b(?:dialogue|speaks?|says?|voice|music|soundscape|sound effects|camera pans?|camera tilts?|camera zooms?)\b/i.test(positiveRequest)) return null;
+  if (/\b(?:video|clip|audio)\s*\d+\b(?!\s*(?:seconds?|secs?|s)\b)/i.test(msg)) return null;
+  var pics = aiNamedPictures(msg);
+  if (!pics || pics.length > 2) return null;
+  var first = /\b(?:first|starting)\s+(?:frame|image|picture)\b/i.test(msg);
+  var last = /\b(?:last|ending)\s+(?:frame|image|picture)\b/i.test(msg);
+  var md = !pics.length ? 'T2VA' : first && last && pics.length === 2 ? 'FL2VA' : first && pics.length === 1 ? 'I2VA' : last && pics.length === 1 ? 'L2VA' : 'REF';
+  if ((first || last) && !['I2VA','L2VA','FL2VA'].includes(md)) return null;
+  var media = pics.map(function(p,i){
+    var job = md === 'REF' ? (i === 0 ? 'identity — subject look' : 'environment view') : 'frame anchor (first/last)';
+    return { kind:'pic', desc:p.desc, dur:0, on:true, job:job };
+  });
+  var shotParts = [...msg.matchAll(/\b(?:in\s+)?shot\s+(\d+)\s*(?:,|:|as)?\s*([^.!?]+)[.!?]?/gi)];
+  var body = '';
+  if (shotParts.length >= 2 && md === 'T2VA') {
+    if (shotParts.length > 3 || shotParts.some(function(s,i){ return +s[1] !== i+1; })) return null;
+    var out = [];
+    for (var i = 0; i < shotParts.length; i++) {
+      var action = aiLiteralAction(shotParts[i][2]);
+      if (!action || !aiHasAction(action)) return null;
+      if (i === 0) out.push('[Shot 1] ' + aiSentenceStart(action) + '.');
+      else {
+        var lead = msg.slice(shotParts[i-1].index + shotParts[i-1][0].length, shotParts[i].index);
+        var time = lead.match(/\b(?:at|after)\s+(\d+(?:\.\d+)?)\s*(?:seconds?|secs?|s)\b/i);
+        if (!time) return null; // never invent a cut time
+        var sec = +time[1];
+        if (!(sec > 0 && sec < aiDurationFromRequest(msg))) return null;
+        out.push('[Shot ' + (i+1) + '] At 00:' + String(Math.floor(sec)).padStart(2,'0') + '.' + String(Math.round((sec%1)*1000)).padStart(3,'0') + ', the camera cuts to a shot where ' + action.replace(/^\w/, function(c){ return c.toLowerCase(); }) + '.');
+      }
+    }
+    body = out.join('\n');
+  } else {
+    var actions = aiActionSentences(msg);
+    if (actions.length > 3) return null;
+    var action = actions.join('. ');
+    if (!action || /\b(?:only|specified|reference|picture|image|photo)\b/i.test(action) && md === 'T2VA') return null;
+    body = '[Shot 1] ' + aiSentenceStart(action) + '.';
+  }
+  var text;
+  if (md === 'REF') {
+    if (!pics.length || !/\b(?:woman|man|person|character|subject)\b/i.test(pics[0].desc)) return null;
+    var scene = pics.length > 1 && /\b(?:battlefield|scene|environment|setting|background|landscape|platform|street|room|dock)\b/i.test(pics[1].desc);
+    var outfit = pics.length > 1 && /\b(?:outfit|clothing|wardrobe|garment)\b/i.test(pics[1].desc);
+    if (pics.length > 1 && !scene) return null;
+    var detail = body.replace(/\b(?:the\s+)?(?:woman|man|person|character)\s+from\s+(?:picture|image|photo)\s*1\b/i, '<Subject 1>');
+    if (scene) detail += ' The scene follows <Subject 2>.';
+    if (outfit) detail += ' The outfit follows <Picture 2>.';
+    text = {
+      subj:'<Subject 1> = the subject from <Picture 1>; preserve only the described identity.' + (scene ? '\n<Subject 2> = the described scene from <Picture 2>.' : ''),
+      summ:'[reference generation] ' + aiActionSentence(msg) + '. Use ' + pics.map(function(p){ return '<Picture '+p.n+'>'; }).join(' and ') + '.',
+      ret:'<Subject 1> (appears in [Shot 1]): fully_preserved - identity from <Picture 1>.' + (scene ? '\n<Subject 2> (applies in [Shot 1]): attribute_transfer - only the described scene from <Picture 2>.' : ''),
+      dd:detail, ss:'N/A', mus:'N/A'
+    };
+  } else text = { imd:body, ss:'N/A', mus:'N/A' };
+  return { mode:md, dur:aiDurationFromRequest(msg), media:media, text:text };
+}
 async function aiSend(){
   if (aiBusy) return;
   var msg = $('aiIn').value.trim();
   if (!msg) return;
-  if (!$('aiModel').value) { aiModels(); return; }
+  var empty = !media.length && !(mode === 'REF' ? F('dd') : F('imd')).trim();
+  var safe = empty ? aiSafeSimpleProject(msg) : null;
+  if (!safe && !$('aiModel').value) { aiModels(); return; }
   aiBusy = true; $('aiGo').disabled = true;
   var log = $('aiLog'); log.style.display = 'flex';
   log.innerHTML += '<div class="ai-b you">' + esc(msg) + '</div>';
   var bot = document.createElement('div');
   bot.className = 'ai-b bot'; bot.textContent = 'thinking…';
   log.appendChild(bot); log.scrollTop = log.scrollHeight;
-  var empty = !media.length && !(mode === 'REF' ? F('dd') : F('imd')).trim();
   var user = empty
     ? 'Set up a new project for this request:\n' + msg
     : 'Current project JSON:\n' + JSON.stringify(projForLLM()) + '\n\nChange request (return the FULL updated JSON, changing only what this asks):\n' + msg;
   var raw = '';
   try {
-    var res = await fetch(OLLAMA + '/api/chat', { method:'POST', body: JSON.stringify({
+    if (!safe) {
+      var res = await fetch(OLLAMA + '/api/chat', { method:'POST', body: JSON.stringify({
       model: $('aiModel').value, stream: true, options: { temperature: 0.3 },
       messages: [{ role:'system', content: aiRules() }].concat(aiTurns.slice(-6)).concat([{ role:'user', content: user }]) }) });
-    if (!res.ok) throw new Error('Ollama HTTP ' + res.status);
-    var rd = res.body.getReader(), dec = new TextDecoder(), buf = '';
-    for (;;) {
-      var ch = await rd.read();
-      if (ch.done) break;
-      buf += dec.decode(ch.value, { stream: true });
-      var lines = buf.split('\n'); buf = lines.pop();
-      for (var li = 0; li < lines.length; li++) {
-        if (!lines[li].trim()) continue;
-        try { var jj = JSON.parse(lines[li]); if (jj.message && jj.message.content) raw += jj.message.content; } catch(e){}
+      if (!res.ok) throw new Error('Ollama HTTP ' + res.status);
+      var rd = res.body.getReader(), dec = new TextDecoder(), buf = '';
+      for (;;) {
+        var ch = await rd.read();
+        if (ch.done) break;
+        buf += dec.decode(ch.value, { stream: true });
+        var lines = buf.split('\n'); buf = lines.pop();
+        for (var li = 0; li < lines.length; li++) {
+          if (!lines[li].trim()) continue;
+          try { var jj = JSON.parse(lines[li]); if (jj.message && jj.message.content) raw += jj.message.content; } catch(e){}
+        }
+        bot.textContent = 'writing… ' + raw.length + ' chars';
       }
-      bot.textContent = 'writing… ' + raw.length + ' chars';
+      buf += dec.decode();   // flush the decoder and the last line even without a trailing newline
+      if (buf.trim()) { try { var tail = JSON.parse(buf); if (tail.message && tail.message.content) raw += tail.message.content; } catch(e){} }
     }
-    buf += dec.decode();   // flush the decoder and the last line even without a trailing newline
-    if (buf.trim()) { try { var tail = JSON.parse(buf); if (tail.message && tail.message.content) raw += tail.message.content; } catch(e){} }
-    var p = sanitizeAI(extractJson(raw));
-    if (!p) throw new Error('The model didn’t return usable JSON — rephrase, or switch to a larger model.');
+    var p = sanitizeAI(safe || extractJson(raw));
+    var problems = aiProjectIssues(p, msg, empty).concat(empty ? [] : aiEditIssues(p, projForLLM(), msg));
+    if (problems.length && !safe) {
+      bot.textContent = 'checking a corrected draft…';
+      var repair = await fetch(OLLAMA + '/api/chat', { method:'POST', body: JSON.stringify({
+        model: $('aiModel').value, stream: false, format: 'json', options: { temperature: 0 },
+        messages: [{ role:'system', content: aiRules() }, { role:'user', content:
+          user + '\n\nYour previous response failed these checks: ' + problems.join(' ') +
+          '\nReturn a COMPLETE corrected JSON project. Do not invent assets or scene details. Previous response:\n' + raw.slice(0, 12000) }]
+      }) });
+      if (!repair.ok) throw new Error('Ollama repair failed (HTTP ' + repair.status + ').');
+      var fixed = await repair.json();
+      p = sanitizeAI(extractJson(fixed.message && fixed.message.content || ''));
+      problems = aiProjectIssues(p, msg, empty).concat(empty ? [] : aiEditIssues(p, projForLLM(), msg));
+    }
+    if (problems.length) throw new Error('The model could not build a valid project: ' + problems.join(' ') + ' Try another model or edit the project manually.');
+    var beforeState = JSON.parse(JSON.stringify(projectState()));
     var before = projForLLM();
     backupNow();
     mode = p.mode;
@@ -433,13 +603,18 @@ async function aiSend(){
       if (typeof p.text[k] === 'string') fields[p.mode + ':' + k] = p.text[k];
     });
     refresh();
+    var hard = check().filter(function(x){ return x.l === 'err'; });
+    if (hard.length) {
+      applyProject(beforeState); refresh();
+      throw new Error('The model draft failed the Checks card: ' + hard.map(function(x){ return x.m; }).slice(0, 3).join(' ') + ' Nothing was applied.');
+    }
     var after = projForLLM();
     var changed = [];
     if (before.mode !== after.mode) changed.push('mode→' + after.mode);
     if (before.dur !== after.dur) changed.push('duration→' + after.dur + 's');
     if (JSON.stringify(before.media) !== JSON.stringify(after.media)) changed.push('media (' + after.media.length + ')');
     Object.keys(after.text).forEach(function(k){ if ((before.text || {})[k] !== after.text[k]) changed.push(k); });
-    bot.innerHTML = '✓ applied' + (changed.length ? '<span class="chg">changed: ' + esc(changed.join(' · ')) + '</span>' : ' — nothing needed changing') +
+    bot.innerHTML = (safe ? '✓ simple project from your words' : '✓ applied') + (changed.length ? '<span class="chg">changed: ' + esc(changed.join(' · ')) + '</span>' : ' — nothing needed changing') +
       '<span class="chg" style="color:var(--dim)">⤺ Restore previous undoes this · see the Checks card</span>';
     aiTurns.push({ role:'user', content: msg });
     aiTurns.push({ role:'assistant', content: 'Applied the change.' });
@@ -500,7 +675,7 @@ function renderXray(){
     return '[Shot ' + s.n + '] <b>' + b + '</b> beat' + (b === 1 ? '' : 's') + ' / ' + (s.win === null ? '?' : s.win.toFixed(1)) + 's' +
       (sp > 0 ? ' · speech ~' + sp.toFixed(1) + 's' + (s.win !== null && s.win > 0 && sp > s.win * 0.9 ? ' <span class="over">⚠ longer than the shot</span>' : '') : '');
   });
-  rows.push('total <b class="' + (tot > hi + 1 ? 'over' : '') + '">' + tot + '</b> beats · budget ' + beatBudget(dur));
+  rows.push('total <b class="' + (tot > hi + 1 ? 'over' : '') + '">' + tot + '</b> beats · planning guide ' + beatBudget(dur));
   xr.innerHTML = rows.join('<br>');
 }
 
@@ -545,9 +720,11 @@ function insertStarter(i){
   if (!m || !m._tag || mode !== 'REF') return;
   var marker = JOB_RETAIN[m.job] || 'fully_preserved';
   var what = m.desc || m.job || 'this reference';
-  var sub = '<Subject ' + (((F('subj').match(/<Subject \d+>/g) || []).length) + 1) + '>';
-  var defLine = sub + ' is ' + what + ' from ' + m._tag + '; role: ' + (m.job || 'give it ONE job') + ' only.';
-  var retLine = sub + ' (appears in [Shot 1]): ' + marker + ' - ';
+  var frameAnchor = m.kind === 'pic' && /^(?:frame anchor|storyboard)/.test(m.job || '');
+  var contentSubject = m.kind === 'pic' && !frameAnchor || m.kind === 'vid' && m.job === 'motion / performance source';
+  var label = contentSubject ? '<Subject ' + (((F('subj').match(/^<Subject \d+>/gm) || []).length) + 1) + '>' : m._tag;
+  var defLine = label + ' is ' + what + (contentSubject ? ' from ' + m._tag : '') + '; role: ' + (m.job || 'give it ONE job') + ' only.';
+  var retLine = label + (m.kind === 'aud' ? ': ' : ' (applies in [Shot 1]): ') + marker + ' - ';
   setF('subj', (F('subj') ? F('subj') + '\n' : '') + defLine);
   setF('ret', (F('ret') ? F('ret') + '\n' : '') + retLine);
   renderEditor();
@@ -631,17 +808,17 @@ function renderEditor(){
   var h = '<h3>' + MODES.find(function(m){ return m.id === mode; }).label + ' — ' + MODES.find(function(m){ return m.id === mode; }).hint + '</h3>';
   if (mode === 'REF') {
     h += chipsHTML();
-    h += taHTML('subj', 'subject_definitions — one line per referenced item, NARROW roles (≡ def on a reference writes a starter line)', 4, '<Subject 1> is the singer from <Picture 1>; preserve identity, hairstyle, and clothing.');
+    h += taHTML('subj', 'subject_definitions — reusable content and its exact source (≡ def writes a starter line)', 4, '<Subject 1> is the character from <Picture 1>; preserve the identity described by the user.');
     h += taHTML('summ', 'summary — starts with bracketed task type(s) joined by +', 2, '[reference generation + audio reference] <Subject 1> sings while ...');
-    h += taHTML('ret', 'retention_analysis — one line per label with a marker', 3, '<Subject 1> (appears in [Shot 1]): fully_preserved - identity, hair, clothing unchanged.');
+    h += taHTML('ret', 'retention_analysis — one line per defined content label with a marker', 3, '<Subject 1> (appears in [Shot 1]): fully_preserved - the user-specified identity from <Picture 1>.');
     h += toolbarHTML();
-    h += taHTML('dd', 'detailed_description — style sentence(s), then [Shot N] timeline (350-500 words for generation)', 10, 'The target video uses realistic concert photography with cool stage light.\n[Shot 1] <Subject 1> (S1) stands center stage ...');
+    h += taHTML('dd', 'detailed_description — [Shot N] timeline; add only details you want', 10, '[Shot 1] <Subject 1> performs the action you described ...');
     h += taHTML('ss', 'overall_soundscape', 2, 'Low audience room tone continues beneath the voice.');
     h += taHTML('mus', 'non_diegetic_music — or N/A', 1, 'N/A');
   } else {
     if (mode !== 'T2VA') h += '<div class="hint" id="alignLine" style="font-family:var(--mono);background:var(--panel2);border:1px solid var(--border);border-radius:4px;padding:8px;margin-bottom:4px"></div>';
     h += toolbarHTML();
-    h += taHTML('imd', 'integrated_multimodal_description — [Shot 1] style keyword + composition, then the timeline', 9, '[Shot 1] Live-action, cinematic, a medium-wide shot frames ...');
+    h += taHTML('imd', 'integrated_multimodal_description — [Shot 1] timeline', 9, '[Shot 1] A woman walks across a battlefield.');
     h += taHTML('ss', 'overall_soundscape — 1-4 sentences, ambience/physical sound only', 2, 'Rain taps the window over low room tone.');
     h += taHTML('mus', 'non_diegetic_music — instrumentation/tempo/dynamics, or N/A', 1, 'N/A');
   }
@@ -802,8 +979,8 @@ function check(){
       if (cm > 1)
         W('[Shot ' + s.n + '] contains ' + cm + ' camera instructions — one camera authority per shot. Make the second move a new shot, or an explicitly sequential "…, then the camera …" only if you truly want both.', bodyTa, '[Shot ' + s.n + ']');
     });
-    if (shots.length > 4) W(shots.length + ' shots — official doctrine prefers fewer, fuller shots (render per shot and assemble).', bodyTa);
-    if (totBeats > hi + 1) W(totBeats + ' beats (sentences) across the timeline — budget for ' + dur + 's is ' + beatBudget(dur) + ' primary actions. Merge or cut beats; the x-ray shows where they sit.', bodyTa);
+    if (shots.length > 4) W(shots.length + ' shots — consider fewer shots or rendering them separately.', bodyTa);
+    if (totBeats > hi + 1) W(totBeats + ' beats (sentences) across the timeline — the optional planning guide for ' + dur + 's is ' + beatBudget(dur) + ' primary actions. The x-ray shows where they sit.', bodyTa);
 
     // camera-reference video vs authored camera moves: one authority
     var camRef = media.some(function(m){ return m.on && m.kind === 'vid' && m.job === 'camera reference'; });
@@ -842,14 +1019,11 @@ function check(){
     (F('subj').match(/<Subject \d+>/g) || []).filter(function(v,i,a){ return a.indexOf(v)===i; }).forEach(function(sub){
       if (F('ret').indexOf(sub) === -1) W(sub + ' has no retention_analysis entry.', 'ta_ret');
     });
-    var w = F('dd').trim() ? F('dd').trim().split(/\s+/).length : 0;
-    if (w && w < 300) W('detailed_description is ' + w + ' words — official generation target is 350-500.', 'ta_dd');
-    if (w > 550) W('detailed_description is ' + w + ' words — official target is 350-500.', 'ta_dd');
   } else {
     if (!F('ss').trim()) W('overall_soundscape is empty — use N/A only for explicit total silence.', 'ta_ss');
   }
 
-  if (!out.length) out.push({ l:'ok', m:'✓ All checks pass — official-format H3 prompt.' });
+  if (!out.length) out.push({ l:'ok', m:'✓ Format checks pass — review every scene detail against your request.' });
   return out;
 }
 
@@ -895,7 +1069,7 @@ function refresh(){
   }).join('');
   var d = +$('dur').value || 8;
   $('frameInfo').textContent = '= ' + frameCount(d) + ' frames (' + (frameCount(d)/24).toFixed(3) + 's actual, 17k+5 grid @24fps)';
-  $('beatInfo').textContent = 'Beat budget for ' + d + 's: ' + beatBudget(d) + ' primary actions, one per beat.';
+  $('beatInfo').textContent = 'Optional planning guide for ' + d + 's: ' + beatBudget(d) + ' primary actions. A simple scene can use fewer.';
   renderEditor();
   refreshLight();
 }

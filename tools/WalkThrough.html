@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Walk me through it · Prompt Studio</title>
+<style>
+:root{--bg:#14161a;--panel:#1b1e24;--panel2:#232730;--border:#343a45;--text:#e7eaee;--dim:#a5afbc;--accent:#7fa3c7;--good:#7cc494;--warn:#e0b36e}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 system-ui,Segoe UI,sans-serif}main{max-width:1000px;margin:auto;padding:20px 22px 60px}h1{font-size:22px;margin:0}h2{font-size:17px;margin:0 0 10px}p{margin:5px 0 12px;color:var(--dim)}.muted{font-size:12px;color:var(--dim)}.card{background:var(--panel);border:1px solid var(--border);border-radius:7px;padding:17px;margin:14px 0}.choice-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px}.choice{border:1px solid var(--border);border-radius:6px;background:var(--panel2);padding:13px;color:var(--text);cursor:pointer;text-align:left;font:inherit}.choice:hover,.choice.on{border-color:var(--accent)}.choice b{display:block}.choice small{display:block;color:var(--dim);margin-top:3px}.row{display:flex;gap:9px;align-items:flex-start;flex-wrap:wrap}.row>*{flex:1}.entry{padding:11px;border:1px solid var(--border);border-radius:6px;background:var(--panel2);margin:8px 0}.entry-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:7px}.entry-head b{font-size:13px}label{display:block;font-size:12px;color:var(--dim);margin:8px 0 4px}input,select,textarea{width:100%;font:inherit;color:var(--text);background:#171a20;border:1px solid var(--border);border-radius:4px;padding:9px 10px}textarea{min-height:70px;resize:vertical}input:focus,select:focus,textarea:focus{outline:1px solid var(--accent)}button.small,button.primary,button.copy{font:inherit;border:1px solid var(--border);border-radius:5px;background:var(--panel2);color:var(--text);padding:8px 11px;cursor:pointer}button.small:hover,button.copy:hover{border-color:var(--accent)}button.primary{background:var(--accent);border-color:var(--accent);color:#10151c;font-weight:700;padding:10px 17px}.entry-head button{flex:0;white-space:nowrap}.actions{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.status{font-size:12px;color:var(--warn);white-space:pre-wrap}.status.ok{color:var(--good)}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:12.5px/1.65 ui-monospace,Consolas,monospace;background:#111318;border:1px solid var(--border);border-radius:6px;padding:14px;max-height:520px;overflow:auto}.hidden{display:none!important}.notice{background:rgba(127,163,199,.09);border-left:3px solid var(--accent);padding:10px 12px;color:var(--dim);font-size:12px}
+button.copy:disabled{opacity:.45;cursor:default}
+</style>
+</head>
+<body><main>
+  <h1>Walk me through it</h1>
+  <p>Answer only the questions that matter for your task. This form assembles a prompt from your words, on this device, without calling an AI model or reading your files.</p>
+  <section class="card">
+    <h2>1 · What are you trying to do?</h2>
+    <div class="choice-list" id="choices">
+      <button class="choice" type="button" data-flow="wanI2V"><b>Animate one image</b><small>Wan 2.2 I2V · describe motion and camera only</small></button>
+      <button class="choice" type="button" data-flow="minimaxref"><b>Make a video from references</b><small>MiniMax H3 · give each image, video, or audio source a job</small></button>
+      <button class="choice" type="button" data-flow="imageCreate"><b>Create an image</b><small>Qwen-Image 2.1, Z-Image Turbo, Flux, or SDXL</small></button>
+      <button class="choice" type="button" data-flow="qwenimg21"><b>Edit an image</b><small>Qwen-Image 2.1 · say what changes and what stays</small></button>
+    </div>
+  </section>
+  <section class="card hidden" id="formCard">
+    <h2 id="formTitle">2 · Describe your material</h2>
+    <p id="formHint"></p>
+    <div id="wanFields" class="hidden">
+      <div class="notice">The source image already carries appearance and setting. Name only who or what moves, what changes, and any camera motion you want.</div>
+      <h3>Who or what moves?</h3><div id="wanSubjects"></div><button class="small" type="button" onclick="addWanSubject()">+ Add moving subject</button>
+      <h3>What happens?</h3><div id="wanActions"></div><button class="small" type="button" onclick="addWanAction()">+ Add next action</button>
+      <label for="wanCamera">Camera behavior (optional; leave blank if unspecified)</label><input id="wanCamera" placeholder="e.g. The camera pans slowly left. Or: Fixed camera.">
+    </div>
+    <div id="h3Fields" class="hidden">
+      <div class="notice">Connect the actual reference files in your H3 workflow. The form reads only the descriptions you type. Set a time in seconds for a later action; choose a cut only when you want a new shot.</div>
+      <h3>Reference sources</h3><div id="h3Refs"></div>
+      <div class="actions"><button class="small" type="button" onclick="addH3Ref('picture')">+ Picture</button><button class="small" type="button" onclick="addH3Ref('video')">+ Video</button><button class="small" type="button" onclick="addH3Ref('audio')">+ Audio</button></div>
+      <h3>On-screen subjects</h3><p class="muted">Subject numbers follow this list. Identify each person or object by the words or picture you provide. If you add another subject, identify Subject 1 too; cues such as “woman on the right” help distinguish people in the same picture.</p><div id="h3Subjects"></div><button class="small" type="button" onclick="addH3Subject()">+ Add subject</button>
+      <div class="row"><div><label for="h3Duration">Video duration (seconds, 5–15)</label><input id="h3Duration" type="number" min="5" max="15" step="0.001" value="8"></div></div>
+      <h3>Opening actions</h3><p class="muted">Choose a tagged subject, Everyone for all listed subjects, or Custom for a one-off actor you describe yourself. Add a recurring person or group under On-screen subjects so the same tag is reused.</p><div id="h3Actions"></div><button class="small" type="button" onclick="addH3Action()">+ Add opening action</button>
+      <h3>Timed actions and dialogue</h3><p class="muted">For six seconds into the clip, enter 6.000. Leave the cut box off to keep the same shot. “Everyone” means all listed subjects. If they speak together, the prompt uses a combined speaker ID; dialogue is copied exactly.</p><div id="h3Timed"></div><button class="small" type="button" onclick="addH3Timed()">+ Add timed action</button>
+      <label for="h3Scene">Other scene facts you want included (optional)</label><input id="h3Scene" placeholder="e.g. Rain falls on the dock. Leave blank if the pictures supply the scene.">
+      <label for="h3Camera">Camera behavior (optional)</label><input id="h3Camera" placeholder="e.g. Fixed camera. Or: The camera pans left.">
+      <label for="h3Sound">Audible sound (optional; no sound will be inferred from action)</label><input id="h3Sound" placeholder="e.g. Rain taps the umbrella.">
+      <label for="h3Music">Music (optional)</label><input id="h3Music" placeholder="e.g. A slow piano score. Leave blank for N/A.">
+    </div>
+    <div id="qwenFields" class="hidden">
+      <div class="notice">Image 1 is the image you will edit. Add another image only if it supplies material for the change. Connect each one to the matching slot in ComfyUI.</div>
+      <h3>Input images</h3><div class="entry"><b>Image 1 · the image to edit</b><p class="muted">Connect it to the first image slot in your workflow. Describe the change below.</p></div><div id="qwenRefs"></div><button class="small" type="button" onclick="addQwenRef()">+ Add reference image</button>
+      <label for="qwenChange">What exactly should change?</label><textarea id="qwenChange" placeholder="e.g. Replace the black umbrella with the yellow umbrella from image 2."></textarea>
+      <label for="qwenKeep">What must remain unchanged? (optional)</label><textarea id="qwenKeep" placeholder="e.g. The woman's face, red coat, camera angle, and green boat."></textarea>
+    </div>
+    <div id="imageFields" class="hidden">
+      <div class="notice">Build a new still image from scratch. Add only details you want; blank fields do not become guesses. The canvas shape is a generator setting, shown separately from the copyable prompt.</div>
+      <label for="imageModel">Which image model will you use?</label><select id="imageModel"><option value="qwenimg21">Qwen-Image 2.1 · generation and text</option><option value="zimage">Z-Image Turbo · descriptive prose</option><option value="flux">Flux · subject-first prose</option><option value="sdxl">SDXL photoreal · short phrases and a negative prompt</option></select>
+      <p class="muted" id="imageModelHint"></p>
+      <div id="imageSdxlOptions" class="hidden"><label for="imageSdxlFamily">SDXL checkpoint family</label><select id="imageSdxlFamily"><option value="general">General or unknown SDXL</option><option value="realvis">RealVisXL</option><option value="juggernaut">Juggernaut XI / XIII Ragnarok</option></select></div>
+      <label for="imagePurpose">What kind of image? (optional)</label><input id="imagePurpose" placeholder="e.g. a book cover, product photograph, character portrait">
+      <h3>Subjects and their relationships</h3><p class="muted">Use one row per subject or group. State the count and left/right relationships in your own words; the form will not invent them.</p><div id="imageSubjects"></div><button class="small" type="button" onclick="addImageSubject()">+ Add subject</button>
+      <label for="imageScene">Setting or background (optional)</label><input id="imageScene" placeholder="e.g. in an empty train station">
+      <label for="imageComposition">Framing and layout (optional)</label><input id="imageComposition" placeholder="e.g. full body, woman on the left, station sign above her">
+      <label for="imageLighting">Lighting and colors (optional)</label><input id="imageLighting" placeholder="e.g. warm side light, blue and amber palette">
+      <label for="imageStyle">Visual style or medium (optional)</label><input id="imageStyle" placeholder="e.g. watercolor illustration, editorial photograph">
+      <h3>Text visible in the image</h3><p class="muted">Type each string exactly as it should appear, including punctuation. Placement and lettering are optional.</p><div id="imageTexts"></div><button class="small" type="button" onclick="addImageText()">+ Add visible text</button>
+      <label for="imageTextRule">Other readable text</label><select id="imageTextRule"><option value="unspecified">Leave unspecified</option><option value="only">Only the words entered above</option><option value="none">No readable text anywhere</option></select>
+      <div id="imageRgbaOptions"><label><input id="imageRgba" type="checkbox" style="width:auto;margin-right:6px">Transparent background (Qwen-Image 2.1 RGBA)</label></div>
+      <label for="imageCanvas">Canvas shape (set this in your generator)</label><select id="imageCanvas"><option value="">Use my current canvas setting</option><option value="1:1">Square · 1:1</option><option value="4:3">Landscape · 4:3</option><option value="3:4">Portrait · 3:4</option><option value="16:9">Wide · 16:9</option><option value="9:16">Tall · 9:16</option></select>
+    </div>
+    <div class="actions"><button type="button" class="primary" onclick="assemble()">Assemble prompt</button><span class="status" id="formStatus" role="status"></span></div>
+  </section>
+  <section class="card hidden" id="resultCard">
+    <h2>3 · Your prompt</h2><p id="resultNote"></p>
+    <pre id="result"></pre><p id="resultCanvas" class="muted hidden"></p>
+    <div class="actions"><button class="copy hidden" id="checkAI" type="button" onclick="checkWithAI()">Check with selected AI</button><button class="copy" id="copyPrompt" type="button" onclick="copyPositive()">Copy positive prompt</button><button class="copy hidden" id="copyNegative" type="button" onclick="copyNegative()">Copy negative prompt</button><button class="copy hidden" id="continueH3" type="button" onclick="continueInH3Builder()">Continue in H3 Builder</button><span id="copyStatus" class="status" role="status"></span></div>
+    <p class="muted" id="aiHint">Optional local AI review. It checks your filled fields against this draft and does not change the prompt. It cannot inspect the actual assets or guarantee the generated result; review its findings yourself.</p>
+    <div class="hidden" id="aiReview" aria-live="polite"><b id="aiReviewTitle"></b><pre id="aiReviewText"></pre></div>
+    <span class="status" id="aiStatus" role="status"></span>
+  </section>
+</main>
+<script>
+const WAN_NEG='色调艳丽，过曝，静态，细节模糊不清，字幕，风格，作品，画作，画面，静止，整体发灰，最差质量，低质量，JPEG压缩残留，丑陋的，残缺的，多余的手指，画得不好的手部，画得不好的脸部，畸形的，毁容的，形态畸形的肢体，手指融合，静止不动的画面，杂乱的背景，三条腿，背景人很多，倒着走';
+const SDXL_NEG='lowres, worst quality, low quality, jpeg artifacts, blurry, deformed, disfigured, watermark, text, signature, cropped, bad anatomy, extra limbs, mutated hands';
+const REALVIS_NEG='bad hands, bad anatomy, ugly, deformed, (face asymmetry, eyes asymmetry, deformed eyes, deformed mouth, open mouth)';
+const $=id=>document.getElementById(id);
+let flow='',current=null,aiBusy=false,aiReviewVersion=0;
+function invalidateDraft(){current=null;aiReviewVersion++;$('resultCard').classList.add('hidden');$('aiReview').classList.add('hidden');$('aiStatus').textContent='';$('copyStatus').textContent='';if(flow)$('formStatus').textContent='Fields changed. Assemble again.';}
+const val=id=>$(id).value.trim();
+const clean=s=>(s||'').trim().replace(/\s+/g,' ').replace(/[.!?。！？\s]+$/,'');
+const sentence=s=>{const x=clean(s);return x ? x+'.' : '';};
+const sourceLabel=(kind,n)=>'<'+({picture:'Picture',video:'Video',audio:'Audio'}[kind])+' '+n+'>';
+const roleOptions={picture:[['identity','Character identity'],['scene','Scene / background'],['outfit','Outfit'],['pose','Pose or position guide to replace'],['frame','First-frame anchor']],video:[['motion','Movement / performance'],['camera','Camera or timing'],['edit','Video to edit'],['continuation','Video to continue']],audio:[['voice','Voice guidance'],['copied','Recorded sound to copy'],['music','Music reference']]};
+function selectRoles(kind){return roleOptions[kind].map(([v,t])=>'<option value="'+v+'">'+t+'</option>').join('');}
+function makeEntry(container,title,body,removable=true){
+  const row=document.createElement('div');row.className='entry';row.innerHTML='<div class="entry-head"><b></b>'+(removable?'<button class="small" type="button" aria-label="Remove row">Remove</button>':'')+'</div>'+body;
+  row.querySelector('b').textContent=title;
+  if(removable)row.querySelector('button').onclick=()=>{row.remove();renumber();invalidateDraft();};
+  $(container).appendChild(row);invalidateDraft();return row;
+}
+function renumber(){
+  for(const [id,label] of [['wanSubjects','Moving subject'],['wanActions','Action'],['h3Subjects','Subject'],['h3Actions','Opening action'],['h3Timed','Timed action'],['imageSubjects','Subject'],['imageTexts','Visible text']])
+    [...$(id).querySelectorAll('.entry')].forEach((e,i)=>e.querySelector('b').textContent=label+' '+(i+1));
+  [...$('qwenRefs').querySelectorAll('.entry')].forEach((e,i)=>e.querySelector('b').textContent='Image '+(i+2));
+  const counts={picture:0,video:0,audio:0};
+  [...$('h3Refs').querySelectorAll('.entry')].forEach(e=>e.querySelector('b').textContent=e.dataset.kind[0].toUpperCase()+e.dataset.kind.slice(1)+' '+(++counts[e.dataset.kind]));
+  const names=[...$('wanSubjects').querySelectorAll('input')].map((e,i)=>e.value.trim()||'Subject '+(i+1));
+  [...$('wanActions').querySelectorAll('select.who')].forEach(sel=>{const old=sel.value;sel.replaceChildren(...names.map((name,i)=>{const o=document.createElement('option');o.value=String(i);o.textContent=name;return o;}));sel.value=old<names.length?old:'0';});
+  const pictures=Array.from({length:counts.picture},(_,i)=>i+1);
+  [...$('h3Subjects').querySelectorAll('select.source')].forEach((sel,i)=>{const old=sel.value;sel.replaceChildren(...[{v:'0',t:'Described here; no separate picture'},...pictures.map(n=>({v:String(n),t:'Picture '+n}))].map(x=>{const o=document.createElement('option');o.value=x.v;o.textContent=x.t;return o;}));sel.value=pictures.includes(+old)?old:(i===0&&pictures.length?'1':'0');});
+  const actorNames=[...$('h3Subjects').querySelectorAll('.entry')].map((e,i)=>e.querySelector('.description').value.trim()||'Subject '+(i+1));
+  for(const sel of [...$('h3Actions').querySelectorAll('select.who'),...$('h3Timed').querySelectorAll('select.who,select.target')]){
+    const old=sel.value,isTarget=sel.classList.contains('target');
+    const options=(isTarget?[{v:'-1',t:'No other subject'}]:[]).concat(actorNames.map((name,i)=>({v:String(i),t:'<Subject '+(i+1)+'> · '+name})),isTarget?[{v:'custom',t:'Custom target…'}]:[{v:'all',t:'Everyone (all listed subjects)'},{v:'custom',t:'Custom actor…'}]);
+    sel.replaceChildren(...options.map(x=>{const o=document.createElement('option');o.value=x.v;o.textContent=x.t;return o;}));
+    sel.value=options.some(x=>x.v===old)?old:(isTarget?'-1':'0');
+    showCustomField(sel);
+  }
+}
+function showCustomField(sel){const row=sel.closest('.entry');if(!row)return;const field=row.querySelector(sel.classList.contains('target')?'.targetCustom':'.whoCustom');if(field)field.classList.toggle('hidden',sel.value!=='custom');}
+const actorChoice='<label>Who acts?</label><select class="who"></select><input class="whoCustom hidden" placeholder="e.g. the crowd behind the two women">';
+function addWanSubject(){const row=makeEntry('wanSubjects','Moving subject','<label>Name the mover, without appearance details unless needed to identify it</label><input class="name" placeholder="e.g. the woman, the boat, her left hand">',!!$('wanSubjects').children.length);row.querySelector('input').addEventListener('input',renumber);renumber();}
+function addWanAction(){makeEntry('wanActions','Action','<div class="row"><div><label>Who moves?</label><select class="who"></select></div><div><label>Relationship to the previous action</label><select class="relation"><option value="then">Then</option><option value="while">At the same time</option></select></div></div><label>What changes over time?</label><input class="action" placeholder="e.g. raises her left hand and waves twice">',!!$('wanActions').children.length);renumber();}
+function addH3Ref(kind){const role=kind==='picture'?(![...$('h3Refs').children].some(e=>e.dataset.kind==='picture')?'identity':'scene'):roleOptions[kind][0][0];const row=makeEntry('h3Refs','Reference','<label>What job does this source do?</label><select class="role">'+selectRoles(kind)+'</select><label>Describe only what you know about it</label><textarea class="description" placeholder="Describe the visible or audible facts and the part to use"></textarea>');row.dataset.kind=kind;row.querySelector('.role').value=role;renumber();}
+function addH3Subject(){const first=!$('h3Subjects').children.length;const row=makeEntry('h3Subjects','Subject','<label>How to identify this subject (required when there are multiple subjects)</label><input class="description" placeholder="e.g. the woman on the right"><label>Where is this subject shown?</label><select class="source"></select>',!first);row.querySelector('.description').addEventListener('input',renumber);renumber();row.querySelector('.source').value=first?'1':'0';}
+function addH3Action(){makeEntry('h3Actions','Opening action',actorChoice+'<label>What do they do? Use only details you want in the video</label><input class="action" placeholder="e.g. opens a black umbrella"><label>Relationship to the previous opening action</label><select class="relation"><option value="then">Then</option><option value="while">At the same time</option></select>',!!$('h3Actions').children.length);renumber();}
+function addH3Timed(){makeEntry('h3Timed','Timed action','<div class="row"><div><label>Seconds into video</label><input class="time" type="number" min="0" max="15" step="0.001" placeholder="6.000"></div><div><label>Who acts or speaks?</label><select class="who"></select><input class="whoCustom hidden" placeholder="e.g. the crowd behind the two women"></div></div><label>What does this actor do? (optional if they only speak)</label><input class="action" placeholder="e.g. runs toward screen right and punches"><label>Action directed at (optional)</label><select class="target"></select><input class="targetCustom hidden" placeholder="e.g. the people near the gate"><label>Exact words spoken (optional)</label><input class="speech" placeholder="e.g. This is for what you did."><label>Dialogue language</label><select class="lang"><option>English</option><option>Chinese</option><option>Japanese</option><option>Korean</option><option>Spanish</option><option>French</option><option>German</option></select><label><input class="cut" type="checkbox" style="width:auto;margin-right:6px">Start a new shot at this time</label>');renumber();}
+function addQwenRef(){makeEntry('qwenRefs','Image','<label>What does this additional image supply?</label><input class="description" placeholder="e.g. the yellow umbrella to use in the edit">');renumber();}
+function addImageSubject(){makeEntry('imageSubjects','Subject','<label>Who or what is shown?</label><input class="name" placeholder="e.g. two women, a blue ceramic mug"><label>Appearance or material (optional)</label><input class="attributes" placeholder="e.g. wearing red coats"><label>Action or pose (optional)</label><input class="action" placeholder="e.g. holding an open book"><label>Position or relationship (optional)</label><input class="position" placeholder="e.g. on the left, beside the window">',!!$('imageSubjects').children.length);renumber();}
+function addImageText(){makeEntry('imageTexts','Visible text','<label>Exact words (required)</label><input class="exact" placeholder="e.g. OPEN TODAY"><label>Where is this text? (optional)</label><input class="placement" placeholder="e.g. on the sign above the door"><label>Lettering details (optional)</label><input class="lettering" placeholder="e.g. bold white serif letters">');renumber();}
+function updateImageOptions(){const model=val('imageModel');$('imageSdxlOptions').classList.toggle('hidden',model!=='sdxl');$('imageRgbaOptions').classList.toggle('hidden',model!=='qwenimg21');if(model!=='qwenimg21')$('imageRgba').checked=false;$('imageModelHint').textContent={qwenimg21:'Natural prose. Qwen-Image 2.1 can also make transparent RGBA images; no negative prompt.',zimage:'Natural descriptive prose. This path targets Z-Image Turbo, whose ordinary workflow does not use a negative prompt.',flux:'Put subjects and actions first, then style and context. Use positive descriptions; no negative prompt.',sdxl:'Short comma-separated phrases. The negative prompt follows the checkpoint family you choose below.'}[model]||'';}
+function chooseFlow(next){flow=next;invalidateDraft();document.querySelectorAll('.choice').forEach(b=>b.classList.toggle('on',b.dataset.flow===flow));$('formCard').classList.remove('hidden');for(const id of ['wanFields','h3Fields','qwenFields','imageFields'])$(id).classList.add('hidden');({wanI2V:'wanFields',minimaxref:'h3Fields',qwenimg21:'qwenFields',imageCreate:'imageFields'}[flow]&&$({wanI2V:'wanFields',minimaxref:'h3Fields',qwenimg21:'qwenFields',imageCreate:'imageFields'}[flow]).classList.remove('hidden'));$('formTitle').textContent='2 · '+({wanI2V:'Describe the motion',minimaxref:'Describe your references',qwenimg21:'Describe the edit',imageCreate:'Describe the image'}[flow]);$('formHint').textContent='Only filled fields become scene facts. You can leave optional fields blank.';$('formStatus').textContent='';if(flow==='imageCreate')updateImageOptions();}
+document.querySelectorAll('.choice').forEach(b=>b.onclick=()=>chooseFlow(b.dataset.flow));
+$('formCard').addEventListener('input',invalidateDraft);
+$('formCard').addEventListener('change',invalidateDraft);
+$('formCard').addEventListener('change',e=>{if(e.target.matches('select.who,select.target'))showCustomField(e.target);});
+$('imageModel').addEventListener('change',updateImageOptions);
+function collect(){
+  if(flow==='wanI2V')return {flow,subjects:[...$('wanSubjects').querySelectorAll('.name')].map(x=>x.value.trim()),actions:[...$('wanActions').querySelectorAll('.entry')].map(e=>({who:+e.querySelector('.who').value,text:e.querySelector('.action').value.trim(),relation:e.querySelector('.relation').value})),camera:val('wanCamera')};
+  if(flow==='minimaxref'){
+    const choice=sel=>/^-?\d+$/.test(sel.value)?+sel.value:sel.value;
+    return {flow,refs:[...$('h3Refs').querySelectorAll('.entry')].map(e=>({kind:e.dataset.kind,role:e.querySelector('.role').value,description:e.querySelector('.description').value.trim()})),subjects:[...$('h3Subjects').querySelectorAll('.entry')].map(e=>({description:e.querySelector('.description').value.trim(),picture:+e.querySelector('.source').value})),duration:+val('h3Duration'),actions:[...$('h3Actions').querySelectorAll('.entry')].map(e=>({who:choice(e.querySelector('.who')),customWho:e.querySelector('.whoCustom').value.trim(),text:e.querySelector('.action').value.trim(),relation:e.querySelector('.relation').value})),timed:[...$('h3Timed').querySelectorAll('.entry')].map(e=>({time:e.querySelector('.time').value.trim(),who:choice(e.querySelector('.who')),customWho:e.querySelector('.whoCustom').value.trim(),text:e.querySelector('.action').value.trim(),target:choice(e.querySelector('.target')),customTarget:e.querySelector('.targetCustom').value.trim(),speech:e.querySelector('.speech').value.trim(),language:e.querySelector('.lang').value,cut:e.querySelector('.cut').checked})),scene:val('h3Scene'),camera:val('h3Camera'),sound:val('h3Sound'),music:val('h3Music')};
+  }
+  if(flow==='qwenimg21')return {flow,refs:[{description:'base image'}].concat([...$('qwenRefs').querySelectorAll('.description')].map(x=>({description:x.value.trim()}))),change:val('qwenChange'),keep:val('qwenKeep')};
+  if(flow==='imageCreate')return {flow,model:val('imageModel'),family:val('imageSdxlFamily'),purpose:val('imagePurpose'),subjects:[...$('imageSubjects').querySelectorAll('.entry')].map(e=>({name:e.querySelector('.name').value.trim(),attributes:e.querySelector('.attributes').value.trim(),action:e.querySelector('.action').value.trim(),position:e.querySelector('.position').value.trim()})),scene:val('imageScene'),composition:val('imageComposition'),lighting:val('imageLighting'),style:val('imageStyle'),texts:[...$('imageTexts').querySelectorAll('.entry')].map(e=>({exact:e.querySelector('.exact').value.trim(),placement:e.querySelector('.placement').value.trim(),lettering:e.querySelector('.lettering').value.trim()})),textRule:val('imageTextRule'),rgba:$('imageRgba').checked,canvas:val('imageCanvas')};
+  return {flow:''};
+}
+function composeWalkDraft(d){
+  const missing=[];let prompt='',source='',negative='',targetKey=d.flow,canvas='';
+  if(d.flow==='wanI2V'){
+    const subjects=(d.subjects||[]).map(clean);const actions=(d.actions||[]).filter(a=>clean(a.text));
+    if(!subjects.length||subjects.some(s=>!s))missing.push('Name each moving subject.');
+    if(!actions.length)missing.push('Describe at least one action.');
+    if(actions.some(a=>!subjects[a.who]))missing.push('Select a named mover for each action.');
+    if(!missing.length){
+      const clauses=actions.map((a,i)=>(i?(a.relation==='while'?'while ':'then '):'')+subjects[a.who]+' '+clean(a.text));
+      prompt=sentence(clauses.join(', '))+(clean(d.camera)?' '+sentence(d.camera):'');
+      source=subjects.join('; ')+'\n'+actions.map(a=>a.text).join('\n')+'\n'+(d.camera||'');
+      negative=WAN_NEG;
+      if((prompt.match(/[\p{L}\p{N}]+/gu)||[]).length>100)missing.push('Wan I2V allows at most 100 English words; shorten the motion description.');
+      prompt+='\n\nNegative prompt: '+negative;
+    }
+  }else if(d.flow==='qwenimg21'){
+    const refs=d.refs||[];
+    if(!refs.length)missing.push('Add the image being edited.');
+    if(!clean(d.change))missing.push('Describe the exact edit.');
+    if(refs.slice(1).some(r=>!clean(r.description)))missing.push('Give every added image a role.');
+    if(refs.length>10)missing.push('Qwen-Image 2.1 supports at most 10 reference images.');
+    if(!missing.length){
+      const extras=refs.slice(1).map((r,i)=>'Use <image'+(i+2)+'> for '+clean(r.description)+'.');
+      const keep=clean(d.keep);
+      prompt='Edit <image1>: '+sentence(d.change)+' '+extras.join(' ')+' '+(keep?(/^keep\b/i.test(keep)?sentence(keep):'Keep '+sentence(keep)):'Keep everything else unchanged.');
+      prompt=prompt.replace(/\s+/g,' ').trim();source='image 1 = base image\n'+refs.slice(1).map((r,i)=>'image '+(i+2)+' = '+r.description).join('\n')+'\n'+d.change+'\n'+(d.keep||'');
+    }
+  }else if(d.flow==='imageCreate'){
+    const models=['qwenimg21','zimage','flux','sdxl'],subjects=d.subjects||[],texts=d.texts||[];
+    targetKey=d.model;
+    if(!models.includes(d.model))missing.push('Choose one of the supported image models.');
+    if(!subjects.length||subjects.some(s=>!clean(s.name)))missing.push('Name each subject or group you added.');
+    if(texts.some(t=>!String(t.exact||'').trim()))missing.push('Enter the exact words for every visible-text row, or remove the blank row.');
+    if(d.textRule==='only'&&!texts.length)missing.push('Add at least one visible-text row before choosing “Only the words entered above”.');
+    if(d.textRule==='none'&&texts.length)missing.push('Choose either exact visible text or no readable text.');
+    if(d.rgba&&d.model!=='qwenimg21')missing.push('Transparent RGBA output is available in this guide only for Qwen-Image 2.1.');
+    if(d.rgba&&clean(d.scene))missing.push('A transparent background conflicts with the filled setting; remove the setting or turn transparency off.');
+    const fields=[d.purpose,...subjects.flatMap(s=>[s.name,s.attributes,s.action,s.position]),d.scene,d.composition,d.lighting,d.style,...texts.flatMap(t=>[t.exact,t.placement,t.lettering])].filter(Boolean).join('\n');
+    if(d.model==='sdxl'&&/[一-鿿]/.test(fields))missing.push('SDXL tags need English wording here; write the fields in English or choose another model.');
+    if(!missing.length){
+      const quote=value=>value.includes('"')?'“'+value+'”':'"'+value+'"';
+      const imageSentence=value=>{const s=sentence(value);return /^[a-z](?![A-Z])/.test(s)?s[0].toUpperCase()+s.slice(1):s;};
+      const parts=subjects.map(s=>[s.name,s.attributes,s.action,s.position].map(clean).filter(Boolean).join(', '));
+      const subjectLine=(clean(d.purpose)?clean(d.purpose)+' showing ':'')+parts.join('; ');
+      const textLines=texts.map(t=>'The exact visible text '+quote(String(t.exact).trim())+' appears'+(clean(t.placement)?' '+clean(t.placement):'')+(clean(t.lettering)?', '+clean(t.lettering):'')+'.');
+      const textRule=d.textRule==='only'?'No other text.':d.textRule==='none'?'Text-free image.':'';
+      const main=[imageSentence(subjectLine),...(d.model==='flux'?[imageSentence(d.style)]:[]),imageSentence(d.scene),imageSentence(d.composition),imageSentence(d.lighting),...(d.model==='flux'?[]:[imageSentence(d.style)]),...textLines,textRule].filter(Boolean);
+      if(d.model==='sdxl'){
+        const tags=[...parts,clean(d.purpose),clean(d.scene),clean(d.composition),clean(d.lighting),clean(d.style),...texts.map(t=>'text '+quote(String(t.exact).trim())+(clean(t.placement)?', '+clean(t.placement):'')+(clean(t.lettering)?', '+clean(t.lettering):'')),textRule].filter(Boolean);
+        prompt=tags.join(', ');
+        if((prompt.match(/[\p{L}\p{N}]+/gu)||[]).length>70)missing.push('SDXL needs a shorter prompt; keep the most important supplied details or choose another model.');
+        negative=d.family==='juggernaut'?'':d.family==='realvis'?REALVIS_NEG:SDXL_NEG;
+        if(texts.length&&negative===SDXL_NEG)negative=negative.replace(', text,', ',');
+        if(negative)prompt+='\n\nNegative prompt: '+negative;
+      }else{
+        prompt=main.join(' ');
+        if(d.model==='qwenimg21'&&d.rgba)prompt='This is an RGBA image with transparency. '+prompt+' The image has alpha channel and the background is transparent.';
+        if((d.model==='flux'||d.model==='zimage')&&(prompt.match(/[\p{L}\p{N}]+/gu)||[]).length>360)missing.push('This prompt may exceed the selected model’s usual text limit; shorten it without removing essential facts.');
+      }
+      canvas=d.canvas||'';
+      source=['Task: text-to-image generation','Model key: '+d.model+(d.model==='sdxl'?' · '+({general:'general checkpoint',realvis:'RealVisXL',juggernaut:'Juggernaut XI'}[d.family]||'general checkpoint'):''),clean(d.purpose)?'Image type: '+d.purpose:'',...subjects.map((s,i)=>'Subject '+(i+1)+': '+[s.name,s.attributes,s.action,s.position].filter(Boolean).join('; ')),clean(d.scene)?'Setting: '+d.scene:'',clean(d.composition)?'Composition: '+d.composition:'',clean(d.lighting)?'Lighting and colors: '+d.lighting:'',clean(d.style)?'Style or medium: '+d.style:'',...texts.map((t,i)=>'Visible text '+(i+1)+': '+quote(String(t.exact).trim())+(clean(t.placement)?'; placement: '+t.placement:'')+(clean(t.lettering)?'; lettering: '+t.lettering:'')),d.rgba?'Transparent RGBA background':'',d.textRule==='only'?'No other text':d.textRule==='none'?'No readable text':''].filter(Boolean).join('\n');
+    }
+  }else if(d.flow==='minimaxref'){
+    const refs=d.refs||[],actions=(d.actions||[]).filter(a=>clean(a.text));
+    const identityNumber=refs.findIndex(r=>r.kind==='picture'&&r.role==='identity');
+    const subjects=d.subjects?.length?d.subjects:[{description:'',picture:identityNumber<0?0:refs.slice(0,identityNumber+1).filter(r=>r.kind==='picture').length}];
+    const timed=(d.timed||[]).filter(e=>String(e.time??'').trim()||clean(e.text)||String(e.speech||'').trim());
+    const duration=d.duration===undefined?8:Number(d.duration);
+    if(!refs.length)missing.push('Add at least one reference picture.');
+    if(refs.some(r=>!clean(r.description)))missing.push('Describe every reference source and its role.');
+    if(!refs.some(r=>r.kind==='picture'&&r.role==='identity'))missing.push('Mark one picture as the final character identity.');
+    if(!actions.length&&!timed.length)missing.push('Describe an opening or timed action.');
+    const caps={picture:9,video:3,audio:3},counts={picture:0,video:0,audio:0};
+    for(const r of refs)counts[r.kind]++;
+    for(const kind of Object.keys(caps))if(counts[kind]>caps[kind])missing.push('Too many '+kind+' references for this guided path (maximum '+caps[kind]+').');
+    if(!Number.isFinite(duration)||duration<5||duration>15)missing.push('Choose a video duration from 5 to 15 seconds.');
+    if(!subjects.length||subjects.some((s,i)=>!clean(s.description)&&!(i===0&&+s.picture>0)))missing.push('Describe each added on-screen subject.');
+    if(subjects.length>1&&!clean(subjects[0].description))missing.push('Identify Subject 1 so it is distinct from the other subjects.');
+    if(subjects.some(s=>+s.picture<0||+s.picture>counts.picture))missing.push('Choose an existing picture for each subject, or no separate picture.');
+    if(subjects.length&&refs.filter(r=>r.kind==='picture')[Number(subjects[0].picture)-1]?.role!=='identity')missing.push('Connect Subject 1 to a picture marked Character identity.');
+    const allActors=a=>a.who==='all'||(a.who==='custom'&&/^(?:everyone|all(?: listed)? subjects)$/i.test(clean(a.customWho)));
+    const validActor=a=>allActors(a)||(a.who==='custom'&&!!clean(a.customWho))||(Number.isInteger(a.who??0)&&(a.who??0)>=0&&(a.who??0)<subjects.length);
+    if(actions.some(a=>!validActor(a)))missing.push('Choose a tagged subject, Everyone, or describe the custom actor for each opening action.');
+    let previousTime=-1;
+    for(const e of timed){
+      const seconds=Math.round(Number(e.time)*1000)/1000;
+      if(String(e.time??'').trim()===''||!Number.isFinite(seconds)||seconds<=0||seconds>=duration)missing.push('Each timed action needs a time after 0 and before the video ends.');
+      else if(seconds<previousTime||(e.cut&&seconds===previousTime))missing.push('Timed actions must be in order; a new shot needs a later cut time.');
+      previousTime=seconds;
+      if(!clean(e.text)&&!String(e.speech||'').trim())missing.push('Add an action or exact dialogue at each time.');
+      if(!validActor(e))missing.push('Choose who acts or speaks at each time, or describe the custom actor.');
+      if(e.target==='custom'&&!clean(e.customTarget))missing.push('Describe the custom target, or choose no target.');
+      if(e.target!=='custom'&&(!Number.isInteger(e.target??-1)||(e.target??-1)<-1||(e.target??-1)>=subjects.length||e.target===e.who))missing.push('Choose a different target subject, or no target.');
+      if(allActors(e)&&Number.isInteger(e.target)&&e.target>=0)missing.push('Everyone includes that target; choose a custom actor such as “everyone else” if they should be excluded.');
+      if((e.target==='custom'||(e.target??-1)>=0)&&!clean(e.text))missing.push('A target needs an action directed at them.');
+    }
+    if(!missing.length){
+      const defs=[],ret=[],shotRefs=[],sourceRefs=[];let subject=subjects.length;counts.picture=counts.video=counts.audio=0;
+      const ordered=refs.map(r=>({...r,n:++counts[r.kind]}));
+      const identity=ordered.find(r=>r.kind==='picture'&&r.role==='identity');
+      const priority=[identity,...ordered.filter(r=>r!==identity)];
+      for(let i=0;i<subjects.length;i++){
+        const s=subjects[i],pic=ordered.find(r=>r.kind==='picture'&&r.n===+s.picture);
+        const description=clean(s.description)||(i===0?clean(pic?.description):'');
+        const label=pic?' from '+sourceLabel('picture',pic.n):' from the user description';
+        const pictureDescription=pic?.role==='identity'&&subjects.filter(other=>+other.picture===pic.n).length===1?clean(pic.description):'';
+        const extra=pictureDescription&&!description.toLocaleLowerCase().includes(pictureDescription.toLocaleLowerCase())?': '+pictureDescription:'';
+        defs.push('<Subject '+(i+1)+'> = '+description+label+extra+'.');
+        ret.push('<Subject '+(i+1)+'>: '+(pic?.role==='identity'?'fully_preserved':'reference')+' - '+(pic?'identified from '+sourceLabel('picture',pic.n):'user-described on-screen subject')+'.');
+      }
+      for(const r of priority){
+        const label=sourceLabel(r.kind,r.n);sourceRefs.push(r.kind+' '+r.n+' = '+r.description+'; role: '+r.role);
+        if(r.kind==='picture'&&r.role==='identity'&&subjects.some(s=>+s.picture===r.n))continue;
+        if(r.kind==='picture'&&r.role!=='frame'){
+          const content='<Subject '+(++subject)+'>';
+          const kind={identity:'final character',scene:'scene',outfit:'outfit',pose:'pose or position guide to replace'}[r.role];
+          defs.push(content+' = '+kind+' from '+label+': '+sentence(r.description));
+          ret.push(content+' (appears in [Shot 1]): '+(r.role==='identity'?'fully_preserved':'attribute_transfer')+' - '+kind+' from '+label+'.');
+          if(r.role==='scene')shotRefs.push('The setting follows '+content+'.');
+          if(r.role==='outfit')shotRefs.push('The final character uses the outfit from '+content+'.');
+          if(r.role==='pose')shotRefs.push('Use the pose from '+content+' for the final character; the position guide does not appear.');
+        }else if(r.kind==='picture'){
+          defs.push(label+' = first-frame anchor: '+sentence(r.description));ret.push(label+' (applies in [Shot 1]): fully_preserved - first-frame anchor.');shotRefs.push('The shot begins from '+label+'.');
+        }else{
+          const role={motion:'motion or performance reference',camera:'camera or timing reference',edit:'video to edit',continuation:'video to continue',voice:'voice guidance',copied:'copied recorded sound',music:'music reference'}[r.role];
+          defs.push(label+' = '+role+': '+sentence(r.description));ret.push(label+': '+(r.role==='copied'?'partially_copy':r.kind==='audio'?'reference':'attribute_transfer')+' - '+role+'.');
+          if(r.kind==='video')shotRefs.push('Use '+label+' only for the stated '+role+'.');
+        }
+      }
+      const allLabels=subjects.map((_,i)=>'<Subject '+(i+1)+'>');
+      const actor=a=>allActors(a)?(allLabels.length===1?allLabels[0]:allLabels.length===2?allLabels.join(' and '):allLabels.slice(0,-1).join(', ')+', and '+allLabels.at(-1)):a.who==='custom'?clean(a.customWho):'<Subject '+((a.who??0)+1)+'>';
+      const actionText=actions.map((a,i)=>(i?(a.relation==='while'?'while ':'then '):'')+actor(a)+' '+clean(a.text)).join(', ');
+      const task=ordered.some(r=>r.role==='edit')?'video editing':ordered.some(r=>r.role==='continuation')?'video continuation':'reference generation';
+      const taskLabel='['+task+(ordered.some(r=>r.role==='copied')?' + audio reuse':'')+']';
+      const sound=clean(d.sound)?sentence(d.sound):'Unspecified.';const music=clean(d.music)?sentence(d.music):'N/A';
+      const audioRefs=priority.filter(r=>r.kind==='audio');
+      const soundRef=audioRefs.filter(r=>r.role!=='music').map(r=>sourceLabel('audio',r.n)+' is used only for its stated audio role.').join(' ');
+      const musicRef=audioRefs.filter(r=>r.role==='music').map(r=>sourceLabel('audio',r.n)+' is used only as the stated music reference.').join(' ');
+      const clock=t=>{const ms=Math.round(Number(t)*1000);return String(Math.floor(ms/60000)).padStart(2,'0')+':'+String(Math.floor(ms/1000)%60).padStart(2,'0')+'.'+String(ms%1000).padStart(3,'0');};
+      const speakerNumbers=new Map();
+      const speakerId=e=>{
+        const keys=allActors(e)?subjects.map((_,i)=>'subject:'+i):[e.who==='custom'?'custom:'+clean(e.customWho).toLocaleLowerCase():'subject:'+(e.who??0)];
+        return ' ('+keys.map(key=>{if(!speakerNumbers.has(key))speakerNumbers.set(key,speakerNumbers.size+1);return 'S'+speakerNumbers.get(key);}).join(',')+')';
+      };
+      const targetLabel=e=>e.target==='custom'?clean(e.customTarget):(e.target??-1)>=0?'<Subject '+(e.target+1)+'>':'';
+      let shot=1;
+      const timedLines=timed.map(e=>{
+        if(e.cut)shot++;
+        const at=(e.cut?'[Shot '+shot+'] ':'')+'At '+clock(e.time)+', ';
+        const who=actor(e),id=e.speech?speakerId(e):'';
+        const target=targetLabel(e);
+        const action=clean(e.text)+(target?' '+target:'');
+        const dialogue=String(e.speech||'').trim()?'<d>['+(e.language||'English')+'] '+String(e.speech).trim()+'</d>':'';
+        const content=action&&dialogue?who+id+' '+action+' while saying: '+dialogue:action?who+' '+sentence(action):who+id+' says: '+dialogue;
+        return at+(e.cut?'the shot cuts. ':'')+content;
+      });
+      const summaryTimed=timed.map(e=>{const action=clean(e.text)+(targetLabel(e)?' '+targetLabel(e):'');return 'At '+clock(e.time)+', '+actor(e)+' '+(action?action+(e.speech?' while speaking':''):'speaks')+'.';});
+      const summaryAction=[actionText?sentence(actionText):'',...summaryTimed].filter(Boolean).join(' ');
+      const openingParts=[actionText?sentence(actionText):'',clean(d.scene)?sentence(d.scene):'',clean(d.camera)?sentence(d.camera):'',...shotRefs].filter(Boolean);
+      if(!openingParts.length)openingParts.push('Use '+sourceLabel('picture',subjects[0].picture)+' for <Subject 1>.');
+      const opening='[Shot 1] '+openingParts.join(' ');
+      prompt='subject_definitions:\n'+defs.join('\n')+'\n\nsummary:\n'+taskLabel+' '+summaryAction+'\n\nretention_analysis:\n'+ret.join('\n')+'\n\ndetailed_description:\n'+[opening,...timedLines].join('\n')+'\n\noverall_soundscape:\n'+[soundRef,sound].filter(Boolean).join(' ')+'\n\nnon_diegetic_music:\n'+[musicRef,music].filter(Boolean).join(' ');
+      prompt=prompt.replace(/ +\n/g,'\n');
+      source=sourceRefs.join('\n')+'\n'+subjects.map((s,i)=>'subject '+(i+1)+' = '+s.description+'; picture '+s.picture).join('\n')+'\n'+actions.map(a=>actor(a)+' '+a.text).join('\n')+'\n'+timed.map(e=>'at '+e.time+' seconds: '+actor(e)+' '+e.text+(e.target==='custom'?'; target '+e.customTarget:(e.target??-1)>=0?'; target subject '+(e.target+1):'')+(e.speech?'; says '+e.speech+(e.text?' while acting':''):'')+(e.cut?'; cut to new shot':'')).join('\n')+'\n'+[d.scene,d.camera,d.sound||'sound unspecified',d.music].filter(Boolean).join('\n');
+    }
+  }else missing.push('Choose a task first.');
+  return {key:targetKey,prompt:missing.length?'':prompt,source,negative,missing,canvas,refs:d.flow==='minimaxref'?(d.refs||[]):[],duration:d.flow==='minimaxref'?(d.duration??8):undefined};
+}
+function assemble(){aiReviewVersion++;$('aiReview').classList.add('hidden');$('aiStatus').textContent='';const built=composeWalkDraft(collect());const st=$('formStatus');st.textContent=built.missing.join('\n');st.classList.toggle('ok',!built.missing.length);current=null;if(built.missing.length){$('resultCard').classList.add('hidden');return;}$('result').textContent=built.prompt;$('resultCard').classList.remove('hidden');$('resultCanvas').textContent=built.canvas?'Canvas: set '+built.canvas+' in your generator. This setting is separate from the copyable prompt.':'';$('resultCanvas').classList.toggle('hidden',!built.canvas);$('copyNegative').classList.toggle('hidden',!built.negative);$('continueH3').classList.toggle('hidden',built.key!=='minimaxref'||window.parent===window||typeof window.parent.openH3BuilderFromWalk!=='function');$('checkAI').classList.toggle('hidden',window.parent===window||typeof window.parent.reviewWalkPromptWithAI!=='function');$('copyPrompt').textContent=built.negative?'Copy positive prompt':'Copy prompt';$('copyPrompt').disabled=$('copyNegative').disabled=false;$('resultNote').textContent=flow==='imageCreate'?'Assembled from your filled fields without AI. Review the description and set any canvas shape shown below in your generator.':'Assembled from the fields above. No AI was used. Review the wording against your actual connected assets.';st.textContent='Ready to review and copy.';if(window.parent&&window.parent!==window&&typeof window.parent.validate==='function'){const issues=window.parent.validate(built.key,built.prompt,built.source).filter(x=>!x.startsWith('advisory:'));if(issues.length){st.textContent='Review needed: '+issues.join(' ');st.classList.remove('ok');$('copyPrompt').disabled=$('copyNegative').disabled=true;}}if(!$('copyPrompt').disabled)current=built;$('continueH3').disabled=!current;$('checkAI').disabled=!current||aiBusy;$('resultCard').scrollIntoView({behavior:'smooth',block:'start'});}
+async function checkWithAI(){
+  if(!current||aiBusy||window.parent===window||typeof window.parent.reviewWalkPromptWithAI!=='function')return;
+  const draft=current,version=++aiReviewVersion,button=$('checkAI');
+  aiBusy=true;button.disabled=true;$('aiReview').classList.remove('hidden');$('aiReviewTitle').textContent='Checking with the selected local model…';$('aiReviewText').textContent='';$('aiStatus').textContent='';
+  try{
+    const result=await window.parent.reviewWalkPromptWithAI(draft,partial=>{if(version===aiReviewVersion&&current===draft)$('aiReviewText').textContent=partial;});
+    if(version!==aiReviewVersion||current!==draft)return;
+    $('aiReviewTitle').textContent='AI review · '+result.model;
+    $('aiReviewText').textContent=result.review;
+    $('aiStatus').textContent='AI feedback is advisory. Your assembled prompt was not changed.';
+  }catch(error){
+    if(version!==aiReviewVersion||current!==draft)return;
+    $('aiReview').classList.add('hidden');$('aiStatus').textContent='AI check could not run: '+error.message;
+  }finally{aiBusy=false;button.disabled=!current;}
+}
+function continueInH3Builder(){if(!current||current.key!=='minimaxref'||window.parent===window)return;window.parent.openH3BuilderFromWalk({format:'prompt-studio-walkthrough-v1',key:'minimaxref',prompt:current.prompt,refs:current.refs,duration:current.duration});}
+async function copyPositive(){if(!current)return;await navigator.clipboard.writeText(current.negative?current.prompt.split('\n\nNegative prompt:')[0]:current.prompt);$('copyStatus').textContent=current.negative?'Positive prompt copied.':'Prompt copied.';}
+async function copyNegative(){if(!current?.negative)return;await navigator.clipboard.writeText(current.negative);$('copyStatus').textContent='Negative prompt copied.';}
+addWanSubject();addWanAction();addH3Ref('picture');addH3Ref('picture');addH3Subject();addH3Action();addImageSubject();updateImageOptions();
+</script></body></html>

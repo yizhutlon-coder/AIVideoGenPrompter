@@ -1,0 +1,259 @@
+{
+  "date": "2026-09-22T09:10:03.298Z",
+  "results": [
+    {
+      "model": "qwen2.5:7b-instruct",
+      "case": "simple-text",
+      "strategy": "schema-fixed",
+      "pass": false,
+      "problems": [
+        "The model did not return the complete project JSON."
+      ],
+      "project": null,
+      "raw": "{\n  \"mode\": \"T2VA\",\n  \"dur\": 8,\n  \"media\": [],\n  \"text\": {\n    \"imd\": \"[Shot 1]\",\n    \"ss\": \"00:00.000\",\n    \"mus\": \"none specified, no music added, no sound effects added, no dialogue added, no voiceover added, no sound design added, no sound effects added, no sound editing added, no sound mixing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added, no sound production added, no sound recording added, no sound mixing added, no sound editing added, no sound mastering added, no sound post-production added,"
+    },
+    {
+      "model": "qwen2.5:7b-instruct",
+      "case": "plain-text",
+      "strategy": "schema-fixed",
+      "pass": false,
+      "problems": [
+        "The timeline needs [Shot 1].",
+        "Soundscape and music must contain a description or N/A.",
+        "expected 1 shots"
+      ],
+      "project": {
+        "mode": "T2VA",
+        "dur": 8,
+        "media": [],
+        "text": {
+          "imd": "A woman walks across a battlefield.",
+          "ss": "[Shot 1] 00:00.000",
+          "mus": ""
+        }
+      },
+      "raw": "{\n  \"mode\": \"T2VA\",\n  \"dur\": 8,\n  \"media\": [],\n  \"text\": {\n    \"imd\": \"A woman walks across a battlefield.\",\n    \"ss\": \"[Shot 1] 00:00.000\",\n    \"mus\": \"\"\n  }\n}"
+    },
+    {
+      "model": "qwen2.5:7b-instruct",
+      "case": "two-shot",
+      "strategy": "schema-fixed",
+      "pass": false,
+      "problems": [
+        "expected 2 shots",
+        "missing woman",
+        "missing dock",
+        "missing boat"
+      ],
+      "project": {
+        "mode": "T2VA",
+        "dur": 8,
+        "media": [],
+        "text": {
+          "imd": "[Shot 1] 00:00.000",
+          "ss": "[Shot 1] A woman stands on a dock.",
+          "mus": "None added by user. No music or sound in the video as requested."
+        }
+      },
+      "raw": "{\n  \"mode\": \"T2VA\",\n  \"dur\": 8,\n  \"media\": [],\n  \"text\": {\n    \"imd\": \"[Shot 1] 00:00.000\",\n    \"ss\": \"[Shot 1] A woman stands on a dock.\",\n    \"mus\": \"None added by user. No music or sound in the video as requested.\"\n  }\n}"
+    },
+    {
+      "model": "qwen2.5:7b-instruct",
+      "case": "first-frame",
+      "strategy": "schema-fixed",
+      "pass": false,
+      "problems": [
+        "Soundscape and music must contain a description or N/A.",
+        "missing woman",
+        "missing walk",
+        "missing boat"
+      ],
+      "project": {
+        "mode": "I2VA",
+        "dur": 8,
+        "media": [
+          {
+            "kind": "pic",
+            "desc": "A woman on a dock",
+            "dur": 0,
+            "on": true,
+            "job": ""
+          }
+        ],
+        "text": {
+          "imd": "[Shot 1] 00:00.000",
+          "ss": "[Shot 2] 00:02.000",
+          "mus": ""
+        }
+      },
+      "raw": "{\n  \"mode\": \"I2VA\",\n  \"dur\": 8,\n  \"media\": [\n    {\n      \"kind\": \"pic\",\n      \"desc\": \"A woman on a dock\",\n      \"dur\": 0,\n      \"on\": true,\n      \"job\": \"Picture 1\"\n    }\n  ],\n  \"text\": {\n    \"imd\": \"[Shot 1] 00:00.000\",\n    \"ss\": \"[Shot 2] 00:02.000\",\n    \"mus\": \"\"\n  }\n}"
+    },
+    {
+      "model": "qwen2.5:7b-instruct",
+      "case": "two-pictures",
+      "strategy": "schema-fixed",
+      "pass": false,
+      "problems": [
+        "The timeline needs [Shot 1].",
+        "expected 1 shots"
+      ],
+      "project": {
+        "mode": "REF",
+        "dur": 10,
+        "media": [
+          {
+            "kind": "pic",
+            "desc": "The woman from Picture 1 is to be preserved as the main subject.",
+            "dur": 0,
+            "on": true,
+            "job": ""
+          },
+          {
+            "kind": "pic",
+            "desc": "Picture 2 supplies a battlefield, her outfit, and a position guide who is replaced by the woman in Picture 1.",
+            "dur": 0,
+            "on": true,
+            "job": ""
+          }
+        ],
+        "text": {
+          "subj": "The woman from Picture 1 jumps around the battlefield cutting down enemies.",
+          "summ": "The woman from Picture 1 is placed in the battlefield setting from Picture 2, where she performs actions as described, replacing the position guide and engaging with the environment.",
+          "ret": "The woman from Picture 1 is preserved and integrated into the battlefield setting from Picture 2, where she performs actions as described, replacing the position guide and engaging with the environment. The sequence of actions includes jumping, cutting down enemies, and moving around the battlefield.",
+          "dd": "The woman from Picture 1 is integrated into the battlefield setting from Picture 2, where she performs actions as described, replacing the position guide and engaging with the environment. The sequence of actions includes jumping, cutting down enemies, and moving around the battlefield.",
+          "ss": "The woman from Picture 1 is integrated into the battlefield setting from Picture 2, where she performs actions as described, replacing the position guide and engaging with the environment. The sequence of actions includes jumping, cutting down enemies, and moving around the battlefield.",
+          "mus": "No music reference."
+        }
+      },
+      "raw": "{\n  \"mode\": \"REF\",\n  \"dur\": 10,\n  \"media\": [\n    {\n      \"kind\": \"pic\",\n      \"desc\": \"The woman from Picture 1 is to be preserved as the main subject.\",\n      \"dur\": 0,\n      \"on\": true,\n      \"job\": \"keep\"\n    },\n    {\n      \"kind\": \"pic\",\n      \"desc\": \"Picture 2 supplies a battlefield, her outfit, and a position guide who is replaced by the woman in Picture 1.\",\n      \"dur\": 0,\n      \"on\": true,\n      \"job\": \"replace\"\n    }\n  ],\n  \"text\": {\n    \"subj\": \"The woman from Picture 1 jumps around the battlefield cutting down enemies.\",\n    \"summ\": \"The woman from Picture 1 is placed in the battlefield setting from Picture 2, where she performs actions as described, replacing the position guide and engaging with the environment.\",\n    \"ret\": \"The woman from Picture 1 is preserved and integrated into the battlefield setting from Picture 2, where she performs actions as described, replacing the position guide and engaging with the environment. The sequence of actions includes jumping, cutting down enemies, and moving around the battlefield.\",\n    \"dd\": \"The woman from Picture 1 is integrated into the battlefield setting from Picture 2, where she performs actions as described, replacing the position guide and engaging with the environment. The sequence of actions includes jumping, cutting down enemies, and moving around the battlefield.\",\n    \"ss\": \"The woman from Picture 1 is integrated into the battlefield setting from Picture 2, where she performs actions as described, replacing the position guide and engaging with the environment. The sequence of actions includes jumping, cutting down enemies, and moving around the battlefield.\",\n    \"mus\": \"No music reference.\"\n  }\n}"
+    },
+    {
+      "model": "R4C3R/qwen2.5-7b-instruct-heretic:q8_0",
+      "case": "simple-text",
+      "strategy": "schema-fixed",
+      "pass": false,
+      "problems": [
+        "missing woman",
+        "missing walk",
+        "missing battlefield"
+      ],
+      "project": {
+        "mode": "T2VA",
+        "dur": 8,
+        "media": [],
+        "text": {
+          "imd": "[Shot 1]",
+          "ss": "00:00.000",
+          "mus": "00:00.000-00:08.000: silence.wav"
+        }
+      },
+      "raw": "{\n  \"mode\": \"T2VA\",\n  \"dur\": 8,\n  \"media\": [],\n  \"text\": {\n    \"imd\": \"[Shot 1]\",\n    \"ss\": \"00:00.000\",\n    \"mus\": \"00:00.000-00:08.000: silence.wav\"\n  }\n}"
+    },
+    {
+      "model": "R4C3R/qwen2.5-7b-instruct-heretic:q8_0",
+      "case": "plain-text",
+      "strategy": "schema-fixed",
+      "pass": false,
+      "problems": [
+        "The timeline needs [Shot 1].",
+        "expected 1 shots",
+        "missing woman",
+        "missing walk",
+        "missing battlefield"
+      ],
+      "project": {
+        "mode": "T2VA",
+        "dur": 8,
+        "media": [],
+        "text": {
+          "imd": "",
+          "ss": "00:00.000",
+          "mus": "00:00.000-00:08.000"
+        }
+      },
+      "raw": "{\n  \"mode\": \"T2VA\",\n  \"dur\": 8,\n  \"media\": [],\n  \"text\": {\n    \"imd\": \"\",\n    \"ss\": \"00:00.000\",\n    \"mus\": \"00:00.000-00:08.000\"\n  }\n}"
+    },
+    {
+      "model": "R4C3R/qwen2.5-7b-instruct-heretic:q8_0",
+      "case": "two-shot",
+      "strategy": "schema-fixed",
+      "pass": false,
+      "problems": [
+        "The model did not return the complete project JSON."
+      ],
+      "project": null,
+      "raw": "{\n  \"mode\": \"T2VA\",\n  \"dur\": 8,\n  \"media\": [],\n  \"text\": {\n    \"imd\": \"\",\n    \"ss\": \"00:00.000\",\n    \"mus\": \"00:00.000-00:08.000:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0"
+    },
+    {
+      "model": "R4C3R/qwen2.5-7b-instruct-heretic:q8_0",
+      "case": "first-frame",
+      "strategy": "schema-fixed",
+      "pass": false,
+      "problems": [
+        "The timeline needs [Shot 1].",
+        "expected 1 shots",
+        "missing woman",
+        "missing walk",
+        "missing boat"
+      ],
+      "project": {
+        "mode": "I2VA",
+        "dur": 8,
+        "media": [
+          {
+            "kind": "pic",
+            "desc": "Picture 1",
+            "dur": 0,
+            "on": true,
+            "job": ""
+          }
+        ],
+        "text": {
+          "imd": "",
+          "ss": "00:00.000",
+          "mus": "00:00.000-00:08.000"
+        }
+      },
+      "raw": "{\n  \"mode\": \"I2VA\",\n  \"dur\": 8,\n  \"media\": [\n    {\n      \"kind\": \"pic\",\n      \"desc\": \"Picture 1\",\n      \"dur\": 8,\n      \"on\": true,\n      \"job\": \"background\"\n    }\n  ],\n  \"text\": {\n    \"imd\": \"\",\n    \"ss\": \"00:00.000\",\n    \"mus\": \"00:00.000-00:08.000\"\n  }\n}"
+    },
+    {
+      "model": "R4C3R/qwen2.5-7b-instruct-heretic:q8_0",
+      "case": "two-pictures",
+      "strategy": "schema-fixed",
+      "pass": false,
+      "problems": [
+        "The timeline needs [Shot 1].",
+        "expected 1 shots"
+      ],
+      "project": {
+        "mode": "REF",
+        "dur": 10,
+        "media": [
+          {
+            "kind": "pic",
+            "desc": "The woman from Picture 1 is preserved as the main subject.",
+            "dur": 0,
+            "on": true,
+            "job": ""
+          },
+          {
+            "kind": "pic",
+            "desc": "Picture 2 supplies a battlefield, her outfit, and a position guide who is replaced by the woman in Picture 1.",
+            "dur": 0,
+            "on": true,
+            "job": ""
+          }
+        ],
+        "text": {
+          "subj": "The woman from Picture 1 jumps around the battlefield cutting down enemies.",
+          "summ": "The woman from Picture 1 is preserved as the main subject and replaces the position guide in Picture 2, where she is shown jumping around a battlefield and cutting down enemies.",
+          "ret": "The woman from Picture 1 is preserved as the main subject and replaces the position guide in Picture 2, where she is shown jumping around a battlefield and cutting down enemies.",
+          "dd": "The woman from Picture 1 is preserved as the main subject and replaces the position guide in Picture 2, where she is shown jumping around a battlefield and cutting down enemies.",
+          "ss": "The woman from Picture 1 is preserved as the main subject and replaces the position guide in Picture 2, where she is shown jumping around a battlefield and cutting down enemies.",
+          "mus": "off"
+        }
+      },
+      "raw": "{\n  \"mode\": \"REF\",\n  \"dur\": 10,\n  \"media\": [\n    {\n      \"kind\": \"pic\",\n      \"desc\": \"The woman from Picture 1 is preserved as the main subject.\",\n      \"dur\": 2,\n      \"on\": true,\n      \"job\": \"keep\",\n      \"audioMode\": \"off\"\n    },\n    {\n      \"kind\": \"pic\",\n      \"desc\": \"Picture 2 supplies a battlefield, her outfit, and a position guide who is replaced by the woman in Picture 1.\",\n      \"dur\": 8,\n      \"on\": true,\n      \"job\": \"replace\",\n      \"audioMode\": \"off\"\n    }\n  ],\n  \"text\": {\n    \"subj\": \"The woman from Picture 1 jumps around the battlefield cutting down enemies.\",\n    \"summ\": \"The woman from Picture 1 is preserved as the main subject and replaces the position guide in Picture 2, where she is shown jumping around a battlefield and cutting down enemies.\",\n    \"ret\": \"The woman from Picture 1 is preserved as the main subject and replaces the position guide in Picture 2, where she is shown jumping around a battlefield and cutting down enemies.\",\n    \"dd\": \"The woman from Picture 1 is preserved as the main subject and replaces the position guide in Picture 2, where she is shown jumping around a battlefield and cutting down enemies.\",\n    \"ss\": \"The woman from Picture 1 is preserved as the main subject and replaces the position guide in Picture 2, where she is shown jumping around a battlefield and cutting down enemies.\",\n    \"mus\": \"off\"\n  }\n}"
+    }
+  ]
+}

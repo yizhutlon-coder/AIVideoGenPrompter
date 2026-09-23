@@ -160,7 +160,22 @@ async function inflate(u8){
   if (typeof DecompressionStream === 'undefined') throw new Error('DecompressionStream unsupported');
   const ds = new DecompressionStream('deflate');            // "deflate" = zlib-wrapped, which is what PNG uses
   const stream = new Blob([u8]).stream().pipeThrough(ds);
-  return new Uint8Array(await new Response(stream).arrayBuffer());
+  const reader = stream.getReader(), chunks = [];
+  const limit = 16 * 1024 * 1024;
+  let total = 0;
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      total += value.length;
+      if (total > limit) throw new Error('Compressed metadata exceeds 16 MB');
+      chunks.push(value);
+    }
+  } catch (e) { await reader.cancel().catch(() => {}); throw e; }
+  const result = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) { result.set(chunk, offset); offset += chunk.length; }
+  return result;
 }
 
 /* ---------- result model ----------
@@ -456,8 +471,18 @@ function scanForJson(buf, res){
 /* ================= file dispatcher ================= */
 async function inspectFile(file){
   const res = { name: file.name, size: file.size, mime: file.type, container: null, fields: {}, notes: [], file };
-  const HARD_CAP = 1.5 * 1024 * 1024 * 1024;
-  if (file.size > HARD_CAP) { res.notes.push('File is larger than 1.5 GB — not read.'); return res; }
+  const FULL_READ_LIMIT = 256 * 1024 * 1024;
+  if (file.size > FULL_READ_LIMIT) {
+    const W = 12 * 1024 * 1024;
+    const first = new Uint8Array(await file.slice(0, W).arrayBuffer());
+    const last = new Uint8Array(await file.slice(-W).arrayBuffer());
+    const sample = new Uint8Array(first.length + last.length);
+    sample.set(first); sample.set(last, first.length);
+    res.container = 'large file (partial scan)';
+    res.notes.push('Large file: only the first and last 12 MB were scanned; metadata in the middle may be missed.');
+    scanForJson(sample.buffer, res);
+    return res;
+  }
   const buf = await file.arrayBuffer();
   let known = false;
   try {
@@ -847,7 +872,7 @@ function dl(key){
 function sendPrompt(){
   if (!current) return;
   const S = current.S;
-  window.parent.postMessage({ type: 'psmeta-prompt', text: S.positive[0] || '', negative: S.negative[0] || '', target: S.target, family: S.familyLabel, source: current.res.name }, '*');
+  window.parent.postMessage({ type: 'psmeta-prompt', text: S.positive[0] || '', negative: S.negative[0] || '', target: S.target, family: S.familyLabel, source: current.res.name }, location.protocol === 'file:' ? '*' : location.origin);
 }
 function primarySampler(S){
   // first sampler that actually has a numeric step count (skips guider-only or unresolved rows)
@@ -863,7 +888,7 @@ function sendSettings(){
     text: S.positive[0] || '', negative: S.negative[0] || '', target: S.target, family: S.familyLabel,
     seed: num(s.seed), steps: num(String(s.steps).split(' ')[0]), cfg: num(s.cfg),
     width: num(c.width), height: num(c.height), frames, fps, duration: (frames && fps) ? Math.round((frames / fps) * 10) / 10 : undefined,
-    source: current.res.name }, '*');
+    source: current.res.name }, location.protocol === 'file:' ? '*' : location.origin);
 }
 const sendLoras = sendSettings;
 
@@ -953,11 +978,11 @@ $('out').addEventListener('click', function(e){
 // embedded in Prompt Studio: accept files forwarded from the parent's global drop zone
 if (EMBEDDED) {
   window.addEventListener('message', e => {
-    if (e.source !== window.parent) return;
+    if (e.source !== window.parent || (location.protocol !== 'file:' && e.origin !== location.origin)) return;
     const d = e.data; if (!d || typeof d !== 'object') return;
     if (d.type === 'psmeta-files' && d.files) handleFiles(d.files);
   });
-  try { window.parent.postMessage({ type: 'psmeta-ready' }, '*'); } catch(e){}
+  try { window.parent.postMessage({ type: 'psmeta-ready' }, location.protocol === 'file:' ? '*' : location.origin); } catch(e){}
 }
 </script>
 </body>

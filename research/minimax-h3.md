@@ -2,6 +2,8 @@
 
 Research baseline: 2026-08-15. Scope: base T2VA/I2VA/FL2VA/L2VA and full-reference Ref2VA.
 
+**2026-09-22 guidance correction:** See [the H3 guidance review](_addenda/h3-guidance-review-2026-09-22.md). The 3–4 / 5–7 / 6–9 beat suggestion below is official *product-ad workflow advice*, not a universal H3 format limit. The general full-reference guide uses `<Subject N>` for reusable scenes and other visible content, reserving standalone `<Picture N>` for frame/storyboard anchors. Its `fully_copy` audio marker requests complete source-track reuse; any measured mismatch concerns model fidelity, not the marker's meaning.
+
 ## Official guidance
 
 - [OFFICIAL, 2026-07-31] H3 jointly understands text, images, video, and audio; generates native stereo audio, up to 2K and 15 seconds; references are related by natural language. [Launch post](https://www.minimax.io/blog/minimax-h3)

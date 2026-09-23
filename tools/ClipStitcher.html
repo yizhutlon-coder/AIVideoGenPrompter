@@ -111,12 +111,12 @@
   </div>
 
   <div class="panel" id="cmdPanel" style="display:none">
-    <h2>Stitch command <button class="tiny" onclick="copyText($('cmd').textContent)">copy</button>
+    <h2>Stitch command <button class="tiny" onclick="copyStitchCmd('cmd')">copy</button>
       <button class="tiny" onclick="downloadBat()">⬇ StitchClips.bat</button></h2>
     <div class="hint" id="cmdHint"></div>
     <pre id="cmd"></pre>
     <div id="copyWrap">
-      <h2 style="margin-top:14px">No-re-encode alternative (only when every clip has identical codec/resolution/fps <u>and</u> seam-frame dropping is off) <button class="tiny" onclick="copyText($('copyCmd').textContent)">copy</button></h2>
+      <h2 style="margin-top:14px">No-re-encode alternative (only when every clip has identical codec/resolution/fps <u>and</u> seam-frame dropping is off) <button class="tiny" onclick="copyStitchCmd('copyCmd')">copy</button></h2>
       <pre id="copyCmd"></pre>
     </div>
     <div class="hint">Run the command in the folder that contains the clips. Windows: install ffmpeg from ffmpeg.org (or <span style="font-family:var(--mono)">winget install ffmpeg</span>), then paste into a terminal — or just download the .bat into that folder and double-click it.</div>
@@ -131,6 +131,20 @@ function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('sho
 function copyText(s){
   if (navigator.clipboard) navigator.clipboard.writeText(s).then(()=>toast('Copied')).catch(()=>toast('Copy failed — select the text manually'));
   else toast('Copy not available — select the text manually');
+}
+// These names are inserted into commands for both cmd.exe and POSIX shells.
+// Refuse names with shell metacharacters rather than trying to quote two shells at once.
+function safeShellName(s){
+  return /^[A-Za-z0-9][A-Za-z0-9._ -]*$/.test(s) && !/[. ]$/.test(s) &&
+    !/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(s);
+}
+function unsafeShellNames(){
+  const out = ($('optOut').value || 'stitched.mp4').trim();
+  return clips.map(c => c.name).concat(out).filter(n => !safeShellName(n));
+}
+function copyStitchCmd(id){
+  if (unsafeShellNames().length) { toast('Rename unsafe clips or output before copying a command'); return; }
+  copyText($(id).textContent);
 }
 function fmtDur(s){ return (Math.round(s*100)/100) + 's'; }
 
@@ -189,6 +203,10 @@ function grabLastFrame(i){
 function lastFrameCmd(i){
   return 'ffmpeg -sseof -0.1 -i "' + clips[i].name + '" -update 1 -frames:v 1 -q:v 1 "' + clips[i].name.replace(/\.[^.]+$/, '') + '_lastframe.png"';
 }
+function copyLastFrameCmd(i){
+  if (!safeShellName(clips[i].name)) { toast('Rename this clip before copying an ffmpeg command'); return; }
+  copyText(lastFrameCmd(i));
+}
 
 function move(i, d){
   const j = i + d;
@@ -218,7 +236,7 @@ function renderList(){
       '<button class="tiny" onclick="move(' + i + ',-1)" title="earlier">▲</button>' +
       '<button class="tiny" onclick="move(' + i + ',1)" title="later">▼</button>' +
       '<button class="tiny" onclick="grabLastFrame(' + i + ')" title="save this clip’s final frame as PNG — the start image for the next generation">📸 Last frame</button>' +
-      '<button class="tiny" onclick="copyText(lastFrameCmd(' + i + '))" title="frame-exact alternative: ffmpeg command for the same PNG">⌘</button>' +
+      '<button class="tiny" onclick="copyLastFrameCmd(' + i + ')" title="frame-exact alternative: ffmpeg command for the same PNG">⌘</button>' +
       '<button class="tiny" onclick="removeClip(' + i + ')" title="remove">✕</button>';
     L.appendChild(d);
     drawThumb(d.querySelector('canvas'), c, 0.1);
@@ -229,8 +247,8 @@ function renderList(){
   const mm = $('mismatch');
   const bad = clips.filter(function(c){ return clips.length && (c.w !== clips[0].w || c.h !== clips[0].h); });
   mm.innerHTML = bad.length ? '<span class="mismatch">⚠ Resolutions differ (' + esc(bad.map(function(c){ return c.name; }).join(', ')) + ') — the stitch command scales everything to ' + clips[0].w + '×' + clips[0].h + ' (the first clip). Matching resolutions at generation time looks better.</span>' : '';
-  const q = clips.filter(function(c){ return /['"]/g.test(c.name); });
-  if (q.length) mm.innerHTML += '<div class="mismatch">⚠ Quotes in filenames break shell commands — rename: ' + esc(q.map(function(c){ return c.name; }).join(', ')) + '</div>';
+  const unsafe = unsafeShellNames();
+  if (unsafe.length) mm.innerHTML += '<div class="mismatch">⚠ Shell commands are disabled for unsafe names. Rename with letters, numbers, spaces, dots, hyphens, or underscores: ' + esc(unsafe.join(', ')) + '</div>';
   buildCmd();
 }
 
@@ -240,6 +258,13 @@ function buildCmd(){
   const audio = $('optAudio').value;
   const fps = Math.max(1, +$('optFps').value || 24);
   const out = ($('optOut').value || 'stitched.mp4').trim();
+  if (unsafeShellNames().length) {
+    $('cmd').textContent = 'Rename unsafe clips or output before generating a shell command.';
+    $('copyCmd').textContent = '';
+    $('copyWrap').style.display = 'none';
+    $('cmdHint').textContent = 'Shell commands and batch download are disabled until names are safe.';
+    return;
+  }
   const scale = clips.some(function(c){ return c.w !== clips[0].w || c.h !== clips[0].h; });
   const W = clips[0].w, H = clips[0].h;
 
@@ -285,6 +310,7 @@ function buildCmd(){
 
 function downloadBat(){
   if (clips.length < 2) return;
+  if (unsafeShellNames().length) { toast('Rename unsafe clips or output before downloading a batch file'); return; }
   const cmd = $('cmd').textContent.replace(/%/g, '%%');
   const out = ($('optOut').value || 'stitched.mp4').trim();
   const lines = [
@@ -295,7 +321,7 @@ function downloadBat(){
     cmd,
     'if errorlevel 1 goto fail',
     'echo.',
-    'echo Done: ' + out,
+    'echo Done.',
     'pause',
     'exit /b',
     ':noff',

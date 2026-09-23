@@ -172,33 +172,24 @@ Example output:
 A fluffy orange tabby cat sits upright at a small round table in a warmly lit cafe, wrapping both front paws around a white ceramic cup and tipping it gently toward its mouth, steam curling upward past its whiskers as it takes a slow, deliberate sip. The camera begins in a medium shot and pushes in slowly toward the cat's face, settling into a soft close-up as its eyes narrow with contentment. Rain streaks the window behind it, blurring passing umbrellas into bokeh, while shelves of worn paperbacks frame the scene. Warm tungsten light spills across the wooden tabletop, catching the steam in a golden haze, and the low murmur of the cafe mixes with a quiet jazz record playing somewhere behind the counter.`
   },
   minimax: {
-    name: 'MiniMax H3', tag: 'timeline template',
-    why: `<b>MiniMax H3 wants a screenplay-like structured template</b>: a style-contract paragraph, then bracketed <b>time slices</b> (<code>[0s-2s]</code>…) each with SUBJECT → ACTION → CAMERA, an <b>AUDIO block</b> (H3 generates stereo audio), speaker IDs <code>(S1)</code>, <code>(S2)</code> kept stable across shots for dialogue, and a negative list. MiniMax's hosted rewriter ("H3-Context-IR") that builds this automatically was <b>not open-sourced</b> — which is exactly why a tool like this is needed locally. ⚠️ License note: no local deployment in US/EU/UK/KR.`,
+    name: 'MiniMax H3', tag: 'official shot fields',
+    why: `<b>For local H3, use the model's three named fields</b>: <code>integrated_multimodal_description</code>, <code>overall_soundscape</code>, and <code>non_diegetic_music</code>. The first shot starts at <code>[Shot 1]</code> without a timestamp; later shots need a cut time. Add only the details you supplied. The main Prompt Studio has the updated H3 multi-reference translator and checker. <a href="https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/main/docs/VIDEO_PROMPT_WRITING_GUIDE_base_en.md" target="_blank" rel="noopener noreferrer">MiniMax's format guide</a>. ⚠️ License note: check local use rights for your region.`,
     system: `You convert a user's plain-language video idea into an optimized prompt for the MiniMax H3 (Hailuo 3.0) video+audio model.
 
-Output this exact structure (plain text, no markdown):
-1. One opening style-contract paragraph: overall visual style, mood, palette, setting.
-2. Timeline blocks covering ~6 seconds total, format:
-[0s-2s] SUBJECT: ... ACTION: ... CAMERA: ...
-[2s-4s] ...
-[4s-6s] ...
-- Camera directions use H3 vocabulary: "slow push-in", "slow right orbit", "static", "tilt up", "tracking".
-- If there is dialogue or vocal sound, tag speakers (S1), (S2) and keep IDs stable across blocks.
-3. AUDIO: one line describing ambient sound, music, and any speech.
-4. NEGATIVE: comma-separated list of artifacts/qualities to avoid.
+Output exactly these three labeled fields (plain text, no markdown):
+integrated_multimodal_description: [Shot 1] Describe only the user's visible action and scene. Do not add a style, camera move, prop, shot, or time unless the user requested it. A later shot starts [Shot N] At MM:SS.mmm only when the user supplied a cut time. For supplied dialogue, keep the exact words in <d>[Language] ...</d> and give the speaker a stable (S1) ID.
+overall_soundscape: Use only sounds the user described, or N/A when unspecified as this app's conservative policy.
+non_diegetic_music: Use only requested background music, or N/A.
 
-Output ONLY the prompt. No explanations.
+Never invent details to fill a duration or word count. Do not use [0s-2s] slices, AUDIO:/NEGATIVE: blocks, or [CUT TO]. Output ONLY the three fields.
 
-Example input: "a cat drinking coffee in a cafe, cozy vibes"
+Example input: "A cat drinks coffee at a cafe. A fixed camera shows one shot. No music."
 Example output:
-Cozy cinematic realism, warm tungsten palette, soft film grain. A rainy-evening cafe interior with wooden tables and shelves of books.
+integrated_multimodal_description: [Shot 1] A cat drinks coffee at a cafe. The camera stays fixed.
 
-[0s-2s] SUBJECT: a fluffy orange tabby cat at a round wooden table. ACTION: wraps both front paws around a steaming ceramic cup. CAMERA: static medium shot.
-[2s-4s] SUBJECT: the same tabby cat. ACTION: lifts the cup and takes a slow sip, steam curling past its whiskers. CAMERA: slow push-in toward the face.
-[4s-6s] SUBJECT: the cat. ACTION: lowers the cup, eyes narrowing contentedly, tail curling around the chair. CAMERA: settle into close-up.
+overall_soundscape: N/A
 
-AUDIO: soft rain against glass, low cafe murmur, quiet jazz record, a faint feline purr.
-NEGATIVE: oversaturated colors, overexposure, static frozen frame, blurry details, deformed limbs, extra paws, watermark, subtitles.`
+non_diegetic_music: N/A`
   },
   scail: {
     name: 'SCAIL-2', tag: 'v2v · prompt is secondary',
@@ -249,13 +240,33 @@ function selectedModels() {
 }
 
 /* ---------------- Ollama ---------------- */
+function localOllamaBase() {
+  const u = new URL($('ollamaUrl').value.trim());
+  if (u.protocol !== 'http:' || !['localhost', '127.0.0.1'].includes(u.hostname) || u.username || u.password || (u.pathname !== '/' && u.pathname !== '')) {
+    throw new Error('Only a local Ollama address is allowed (http://localhost:11434).');
+  }
+  return u.origin;
+}
+async function checkedLocalModel(base) {
+  const response = await fetch(base + '/api/tags');
+  if (!response.ok) throw new Error('Ollama HTTP ' + response.status);
+  const models = (await response.json()).models || [];
+  const wanted = $('ollamaModel').value.trim();
+  const model = models.find(m => m.name === wanted);
+  if (!model || Number(model.size) <= 0 || /(?:^|[:\-])cloud(?:$|[:\-])/i.test(model.name)) {
+    throw new Error('Choose an installed local model. Cloud models are unavailable.');
+  }
+  return model.name;
+}
 async function ollamaChat(system, user) {
-  const url = $('ollamaUrl').value.replace(/\/+$/, '') + '/api/chat';
+  const base = localOllamaBase();
+  const model = await checkedLocalModel(base);
+  const url = base + '/api/chat';
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      model: $('ollamaModel').value.trim(),
+      model,
       stream: false,
       options: { temperature: 0.7 },
       messages: [
@@ -276,16 +287,16 @@ async function testOllama() {
   const s = $('connStatus');
   s.innerHTML = '<span class="spin"></span> Checking…';
   try {
-    const res = await fetch($('ollamaUrl').value.replace(/\/+$/, '') + '/api/tags');
+    const res = await fetch(localOllamaBase() + '/api/tags');
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
-    const names = (data.models || []).map(m => m.name);
+    const names = (data.models || []).filter(m => Number(m.size) > 0 && !/(?:^|[:\-])cloud(?:$|[:\-])/i.test(m.name)).map(m => m.name);
     const want = $('ollamaModel').value.trim();
-    const have = names.some(n => n === want || n.startsWith(want));
-    s.innerHTML = `<span class="ok">✓ Connected.</span> Models available: ${names.join(', ') || '(none)'}` +
-      (have ? '' : ` <span class="warn">— "${want}" not found; run <code>ollama pull ${want}</code> or pick one from the list.</span>`);
+    const have = names.includes(want);
+    s.textContent = '✓ Connected. Local models available: ' + (names.join(', ') || '(none)') +
+      (have ? '' : ' — "' + want + '" not found; install or choose a local model.');
   } catch (e) {
-    s.innerHTML = `<span class="bad">✗ Can't reach Ollama.</span> Is it running? Browser blocked? Set <code>OLLAMA_ORIGINS=*</code> and restart Ollama. (${e.message})`;
+    s.textContent = '✗ Cannot use local Ollama. Start Prompt Studio with its launcher. (' + e.message + ')';
   }
 }
 

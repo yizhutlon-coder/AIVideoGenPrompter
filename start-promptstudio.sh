@@ -1,34 +1,49 @@
-#!/bin/bash
-# Prompt Studio launcher (Mac / Linux)
+#!/bin/sh
+set -eu
 cd "$(dirname "$0")"
 
 if ! command -v ollama >/dev/null 2>&1; then
-  echo "Ollama is not installed yet. Opening the download page..."
-  open "https://ollama.com/download" 2>/dev/null || xdg-open "https://ollama.com/download"
+  echo 'Ollama is not installed. Opening its download page; run this launcher again after installing it.'
+  open 'https://ollama.com/download' 2>/dev/null || xdg-open 'https://ollama.com/download'
+  exit 1
+fi
+if ! command -v python3 >/dev/null 2>&1; then
+  echo 'Python 3 is needed to serve the local app page securely on macOS/Linux.'
   exit 1
 fi
 
-# Allow the app page to talk to Ollama.
-# NOTE: must be "*" -- Ollama rejects any value without a URL scheme, and
-# browsers report local files as origin "null", which can't be listed.
-export OLLAMA_ORIGINS="*"
-
-# If a server is already running and already allows the app, reuse it
-if curl -s -m 2 -H "Origin: null" -D - -o /dev/null http://localhost:11434/api/tags 2>/dev/null | grep -qi "access-control-allow-origin"; then
-  open "PromptStudio.html" 2>/dev/null || xdg-open "PromptStudio.html"
-  exit 0
-fi
-
-# Otherwise restart the server with the right setting
-pkill -f "ollama serve" 2>/dev/null
-pkill -x "Ollama" 2>/dev/null
-sleep 2
-nohup ollama serve >/dev/null 2>&1 &
-
-# Wait for the server (max ~20s)
-for i in $(seq 1 20); do
-  curl -s http://localhost:11434/api/tags >/dev/null 2>&1 && break
+# A localhost page can reach Ollama under its default CORS rules. Do not use '*'.
+unset OLLAMA_ORIGINS
+export OLLAMA_NO_CLOUD=1
+export OLLAMA_HOST=127.0.0.1:11434
+pkill -f 'ollama serve' 2>/dev/null || true
+pkill -x 'Ollama' 2>/dev/null || true
+for i in 1 2 3 4 5 6 7 8 9 10; do
+  if ! curl -fsS --max-time 1 http://127.0.0.1:11434/api/tags >/dev/null 2>&1; then break; fi
   sleep 1
 done
+nohup ollama serve >/dev/null 2>&1 &
+ready=0
+for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do
+  if curl -fsS --max-time 1 http://127.0.0.1:11434/api/tags >/dev/null 2>&1; then ready=1; break; fi
+  sleep 1
+done
+if [ "$ready" -ne 1 ]; then echo 'Ollama did not start on 127.0.0.1:11434.'; exit 1; fi
 
-open "PromptStudio.html" 2>/dev/null || xdg-open "PromptStudio.html"
+root=$(pwd -P)
+health=$(curl -fsS --max-time 2 http://127.0.0.1:8765/__health 2>/dev/null || true)
+if [ -n "$health" ] && [ "$health" != "$root" ]; then
+  echo 'Another local page server is using port 8765. Close it before launching Prompt Studio.'
+  exit 1
+fi
+if [ -z "$health" ]; then
+  nohup python3 serve-promptstudio.py >/dev/null 2>&1 &
+  for i in 1 2 3 4 5 6 7 8 9 10; do
+    sleep 1
+    health=$(curl -fsS --max-time 2 http://127.0.0.1:8765/__health 2>/dev/null || true)
+    if [ -n "$health" ]; then break; fi
+  done
+fi
+if [ "$health" != "$root" ]; then echo 'Prompt Studio local page server did not start.'; exit 1; fi
+url='http://127.0.0.1:8765/PromptStudio.html'
+open "$url" 2>/dev/null || xdg-open "$url"

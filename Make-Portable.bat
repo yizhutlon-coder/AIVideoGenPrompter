@@ -11,15 +11,24 @@ set "ROOT=%~dp0"
 
 rem -- 1. Portable Ollama runtime --
 if exist "%ROOT%runtime\ollama.exe" goto have_runtime
+if exist "%ROOT%runtime" goto partial_runtime
 
 echo  [1/2] Downloading portable Ollama runtime, about 1 GB, from ollama.com ...
-curl -L --progress-bar -o "%TEMP%\ollama-portable.zip" https://ollama.com/download/ollama-windows-amd64.zip
+set "ZIP=%TEMP%\ollama-portable-%RANDOM%-%RANDOM%.zip"
+curl --fail --location --proto "=https" --proto-redir "=https" --tlsv1.2 --progress-bar -o "%ZIP%" https://ollama.com/download/ollama-windows-amd64.zip
 if errorlevel 1 goto dl_fail
 mkdir "%ROOT%runtime" 2>nul
-echo  Extracting...
-tar -xf "%TEMP%\ollama-portable.zip" -C "%ROOT%runtime"
+echo  Checking archive paths...
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%ROOT%Verify-PortableZip.ps1" "%ZIP%" "%ROOT%runtime"
 if errorlevel 1 goto ex_fail
-del "%TEMP%\ollama-portable.zip" 2>nul
+echo  Extracting...
+tar -xf "%ZIP%" -C "%ROOT%runtime"
+if errorlevel 1 goto ex_fail
+if not exist "%ROOT%runtime\ollama.exe" goto ex_fail
+echo  Checking Ollama's publisher signature...
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%ROOT%Verify-PortableRuntime.ps1" "%ROOT%runtime\ollama.exe"
+if errorlevel 1 goto ex_fail
+del "%ZIP%" 2>nul
 echo  Runtime ready.
 goto models
 
@@ -54,11 +63,18 @@ pause
 exit /b
 
 :dl_fail
+if defined ZIP del "%ZIP%" 2>nul
 echo  Download failed - check your connection.
 pause
-exit /b
+exit /b 1
 
 :ex_fail
-echo  Extract failed.
+if defined ZIP del "%ZIP%" 2>nul
+echo  Runtime extraction or publisher verification failed. Do not use the incomplete runtime folder.
 pause
-exit /b
+exit /b 1
+
+:partial_runtime
+echo  The runtime folder exists but has no ollama.exe. Move that incomplete folder aside, then try again.
+pause
+exit /b 1
