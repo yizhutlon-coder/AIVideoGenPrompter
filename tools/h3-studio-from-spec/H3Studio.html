@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>H3 Studio — independent build</title>
+<style>
+  :root{color-scheme:dark;--bg:#111820;--card:#1b2530;--field:#101923;--edge:#354657;--ink:#eff4f8;--muted:#a5b4c2;--accent:#87c9ed;--good:#91d7ad;--warn:#f5c37a;--bad:#f5a1a1}
+  [data-theme=light]{color-scheme:light;--bg:#edf2f6;--card:#fff;--field:#f8fafc;--edge:#b9c9d4;--ink:#1c2933;--muted:#526575;--accent:#21688f;--good:#176e3b;--warn:#875207;--bad:#a52727}
+  *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.48 system-ui,Segoe UI,sans-serif}
+  .wrap{max-width:1420px;margin:auto;padding:18px 20px 54px}header{display:flex;align-items:start;justify-content:space-between;gap:16px;margin-bottom:16px}
+  h1{font-size:23px;line-height:1.1;margin:0 0 6px}h2{font-size:14px;letter-spacing:.03em;margin:0 0 10px}p{margin:0}small,.hint{font-size:12px;color:var(--muted)}
+  .badge{border:1px solid var(--edge);border-radius:5px;padding:4px 8px;color:var(--accent);white-space:nowrap;font-size:11px}
+  .grid{display:grid;grid-template-columns:minmax(320px,410px) minmax(420px,1fr);gap:14px}.stack{display:grid;gap:14px;align-content:start}
+  .card{background:var(--card);border:1px solid var(--edge);border-radius:9px;padding:14px;min-width:0}.row{display:flex;gap:7px;align-items:center;flex-wrap:wrap}.row>*{min-width:0}
+  button,input,select,textarea{font:inherit}button{color:var(--ink);background:var(--field);border:1px solid var(--edge);border-radius:5px;padding:6px 10px;cursor:pointer}
+  button:hover{border-color:var(--accent)}button:disabled{opacity:.55;cursor:default}.primary{background:var(--accent);border-color:var(--accent);color:var(--bg);font-weight:700}
+  input,select,textarea{color:var(--ink);background:var(--field);border:1px solid var(--edge);border-radius:5px;padding:7px;width:100%}textarea{resize:vertical;font-family:ui-monospace,Cascadia Code,Consolas,monospace;font-size:12px;line-height:1.5}
+  label{display:block;font-size:12px;color:var(--muted);margin:10px 0 4px}label:first-child{margin-top:0}.modes{display:flex;flex-wrap:wrap;gap:6px}.modes button.selected{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 20%,var(--field));color:var(--ink)}
+  #duration{width:74px}#modelSelect{width:auto;min-width:130px;max-width:210px}#aiRequest{min-height:86px}.log{max-height:210px;overflow:auto;display:grid;gap:7px;margin:10px 0}.log:empty{display:none}.bubble{border:1px solid var(--edge);border-radius:6px;padding:7px 9px;white-space:pre-wrap;word-break:break-word;font-size:12px}.bubble.user{background:color-mix(in srgb,var(--accent) 12%,var(--card))}.bubble.reply{background:var(--field)}
+  .med{display:grid;grid-template-columns:auto 1fr 70px 95px auto auto;gap:6px;align-items:center;border:1px solid var(--edge);border-radius:6px;padding:7px;margin:7px 0}.med .tag{font:11px ui-monospace,monospace;color:var(--good);min-width:75px}.med .job{grid-column:2 / -1}.med button{padding:5px}.med.off{opacity:.58}
+  .budget,.timeline{font:12px/1.55 ui-monospace,Cascadia Code,Consolas,monospace;color:var(--muted);margin-top:10px}.budget strong,.timeline strong{color:var(--ink)}.over{color:var(--bad)!important}
+  .toolbar{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px}.toolbar select{width:auto}.field-label{font-size:12px;color:var(--muted);margin:13px 0 4px}.field-label:first-of-type{margin-top:0}
+  .tagbar{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0}.tagbar button{font:11px ui-monospace,monospace;color:var(--good);padding:4px 7px}
+  .field textarea{min-height:55px}.field.body textarea{min-height:230px}.field.short textarea{min-height:42px}
+  .checks{display:grid;gap:6px}.finding{padding:8px 9px;border:1px solid var(--edge);border-radius:5px;font-size:12px;display:flex;gap:9px;align-items:start;justify-content:space-between}.finding.error{border-color:var(--bad);color:var(--bad)}.finding.warning{border-color:var(--warn);color:var(--warn)}.finding.ok{border-color:var(--good);color:var(--good)}.finding button{font-size:11px;padding:2px 6px;white-space:nowrap;color:inherit}
+  .flash{outline:2px solid var(--warn)!important}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:var(--field);border:1px solid var(--edge);border-radius:6px;padding:12px;max-height:430px;overflow:auto;font:12px/1.55 ui-monospace,Cascadia Code,Consolas,monospace}
+  dialog{background:var(--card);color:var(--ink);border:1px solid var(--edge);border-radius:8px;max-width:420px;width:90vw}dialog::backdrop{background:#0009}
+  @media(max-width:960px){.grid{grid-template-columns:1fr}.med{grid-template-columns:auto 1fr 70px auto auto}.med select.audio{grid-column:3 / -1}.med .job{grid-column:2 / -1}}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header><div><h1>🎬 H3 Studio</h1><p class="hint">Describe a video, then refine it by talking to your local model. Projects, reference roles, timeline checks, and prompt text stay here in your browser.</p></div><span class="badge">Independent review build</span></header>
+  <div class="grid">
+    <div class="stack">
+      <section class="card" id="projectCard"><h2>Project</h2><div class="row"><button id="saveProject">Save JSON</button><button id="openProject">Open JSON</button><button id="restoreProject">⤺ Restore previous</button><button id="newProject">New</button><input id="projectFile" type="file" accept=".json,application/json" hidden></div><p class="hint" id="projectStatus">Autosaved in this browser. Restore previous swaps between the current and preceding version.</p></section>
+      <section class="card"><h2>Describe it to Ollama</h2><p class="hint" id="aiStatus">Checking local models…</p><div class="log" id="aiLog" aria-live="polite"></div><textarea id="aiRequest" placeholder="10 seconds, two shots: a woman enters a rainlit station, then notices a red suitcase. Keep the second shot slower."></textarea><div class="row" style="margin-top:7px"><button class="primary" id="sendAi">Build / change project</button><label for="modelSelect" style="margin:0">Model</label><select id="modelSelect" aria-label="Ollama model"></select><button id="refreshModels" title="Refresh installed Ollama models">↻</button></div><p class="hint" style="margin-top:7px">Choose any installed model from the dropdown. First describe the whole scene; later messages update the current project. Each AI change saves an undo copy and runs the checks below. Ctrl+Enter sends.</p></section>
+      <section class="card"><h2>Mode &amp; timing</h2><div id="modeButtons" class="modes"></div><div class="row" style="margin-top:10px"><label for="duration" style="margin:0">Length</label><input id="duration" type="number" min="5" max="15" step="1" value="10"><span class="hint" id="frameCount"></span></div><div class="timeline" id="timeline"></div></section>
+      <section class="card" id="mediaCard"><h2>Reference media</h2><p class="hint">Give each reference one job. Tags follow arrival order; video soundtracks receive audio tags before standalone clips.</p><div id="mediaList"></div><div class="row"><button data-add="pic">+ Picture</button><button data-add="vid">+ Video</button><button data-add="aud">+ Audio</button></div><div class="budget" id="mediaBudget"></div></section>
+      <section class="card"><h2>Checks</h2><div id="checkList" class="checks" aria-live="polite"></div></section>
+    </div>
+    <div class="stack">
+      <section class="card" id="editorCard"><div id="editor"></div></section>
+      <section class="card"><h2>Assembled H3 prompt</h2><pre id="promptOutput"></pre><button id="copyPrompt" class="primary">Copy prompt</button><span id="copyStatus" class="hint"></span></section>
+    </div>
+  </div>
+</main>
+<dialog id="dialogueDialog"><h2>Insert dialogue</h2><label for="speakerName">Speaker description</label><input id="speakerName" placeholder="The woman in the blue coat"><label for="speakerId">Stable speaker ID</label><input id="speakerId" value="S1"><label for="language">Language</label><select id="language"><option>English</option><option>Chinese</option><option>Japanese</option><option>Spanish</option></select><label for="spokenWords">Exact words</label><input id="spokenWords" placeholder="That's mine."><div class="row" style="margin-top:15px"><button id="dialogueCancel">Cancel</button><button id="dialogueInsert" class="primary">Insert</button></div></dialog>
+<script>
+'use strict';
+const el = id => document.getElementById(id);
+const STORE = 'h3_fresh_project_v1';
+const BACKUP = 'h3_fresh_backup_v1';
+const MODEL_STORE = 'h3_fresh_model';
+const OLLAMA = 'http://127.0.0.1:11434';
+const MODES = [
+  ['T2VA','Text'], ['I2VA','First frame'], ['FL2VA','First + last'],
+  ['L2VA','Last frame'], ['REF','References']
+];
+const FIELDS = {
+  T2VA:[['imd','integrated_multimodal_description','body'],['ss','overall_soundscape',''],['mus','non_diegetic_music','short']],
+  I2VA:[['imd','integrated_multimodal_description','body'],['ss','overall_soundscape',''],['mus','non_diegetic_music','short']],
+  FL2VA:[['imd','integrated_multimodal_description','body'],['ss','overall_soundscape',''],['mus','non_diegetic_music','short']],
+  L2VA:[['imd','integrated_multimodal_description','body'],['ss','overall_soundscape',''],['mus','non_diegetic_music','short']],
+  REF:[['subj','subject_definitions',''],['summ','summary',''],['ret','retention_analysis',''],['dd','detailed_description','body'],['ss','overall_soundscape',''],['mus','non_diegetic_music','short']]
+};
+const JOBS = {
+  pic:['','identity — subject look','frame anchor (first/last)','wardrobe transfer','scale / placement','continuity — previous generation','storyboard / composition','lighting integration','environment view'],
+  vid:['','motion / performance source','camera reference','continuation source','timing / structure','edit plate (insert / replace)'],
+  aud:['','voice timbre','exact dialogue performance','copied source audio','music style','sound texture']
+};
+const EXCLUSIVE = new Set(['frame anchor (first/last)','wardrobe transfer','scale / placement','continuity — previous generation','lighting integration','camera reference','continuation source','timing / structure','edit plate (insert / replace)']);
+const RETENTION = {
+  'identity — subject look':'fully_preserved','frame anchor (first/last)':'fully_preserved','wardrobe transfer':'attribute_transfer',
+  'scale / placement':'attribute_transfer','continuity — previous generation':'partially_preserved','storyboard / composition':'weak_reference',
+  'lighting integration':'attribute_transfer','environment view':'fully_preserved','motion / performance source':'attribute_transfer',
+  'camera reference':'attribute_transfer','continuation source':'partially_preserved','timing / structure':'weak_reference',
+  'edit plate (insert / replace)':'partially_preserved','voice timbre':'reference','exact dialogue performance':'fully_copy',
+  'copied source audio':'fully_copy','music style':'reference','sound texture':'reference'
+};
+const CAMERAS = {
+  'Push in':'pushes in','Pull out':'pulls out','Pan left':'pans left','Pan right':'pans right',
+  'Tilt up':'tilts up','Tilt down':'tilts down','Truck left':'trucks left','Truck right':'trucks right',
+  'Arc':'moves in an arc','Track':'tracks the subject','Hold still':'holds still'
+};
+const freshState = () => ({v:1,mode:'T2VA',dur:10,media:[],texts:{T2VA:{},I2VA:{},FL2VA:{},L2VA:{},REF:{}}});
+let project = freshState();
+let saveTimer = null;
+let activeField = null;
+let findings = [];
+let aiBusy = false;
+let aiTurns = [];
+function theme(){let t='auto';try{t=localStorage.getItem('ps_theme')||'auto'}catch{}document.documentElement.dataset.theme=t==='light'||(t==='auto'&&matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark'}
+theme();window.addEventListener('storage',theme);
+function clamp(value,min,max,fallback){const n=Number(value);return Number.isFinite(n)?Math.max(min,Math.min(max,n)):fallback}
+function textFor(key){return project.texts[project.mode][key]||''}
+function bodyKey(){return project.mode==='REF'?'dd':'imd'}
+function currentBody(){return textFor(bodyKey())}
+function snapshot(){return JSON.parse(JSON.stringify({v:1,mode:project.mode,dur:project.dur,media:project.media.map(cleanMedia),texts:project.texts}))}
+function portableProject(){const fields={};for(const [mode,defs] of Object.entries(FIELDS))for(const [key] of defs)if(typeof project.texts[mode][key]==='string')fields[mode+':'+key]=project.texts[mode][key];return {v:1,mode:project.mode,media:project.media.map(cleanMedia),fields,dur:project.dur}}
+function migrateProject(raw){if(!raw||typeof raw!=='object'||raw.v!==1)return null;return raw}
+function cleanMedia(item){
+  if(!item||!JOBS[item.kind])return null;
+  const kind=item.kind;
+  return {kind,desc:String(item.desc||'').slice(0,200),dur:kind==='pic'?0:Math.round(clamp(item.dur,2,15,5)),
+    audioMode:kind==='vid'&&['off','paired','alone'].includes(item.audioMode)?item.audioMode:'off',
+    on:item.on!==false,job:JOBS[kind].includes(item.job)?item.job:''};
+}
+function cleanProject(raw){
+  const p=migrateProject(raw);if(!p)return null;
+  const out=freshState();out.mode=MODES.some(([m])=>m===p.mode)?p.mode:'T2VA';out.dur=Math.round(clamp(p.dur,5,15,10));
+  out.media=(Array.isArray(p.media)?p.media:[]).map(cleanMedia).filter(Boolean).slice(0,18);
+  if(p.texts&&typeof p.texts==='object'&&!Array.isArray(p.texts))for(const [mode,defs] of Object.entries(FIELDS)){
+    const src=p.texts[mode];if(!src||typeof src!=='object')continue;
+    for(const [key] of defs)if(typeof src[key]==='string')out.texts[mode][key]=src[key].slice(0,25000);
+  }
+  if(p.fields&&typeof p.fields==='object'&&!Array.isArray(p.fields))for(const [mode,defs] of Object.entries(FIELDS))for(const [key] of defs){const value=p.fields[mode+':'+key];if(typeof value==='string')out.texts[mode][key]=value.slice(0,25000)}
+  return out;
+}
+function scheduleSave(){clearTimeout(saveTimer);saveTimer=setTimeout(()=>{try{localStorage.setItem(STORE,JSON.stringify(snapshot()));el('projectStatus').textContent='✓ Autosaved in this browser.'}catch{el('projectStatus').textContent='Could not autosave in this browser.'}},400)}
+function backup(){try{localStorage.setItem(BACKUP,JSON.stringify(snapshot()))}catch{}}
+function loadSaved(){try{const p=cleanProject(JSON.parse(localStorage.getItem(STORE)||'null'));if(p)project=p}catch{}}
+function restore(){let prior=null;try{prior=cleanProject(JSON.parse(localStorage.getItem(BACKUP)||'null'))}catch{}if(!prior){el('projectStatus').textContent='No previous version yet.';return}const current=snapshot();project=prior;try{localStorage.setItem(BACKUP,JSON.stringify(current))}catch{}renderAll();el('projectStatus').textContent='✓ Restored. Press again to swap back.'}
+function newProject(){backup();project=freshState();renderAll();el('projectStatus').textContent='✓ New project. The previous project can be restored.'}
+function downloadProject(){const blob=new Blob([JSON.stringify(portableProject(),null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='h3-studio-project.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),2000)}
+async function openProject(file){if(!file)return;let next;try{next=cleanProject(JSON.parse(await file.text()))}catch{}if(!next){el('projectStatus').textContent='Could not open that project: invalid JSON or unsupported version.';return}backup();project=next;aiTurns=[];renderAll();el('projectStatus').textContent='✓ Project opened. The previous project can be restored.'}
+function addMedia(kind){project.media.push({kind,desc:'',dur:kind==='pic'?0:5,audioMode:'off',on:true,job:''});renderAll()}
+function assignTags(){
+  let picture=0,video=0,audio=0;
+  for(const m of project.media){m.tag='';m.audioTag='';if(!m.on)continue;if(m.kind==='pic')m.tag=`<Picture ${++picture}>`;if(m.kind==='vid')m.tag=`<Video ${++video}>`}
+  for(const m of project.media)if(m.on&&m.kind==='vid'&&m.audioMode!=='off')m.audioTag=`<Audio ${++audio}>`;
+  for(const m of project.media)if(m.on&&m.kind==='aud')m.tag=`<Audio ${++audio}>`;
+  return {picture,video,audio};
+}
+function budget(){
+  const counts=assignTags();const on=project.media.filter(m=>m.on),vid=on.filter(m=>m.kind==='vid'),aud=on.filter(m=>m.kind==='aud'),sound=vid.filter(m=>m.audioMode!=='off');
+  return {...counts,files:on.length+sound.length,standalone:aud.length,soundtracks:sound.length,
+    videoSeconds:vid.reduce((n,m)=>n+m.dur,0),audioSeconds:aud.reduce((n,m)=>n+m.dur,0),soundtrackSeconds:sound.reduce((n,m)=>n+m.dur,0)};
+}
+function formatCut(s){const seconds=Math.max(0,Math.floor(s));return `${String(Math.floor(seconds/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}.000`}
+function frameCount(seconds){const k=Math.ceil((24*seconds-5)/17);return 17*k+5}
+function beatBudget(seconds){return seconds<=6?'3–4':seconds<=12?'5–7':'6–9'}
+function renderModes(){const box=el('modeButtons');box.replaceChildren();for(const [id,label] of MODES){const b=document.createElement('button');b.type='button';b.textContent=label;b.classList.toggle('selected',project.mode===id);b.addEventListener('click',()=>{project.mode=id;activeField=null;renderAll()});box.append(b)}el('duration').value=project.dur;el('frameCount').textContent=`${frameCount(project.dur)} frames on the 17n+5 grid · ~${(frameCount(project.dur)/24).toFixed(2)} s actual`}
+function node(tag,cls,text){const x=document.createElement(tag);if(cls)x.className=cls;if(text!==undefined)x.textContent=text;return x}
+function renderMedia(){
+  const b=budget(),list=el('mediaList');list.replaceChildren();
+  for(const [i,m] of project.media.entries()){
+    const row=node('div','med'+(m.on?'':' off'));const tag=node('span','tag',(m.kind==='pic'?'🖼 ':m.kind==='vid'?'🎞 ':'🎵 ')+(m.tag||'—')+(m.audioTag?' + '+m.audioTag:''));row.append(tag);
+    const desc=node('input');desc.type='text';desc.placeholder='Describe this reference';desc.value=m.desc;desc.addEventListener('input',()=>{m.desc=desc.value.slice(0,200);scheduleSave()});row.append(desc);
+    if(m.kind!=='pic'){const duration=node('input');duration.type='number';duration.min='2';duration.max='15';duration.title='Clip seconds';duration.value=m.dur;duration.addEventListener('change',()=>{m.dur=Math.round(clamp(duration.value,2,15,5));renderAll()});row.append(duration)}else row.append(node('span','hint','image'));
+    if(m.kind==='vid'){const audio=node('select','audio');audio.title='Video soundtrack';for(const choice of ['off','paired','alone']){const o=node('option','',choice);o.value=choice;audio.append(o)}audio.value=m.audioMode;audio.addEventListener('change',()=>{m.audioMode=audio.value;renderAll()});row.append(audio)}else row.append(node('span','hint',''));
+    const toggle=node('button','',m.on?'◉':'○');toggle.title='Enable or disable reference';toggle.addEventListener('click',()=>{m.on=!m.on;renderAll()});row.append(toggle);
+    const remove=node('button','','✕');remove.title='Remove reference';remove.addEventListener('click',()=>{project.media.splice(i,1);renderAll()});row.append(remove);
+    const job=node('select','job');job.title='One job for this reference';for(const choice of JOBS[m.kind]){const o=node('option','',choice||'Choose its one job');o.value=choice;job.append(o)}job.value=m.job;job.addEventListener('change',()=>{m.job=job.value;renderAll()});row.append(job);
+    if(project.mode==='REF'&&m.on){const starter=node('button','job','≡ Write definition and retention starter');starter.addEventListener('click',()=>insertStarter(i));row.append(starter)}
+    list.append(row);
+  }
+  if(!project.media.length)list.append(node('p','hint','No references attached. Text mode needs none.'));
+  const box=el('mediaBudget');box.replaceChildren();
+  const parts=[['files',b.files,12],['pictures',b.picture,9],['videos',b.video,3],['standalone audio',b.standalone,3],['video soundtracks',b.soundtracks,3],['video seconds',b.videoSeconds,15],['audio seconds',b.audioSeconds,15]];
+  parts.forEach(([label,value,max],i)=>{if(i)box.append(document.createTextNode(' · '));const span=node('span','',label+' ');const strong=node('strong',value>max?'over':'',`${value}${label==='files'?'':'/'+max}`);span.append(strong);box.append(span)});
+  box.append(node('div','hint','12 total files and 15-second aggregate reference windows are hosted-path advisories; local ComfyUI uses the four per-type slot groups.'));
+}
+function renderEditor(){
+  activeField=null;const box=el('editor');box.replaceChildren();box.append(node('h2','',project.mode==='REF'?'Reference prompt sections':'Video prompt sections'));
+  if(project.mode==='REF'){
+    assignTags();const tags=project.media.filter(m=>m.on).flatMap(m=>[m.tag,m.audioTag]).filter(Boolean);
+    if(tags.length){const bar=node('div','tagbar');for(const tag of tags){const button=node('button','',tag);button.title='Insert this tag in the last focused text field';button.addEventListener('click',()=>insertAtCursor(tag,false));bar.append(button)}box.append(bar,node('p','hint','Click a tag to insert it in the active section.'))}
+  }
+  if(project.mode!=='REF'&&project.mode!=='T2VA')box.append(node('p','hint',alignmentLine()));
+  for(const [key,label,size] of FIELDS[project.mode]){
+    if(key===bodyKey()){
+      const bar=node('div','toolbar');
+      const shot=node('button','','+ Shot');shot.addEventListener('click',insertShot);bar.append(shot);
+      const camera=node('select');camera.id='cameraMove';for(const name of Object.keys(CAMERAS)){const o=node('option','',name);o.value=name;camera.append(o)}bar.append(camera);
+      const amp=node('select');amp.id='cameraAmp';for(const name of ['amplitude (implied)','with small amplitude','with large amplitude']){const o=node('option','',name);o.value=name==='amplitude (implied)'?'':name;amp.append(o)}bar.append(amp);
+      const speed=node('select');speed.id='cameraSpeed';for(const name of ['speed (implied)','at slow speed','at fast speed']){const o=node('option','',name);o.value=name==='speed (implied)'?'':name;speed.append(o)}bar.append(speed);
+      const addCamera=node('button','','Insert camera');addCamera.addEventListener('click',insertCamera);bar.append(addCamera);
+      const dialogue=node('button','','+ Dialogue');dialogue.addEventListener('click',()=>el('dialogueDialog').showModal());bar.append(dialogue);
+      box.append(bar,node('p','hint','One camera authority per shot. Leave amplitude and speed implied unless a small or large range, or slow or fast pace, matters.'));
+    }
+    const wrap=node('div','field '+size);const title=node('label','field-label',label);title.htmlFor='field_'+key;const area=node('textarea');area.id='field_'+key;area.value=textFor(key);area.rows=size==='body'?11:size==='short'?2:3;
+    area.addEventListener('focus',()=>{activeField=area.id});area.addEventListener('input',()=>{project.texts[project.mode][key]=area.value;renderDerived()});wrap.append(title,area);box.append(wrap);
+  }
+}
+function insertStarter(index){
+  const m=project.media[index];if(!m||!m.on||project.mode!=='REF')return;assignTags();
+  const defs=project.texts.REF;const existing=(defs.subj||'').match(/<Subject\s+\d+>/g)||[];const subject=`<Subject ${existing.length+1}>`;
+  const source=m.tag||m.audioTag;const role=m.job||'choose one job';const marker=RETENTION[m.job]||'reference';
+  defs.subj=[defs.subj||'',`${subject} comes from ${source}; use it for ${m.desc||role}, with ${role} as its sole job.`].filter(Boolean).join('\n');
+  defs.ret=[defs.ret||'',`${subject} (appears in [Shot 1]): ${marker} - specify the attributes to keep.`].filter(Boolean).join('\n');
+  renderAll();
+}
+function insertAtCursor(value,bodyOnly=true){const bodyId='field_'+bodyKey();let field=!bodyOnly&&activeField?el(activeField):null;if(!field)field=el(bodyId);if(!field)return;const atSelection=activeField===field.id;const a=atSelection?field.selectionStart:field.value.length,b=atSelection?field.selectionEnd:field.value.length;field.setRangeText(value,a,b,'end');field.focus();field.dispatchEvent(new Event('input',{bubbles:true}))}
+function insertShot(){const shots=parseShots(currentBody(),project.dur);if(!shots.length){insertAtCursor('[Shot 1] ');return}const last=shots[shots.length-1];const n=Math.max(...shots.map(s=>s.number))+1;const cut=Math.min(project.dur-1,Math.floor((last.time??0)+3));insertAtCursor(`\n[Shot ${n}] At ${formatCut(cut)}, the camera cuts to `)}
+function insertCamera(){const move=CAMERAS[el('cameraMove').value],amp=el('cameraAmp').value,speed=el('cameraSpeed').value;insertAtCursor(`The camera ${move}${amp?' '+amp:''}${speed?' '+speed:''} `)}
+function insertDialogue(){const who=el('speakerName').value.trim()||'The speaker',id=el('speakerId').value.trim()||'S1',lang=el('language').value,words=el('spokenWords').value.trim()||'…';el('dialogueDialog').close();insertAtCursor(`${who} (${id}) says: <d>[${lang}] ${words}</d> `)}
+function alignmentLine(){const d=project.dur.toFixed(2),count=parseShots(currentBody(),project.dur).length||1;
+  if(project.mode==='I2VA')return 'For the target video, at 0.00 seconds, <Picture 1> (from [Shot 1]) is fully referenced.';
+  if(project.mode==='FL2VA')return `Picture 1 (from [Shot 1]) aligns with 0.00 seconds; Picture 2 (from [Shot ${count}]) aligns with ${d} seconds.`;
+  if(project.mode==='L2VA')return `<Picture 1> (from [Shot ${count}]) aligns with ${d} seconds, the end of the target video.`;
+  return '';
+}
+function assemble(){
+  if(project.mode==='REF')return FIELDS.REF.map(([key,label])=>`${label}:\n${textFor(key).trim()||((key==='ss'||key==='mus')?'N/A':'')}`).join('\n\n');
+  return [alignmentLine(),`integrated_multimodal_description: ${textFor('imd').trim()}`,`overall_soundscape: ${textFor('ss').trim()||'N/A'}`,`non_diegetic_music: ${textFor('mus').trim()||'N/A'}`].filter(Boolean).join('\n\n');
+}
+function parseShots(body,duration){
+  const re=/\[Shot\s+(\d+)\](?:\s*At\s+(\d{2}):(\d{2})\.(\d{3}))?/gi;const found=[];let match;
+  while((match=re.exec(body))!==null){found.push({number:Number(match[1]),time:match[2]===undefined?null:Number(match[2])*60+Number(match[3])+Number(match[4])/1000,start:match.index,bodyStart:re.lastIndex})}
+  return found.map((shot,i)=>{
+    const next=found[i+1];const startTime=shot.time??(i===0?0:null);const endTime=next?(next.time??null):duration;
+    return {...shot,text:body.slice(shot.bodyStart,next?next.start:body.length),window:startTime===null||endTime===null?null:Math.max(0,endTime-startTime)};
+  });
+}
+function beatCount(text){
+  const masked=text.replace(/<d>[\s\S]*?<\/d>/gi,' SPOKEN_LINE. ');
+  return (masked.match(/[^.!?]+(?:[.!?]+|$)/g)||[]).map(s=>s.trim()).filter(s=>/[\p{L}\p{N}]/u.test(s)).length;
+}
+function dialogueSeconds(text){let words=0;const re=/<d>\[[^\]]+\]([\s\S]*?)<\/d>/gi;let m;while((m=re.exec(text))!==null)words+=(m[1].trim().match(/\S+/g)||[]).length;return words/2.3}
+function cameraMoves(text){return (text.match(/\bthe camera\s+(?!cuts?\b)/gi)||[]).length}
+function check(){
+  const issues=[];const add=(level,message,target='mediaCard',seek='')=>issues.push({level,message,target,seek});
+  const b=budget(),body=currentBody(),bodyId='field_'+bodyKey(),dur=project.dur,all=assemble();
+  if(b.files>12)add('warning',`${b.files} total files exceed the reported hosted cap of 12; local ComfyUI has no combined cap.`);
+  if(b.picture>9)add('error','More than 9 pictures are active.');
+  if(b.video>3)add('error','More than 3 video references are active.');
+  if(b.standalone>3)add('error','More than 3 standalone audio clips are active.');
+  if(b.soundtracks>3)add('error','More than 3 video soundtracks are active.');
+  if(b.videoSeconds>15)add('warning','Video references exceed the reported hosted 15-second aggregate window.');
+  if(b.audioSeconds>15)add('warning','Standalone audio exceeds the reported hosted 15-second aggregate window.');
+  if(b.soundtrackSeconds>15)add('warning','Video soundtracks exceed the reported hosted 15-second aggregate window.');
+  const active=project.media.filter(m=>m.on);
+  if(active.some(m=>m.kind==='aud')&&!active.some(m=>m.kind!=='aud'))add('error','Audio needs at least one picture or video reference alongside it.');
+  const roles=new Map();for(const m of active){
+    if(project.mode==='REF'&&!m.job)add('warning','An active reference has no assigned job.');
+    if(m.job&&EXCLUSIVE.has(m.job)){if(roles.has(m.job))add('warning',`Two active references both claim “${m.job}”; give them distinct jobs or disable one.`);else roles.set(m.job,true)}
+  }
+  if(project.mode==='T2VA'&&active.length)add('warning','Text mode does not use reference media; these items may be ignored.');
+  if(project.mode==='I2VA'&&b.picture<1)add('error','First-frame mode needs one picture.');
+  if(project.mode==='FL2VA'&&b.picture<2)add('error','First + last mode needs two pictures.');
+  if(project.mode==='L2VA'&&b.picture<1)add('error','Last-frame mode needs one picture.');
+  if(['I2VA','L2VA'].includes(project.mode)&&b.picture>1)add('warning','This mode uses one picture; extra pictures may be ignored.');
+  if(project.mode==='REF'&&!active.length)add('warning','Reference mode has no media.');
+  if(!body.trim())add('warning','The shot timeline is empty.',bodyId);
+  else{
+    const shots=parseShots(body,dur);
+    if(!shots.length||shots[0].number!==1)add('error','The timeline must begin with [Shot 1].',bodyId);
+    if(shots.length&&shots[0].time!==null)add('error','[Shot 1] must not have a timestamp.',bodyId,'[Shot 1]');
+    let prior=0,total=0;
+    for(const [i,shot] of shots.entries()){
+      if(shot.number!==i+1)add('error',`Expected [Shot ${i+1}] here, found [Shot ${shot.number}].`,bodyId,`[Shot ${shot.number}]`);
+      if(i>0&&shot.time===null)add('error',`[Shot ${shot.number}] needs “At MM:SS.mmm”.`,bodyId,`[Shot ${shot.number}]`);
+      if(i>0&&shot.time!==null){if(shot.time<=prior)add('error',`[Shot ${shot.number}] cut time must increase.`,bodyId,`[Shot ${shot.number}]`);prior=shot.time}
+      if(shot.time!==null&&shot.time>=dur)add('error',`[Shot ${shot.number}] begins at or after the video ends.`,bodyId,`[Shot ${shot.number}]`);
+      const beats=beatCount(shot.text),speech=dialogueSeconds(shot.text),moves=cameraMoves(shot.text);total+=beats;
+      if(shot.window!==null&&shot.window>0&&speech>shot.window*.9)add('warning',`[Shot ${shot.number}] has about ${speech.toFixed(1)} s of dialogue in a ${shot.window.toFixed(1)} s window.`,bodyId,`[Shot ${shot.number}]`);
+      if(moves>1)add('warning',`[Shot ${shot.number}] has ${moves} authored camera moves; use one camera authority per shot.`,bodyId,`[Shot ${shot.number}]`);
+    }
+    if(shots.length>4)add('warning',`${shots.length} shots may be too many for a short generation.`,bodyId);
+    const top=Number(beatBudget(dur).split('–')[1]);if(total>top+1)add('warning',`${total} counted beats exceed the ${beatBudget(dur)} primary-action budget for ${dur} s.`,bodyId);
+    if(active.some(m=>m.kind==='vid'&&m.job==='camera reference')&&shots.some(s=>cameraMoves(s.text)))add('warning','A camera-reference video and authored camera moves both claim camera authority.');
+  }
+  const prose=project.mode==='REF'?all.replace(/\[(?:keyframe completion|reference generation|video editing|video continuation|audio reuse|audio reference)[^\]]*\]/gi,''):all;
+  if(/→|->/.test(prose)||/\w\+\w/.test(prose))add('error','Arrows or plus-sign shorthand can render as visible text.',bodyId);
+  if(/\[CUT TO/i.test(prose))add('error','[CUT TO] is not an H3 shot marker.',bodyId,'[CUT TO');
+  if(/<d>(?!\[[^\]]+\])/.test(all))add('error','A dialogue tag lacks [Language].',bodyId,'<d>');
+  if(/<d>\[/.test(all)&&!/\(S\d+\)/.test(all))add('warning','Dialogue needs a stable (S1)-style speaker ID.',bodyId,'<d>');
+  if(project.mode==='REF'){
+    if(!textFor('subj').trim())add('error','subject_definitions is empty.','field_subj');
+    if(!/^\s*\[(keyframe completion|reference generation|video editing|video continuation|audio reuse|audio reference)/i.test(textFor('summ')))add('error','summary must start with a bracketed H3 task type.','field_summ');
+    if(!textFor('ret').trim())add('error','retention_analysis is empty.','field_ret');
+    else if(!/(fully_preserved|partially_preserved|attribute_transfer|weak_reference|fully_copy|partially_copy|reference)/.test(textFor('ret')))add('warning','retention_analysis has no relationship marker.','field_ret');
+    for(const m of active)for(const tag of [m.tag,m.audioTag])if(tag&&!all.includes(tag))add('warning',`${tag} is attached but never cited; it can affect the output.`);
+    const known=new Set(active.flatMap(m=>[m.tag,m.audioTag]).filter(Boolean));for(const tag of new Set(all.match(/<(?:Picture|Video|Audio)\s+\d+>/g)||[]))if(!known.has(tag))add('error',`${tag} is cited but no active reference has that tag.`,bodyId,tag);
+    for(const subject of new Set(textFor('subj').match(/<Subject\s+\d+>/g)||[]))if(!textFor('ret').includes(subject))add('warning',`${subject} has no retention entry.`,'field_ret');
+    const words=(textFor('dd').trim().match(/\S+/g)||[]).length;if(words&&words<300)add('warning',`detailed_description has ${words} words; the generation target is about 350–500.`,bodyId);if(words>550)add('warning',`detailed_description has ${words} words; the target is about 350–500.`,bodyId);
+  }else if(!textFor('ss').trim())add('warning','overall_soundscape is empty; use N/A for deliberate silence.','field_ss');
+  if(!issues.length)add('ok','All deterministic checks pass.','');
+  return issues;
+}
+function renderTimeline(){
+  const box=el('timeline');box.replaceChildren();const shots=parseShots(currentBody(),project.dur);box.append(node('div','',`Beat budget for ${project.dur} s: ${beatBudget(project.dur)} primary actions.`));
+  if(!shots.length)return;let total=0;
+  for(const shot of shots){const beats=beatCount(shot.text);total+=beats;const spoken=dialogueSeconds(shot.text);const line=node('div','',`[Shot ${shot.number}] ${beats} beat${beats===1?'':'s'} · ${shot.window===null?'unknown':shot.window.toFixed(1)+' s'} window${spoken?' · ~'+spoken.toFixed(1)+' s speech':''}`);if(shot.window!==null&&shot.window>0&&spoken>shot.window*.9)line.classList.add('over');box.append(line)}
+  const limit=Number(beatBudget(project.dur).split('–')[1]);box.append(node('div',total>limit+1?'over':'',`Total: ${total} counted beats.`));
+}
+function locateFinding(finding){const target=el(finding.target);if(!target)return;target.scrollIntoView({behavior:'smooth',block:'center'});if(target.tagName==='TEXTAREA'){target.focus();if(finding.seek){const at=target.value.indexOf(finding.seek);if(at>=0)target.setSelectionRange(at,at+finding.seek.length)}}target.classList.add('flash');setTimeout(()=>target.classList.remove('flash'),1600)}
+function renderChecks(){findings=check();const list=el('checkList');list.replaceChildren();for(const finding of findings){const row=node('div','finding '+finding.level);row.append(node('span','',finding.message));if(finding.target&&el(finding.target)){const button=node('button','','→ locate');button.addEventListener('click',()=>locateFinding(finding));row.append(button)}list.append(row)}}
+function renderDerived(){el('promptOutput').textContent=assemble();renderTimeline();renderChecks();scheduleSave()}
+function renderAll(){renderModes();renderMedia();renderEditor();renderDerived()}
+function modelPayload(){const keys=FIELDS[project.mode].map(([key])=>key);return {mode:project.mode,dur:project.dur,media:project.media.map(({kind,desc,dur,audioMode,on,job})=>({kind,desc,dur,audioMode,on,job})),text:Object.fromEntries(keys.map(key=>[key,textFor(key)]))}}
+function aiSchema({textOnly=false,keepMode=false,initial=false,initialMode=null,referenceKinds=[],maxReferences=null}={}){
+  const limits={imd:1400,subj:900,summ:450,ret:900,dd:2400,ss:450,mus:450};
+  const mode=textOnly?'T2VA':keepMode?project.mode:initialMode;
+  const keys=mode?FIELDS[mode].map(([key])=>key):Object.keys(limits);
+  const strings=Object.fromEntries(keys.map(key=>[key,{type:'string',maxLength:limits[key],...(['ss','mus'].includes(key)||key===(mode==='REF'?'dd':'imd')&&mode?{minLength:1}:{})}]));
+  return {type:'object',additionalProperties:false,required:['mode','dur','media','text'],properties:{
+    mode:{type:'string',enum:mode?[mode]:MODES.map(([id])=>id)},dur:{type:'integer',minimum:5,maximum:15},
+    media:{type:'array',...(textOnly?{maxItems:0}:maxReferences?{maxItems:maxReferences}:{}),items:{type:'object',additionalProperties:false,required:['kind','desc','dur','audioMode','on','job'],properties:{
+      kind:{type:'string',enum:referenceKinds.length?referenceKinds:['pic','vid','aud']},desc:{type:'string'},dur:{type:'number'},
+      audioMode:{type:'string',enum:['off','paired','alone']},on:initial?{type:'boolean',enum:[true]}:{type:'boolean'},job:{type:'string',enum:[...new Set(Object.values(JOBS).flat())]}
+    }}},
+    text:{type:'object',additionalProperties:false,required:Object.keys(strings),properties:strings}
+  }};
+}
+function aiRules(){return [
+  'Configure a MiniMax H3 video prompt project. Reply with exactly one JSON object, no markdown or commentary. Follow the supplied JSON schema.',
+  'Text keys depend on the mode: T2VA/I2VA/FL2VA/L2VA use imd, ss, mus; REF uses subj, summ, ret, dd, ss, mus. Put the complete shot timeline in imd for non-REF modes and in dd for REF. Never leave that timeline empty. Follow the exact text keys required by the supplied JSON schema. For media, use audioMode off on pictures and standalone audio.',
+  'Use REF for character, style, video or audio references; I2VA for a start image, FL2VA for start and end images, L2VA for an end image, T2VA for text only. Include only references the user has or implies.',
+  'Picture jobs: '+JOBS.pic.slice(1).join(' | ')+'. Video jobs: '+JOBS.vid.slice(1).join(' | ')+'. Audio jobs: '+JOBS.aud.slice(1).join(' | ')+'. Each input gets one narrow job.',
+  'Local ComfyUI reference slots: up to 9 pictures, 3 videos, 3 video soundtracks, and 3 standalone audio clips, with no combined file cap. Hosted paths may have a 12-file and 15-second aggregate limit; treat those as advisories.',
+  'H3 dialect: [Shot 1] starts the timeline with a style word and no timestamp. Every later shot starts [Shot N] At MM:SS.mmm, the camera cuts to ...; cuts increase strictly and remain inside duration. Count one primary action per sentence. Beat budgets: 5 s = 3-4, 10 s = 5-7, 15 s = 6-9.',
+  'Keep the first draft compact: about one sentence per beat, at most 140 words in imd or 220 words in dd. Never repeat a sentence or pad to hit a word count. The user can ask for more detail in a follow-up.',
+  'One authored camera move per shot. If a video is the camera reference, do not add a conflicting prose camera move. Normal speed and medium amplitude are implicit; specify only meaningful slow/fast or small/large departures.',
+  'Dialogue format: The speaker (S1) says: <d>[English] exact words.</d> Keep speaker IDs stable. The words and punctuation inside the tag are exactly what will be said. Put on-screen text in double quotes.',
+  'Timing words express physics: while/as means simultaneous, then/after means sequential. Keep the user’s timing and content words. Avoid arrows, plus-sign shorthand, [CUT TO], and generic quality padding.',
+  'REF sections: subj gives one narrow source-tag definition per subject; summ begins with a bracketed task type such as [reference generation + audio reference]; ret has per-subject fully_preserved / partially_preserved / attribute_transfer / weak_reference or audio fully_copy / partially_copy / reference. dd begins with style sentences and a [Shot N] timeline. Cite every active media tag.',
+  'Picture and video tags follow arrival order. Video soundtracks receive <Audio N> tags before standalone audio clips. ss covers ambience and physical sounds; mus covers only non-diegetic score, or N/A.',
+  'For a change request, return the FULL updated JSON, changing only what the user asked; keep every unrelated text string, reference, job, mode, and duration exactly unchanged.'
+].join('\n')}
+function mentionsReferenceAsset(request){
+  if(/\b(?:text[ -]?only|no references?|without references?|from scratch)\b/i.test(request))return false;
+  return /\b(?:references?|photos?|pictures?|images?|uploaded|attached|first frame|last frame|starting frame|ending frame|video clips?|footage|audio clips?|voice samples?|recordings?)\b/i.test(request);
+}
+function referenceConstraints(request){
+  const kinds=[];
+  if(/\b(?:(?:reference|uploaded|attached|my|source|first|last|starting|ending|start|end)\s+)?(?:photos?|pictures?|images?|frames?)\b/i.test(request))kinds.push('pic');
+  if(/\b(?:reference|uploaded|attached|my|source)\s+(?:video|clips?|footage)\b|\bvideo\s+(?:reference|clips?)\b/i.test(request))kinds.push('vid');
+  if(/\b(?:reference|uploaded|attached|my|source)\s+(?:audio|recordings?|voice samples?|sound clips?)\b|\baudio\s+(?:reference|clips?)\b/i.test(request))kinds.push('aud');
+  const one=/(?:\b(?:a|an|one|1)\s+(?:(?:reference|uploaded|attached|my|source)\s+)?(?:photo|picture|image|frame|video|clip|recording|audio|voice sample)\b)/i.test(request);
+  return {referenceKinds:kinds,maxReferences:one&&kinds.length===1?1:null};
+}
+function initialModeFor(request){
+  const explicit=request.match(/\b(T2VA|I2VA|FL2VA|L2VA|REF)\b/i);if(explicit)return explicit[1].toUpperCase();
+  const first=/\b(?:first|start|starting)\s+(?:frame|image|picture)\b/i.test(request);
+  const last=/\b(?:last|end|ending)\s+(?:frame|image|picture)\b/i.test(request);
+  return first&&last?'FL2VA':first?'I2VA':last?'L2VA':'REF';
+}
+function tidyShotOne(text){return String(text||'').replace(/(\[Shot\s+1\])\s*At\s+\d{2}:\d{2}\.\d{3},?\s*(?:the camera cuts to\s*)?/i,'$1 ')}
+function tidyAiTimeline(text){let nextNumber=1;return tidyShotOne(text).replace(/\[Shot\s+(N|\d+)\]/gi,(_,value)=>{const number=value.toUpperCase()==='N'?nextNumber:Number(value);nextNumber=number+1;return `[Shot ${number}]`}).replace(/\bAt\s+(\d{2}:\d{2}\.\d{3}),?\s*\[Shot\s+(\d+)\]\s*/gi,'[Shot $2] At $1, the camera cuts to ').replace(/(the camera cuts to) The\b/g,'$1 the')}
+function pruneTerminalShot(body,duration){const shots=parseShots(body,duration),last=shots.at(-1);return last&&last.time>=duration&&/^\s*,?\s*(?:the camera cuts to\s*)?(?:the )?(?:timeline|video|clip)\s+ends?\b/i.test(last.text)?body.slice(0,last.start).trim():body}
+function timelineProblem(body,duration){
+  if(!body.trim())return 'The model left the shot timeline empty.';
+  const shots=parseShots(body,duration);
+  if(!shots.length||shots[0].number!==1||shots[0].time!==null)return 'The timeline does not begin with an untimed [Shot 1].';
+  for(let index=1;index<shots.length;index++)if(shots[index].number!==index+1||shots[index].time===null||shots[index].time>=duration||shots[index].time<=Number(shots[index-1].time||0))return 'The later shots need sequential markers and increasing cut times within the video.';
+  return '';
+}
+function requestedShotCount(request){
+  const words={one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,eleven:11,twelve:12};
+  const stated=request.match(/\b(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|\d+)[ -]?shots?\b/i);
+  if(stated){const count=words[stated[1].toLowerCase()]||Number(stated[1]);return count>=1&&count<=12?count:null}
+  const numbered=[...request.matchAll(/\bshot\s*(\d+)\b/gi)].map(match=>Number(match[1]));
+  const count=Math.max(0,...numbered);return count>=2&&count<=12?count:null;
+}
+function explicitCutTimes(text,duration){
+  const words={zero:0,one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,eleven:11,twelve:12,thirteen:13,fourteen:14};
+  const hits=[];
+  for(const match of text.matchAll(/\bAt\s+(\d{2}):(\d{2})\.(\d{3})\b/gi))hits.push({at:match.index,time:Number(match[1])*60+Number(match[2])+Number(match[3])/1000});
+  for(const match of text.matchAll(/\bat\s+(\d+(?:\.\d+)?|zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen)\s*(?:seconds?|s)\b/gi))hits.push({at:match.index,time:words[match[1].toLowerCase()]??Number(match[1])});
+  return [...new Set(hits.sort((a,b)=>a.at-b.at).map(hit=>hit.time).filter(time=>Number.isFinite(time)&&time>0&&time<duration))];
+}
+function formatCutMillis(seconds){const ms=Math.round(seconds*1000);return `${String(Math.floor(ms/60000)).padStart(2,'0')}:${String(Math.floor(ms/1000)%60).padStart(2,'0')}.${String(ms%1000).padStart(3,'0')}`}
+async function repairAiTimeline(model,body,duration,request,expectedShots){
+  const schema={type:'object',additionalProperties:false,required:['intro','shots'],properties:{
+    intro:{type:'string',maxLength:500},shots:{type:'array',minItems:expectedShots||1,maxItems:expectedShots||12,items:{type:'object',additionalProperties:false,required:['cutSeconds','description'],properties:{cutSeconds:{type:'number'},description:{type:'string',minLength:1,maxLength:700}}}}
+  }};
+  const prompt=`Repair only the shot structure of this H3 draft. Preserve its scene details and the user's requested shot order and cut times. Do not add a terminal shot that merely says the video ends. Return an intro containing style or setting only, and an ordered shots array containing the actions. The first shot starts at 0. Later cutSeconds must increase and be strictly less than ${duration}. Descriptions must contain the action, without [Shot N] markers or timestamps; later descriptions should read naturally after "the camera cuts to".\nOriginal request:\n${request}\nDraft:\n${body}`;
+  const response=await fetch(OLLAMA+'/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model,stream:false,think:false,format:schema,options:{temperature:0,num_predict:1800},messages:[{role:'user',content:prompt}]})});
+  if(!response.ok)throw Error(`Ollama returned HTTP ${response.status} while repairing the timeline.`);
+  const reply=await response.json(),fixed=extractJson(reply.message&&reply.message.content);
+  if(!fixed||!Array.isArray(fixed.shots)||!fixed.shots.length||fixed.shots.length>12||expectedShots&&fixed.shots.length!==expectedShots)throw Error('The model could not repair the shot timeline. Your request is still in the chat box.');
+  const fromDraft=explicitCutTimes(body,duration),fromRequest=explicitCutTimes(request,duration),needed=fixed.shots.length-1;
+  const validTimes=times=>times.length===needed&&times.every((time,index)=>index===0||time>times[index-1]);
+  const anchors=validTimes(fromDraft)?fromDraft:validTimes(fromRequest)?fromRequest:null;
+  let priorMs=0;const shots=fixed.shots.map((shot,index,all)=>{
+    let cutMs=index?Math.round(Number(anchors?anchors[index-1]:shot.cutSeconds)*1000):0;
+    const maxMs=duration*1000-(all.length-index);
+    if(index&&(!Number.isFinite(cutMs)||cutMs<=priorMs||cutMs>maxMs))cutMs=Math.round((index*duration/all.length)*1000);
+    if(index)cutMs=Math.min(maxMs,Math.max(priorMs+1,cutMs));
+    if(index)priorMs=cutMs;
+    const description=String(shot.description||'').replace(/\[Shot\s+\w+\]/gi,'').replace(/^\s*At\s+\d{2}:\d{2}\.\d{3},?\s*/i,'').replace(/^the camera cuts to\s*/i,'').trim();
+    if(!description)throw Error('The model could not repair the shot timeline. Your request is still in the chat box.');
+    return index?`[Shot ${index+1}] At ${formatCutMillis(cutMs/1000)}, the camera cuts to a new view: ${description}`:`[Shot 1] ${description}`;
+  });
+  return [String(fixed.intro||'').replace(/\[Shot\s+\w+\]/gi,'').trim(),...shots].filter(Boolean).join('\n');
+}
+function citeAiReferences(next){
+  if(next.mode!=='REF')return;let picture=0,video=0,audio=0;const tags=[];
+  for(const item of next.media)if(item.on){if(item.kind==='pic')tags.push([`<Picture ${++picture}>`,item.job]);if(item.kind==='vid')tags.push([`<Video ${++video}>`,item.job])}
+  for(const item of next.media)if(item.on&&item.kind==='vid'&&item.audioMode!=='off')tags.push([`<Audio ${++audio}>`,'video soundtrack']);
+  for(const item of next.media)if(item.on&&item.kind==='aud')tags.push([`<Audio ${++audio}>`,item.job]);
+  const all=Object.values(next.texts.REF).join(' '),missing=tags.filter(([tag])=>!all.includes(tag));
+  if(missing.length)next.texts.REF.summ+="\nReference sources: "+missing.map(([tag,job])=>`${tag} (${job||'reference'})`).join('; ')+'.';
+}
+function extractJson(raw){const text=String(raw||'').replace(/<think>[\s\S]*?(?:<\/think>|$)/gi,'');for(let start=text.indexOf('{');start>=0;start=text.indexOf('{',start+1)){let depth=0,inString=false,escaped=false;for(let i=start;i<text.length;i++){const c=text[i];if(inString){if(escaped)escaped=false;else if(c==='\\')escaped=true;else if(c==='"')inString=false;continue}if(c==='"')inString=true;else if(c==='{')depth++;else if(c==='}'&&!--depth){try{return JSON.parse(text.slice(start,i+1))}catch{break}}}}return null}
+function cleanAi(raw){if(!raw||typeof raw!=='object'||!Array.isArray(raw.media)||!raw.text||typeof raw.text!=='object')return null;const mode=MODES.some(([m])=>m===raw.mode)?raw.mode:project.mode;const keys=FIELDS[mode].map(([key])=>key);if(!keys.every(key=>typeof raw.text[key]==='string'))return null;const next=snapshot();next.mode=mode;next.dur=Math.round(clamp(raw.dur,5,15,project.dur));next.media=raw.media.map(cleanMedia).filter(Boolean).slice(0,18);next.texts[mode]=Object.fromEntries(keys.map(key=>[key,raw.text[key].slice(0,25000)]));return next}
+function changes(before,after){const changed=[];if(before.mode!==after.mode)changed.push('mode');if(before.dur!==after.dur)changed.push('duration');if(JSON.stringify(before.media)!==JSON.stringify(after.media))changed.push('references');for(const [key] of FIELDS[after.mode])if((before.texts[after.mode]||{})[key]!==after.texts[after.mode][key])changed.push(key);return changed}
+function addBubble(kind,text){const item=node('div','bubble '+kind,text);el('aiLog').append(item);el('aiLog').scrollTop=el('aiLog').scrollHeight;return item}
+async function loadModels(){const select=el('modelSelect');try{const response=await fetch(OLLAMA+'/api/tags');if(!response.ok)throw Error('Ollama unavailable');const data=await response.json();const names=(data.models||[]).filter(m=>Number(m.size)>0&&!/(?:^|[:\-])cloud(?:$|[:\-])/i.test(m.name)).map(m=>m.name).filter(Boolean);select.replaceChildren();if(!names.length){el('aiStatus').textContent='Ollama is running, but no local model is installed. Install one in the main app, then press ↻.';return}let saved='';try{saved=localStorage.getItem(MODEL_STORE)||''}catch{}const preferred=names.includes(saved)?saved:(names.find(n=>/^qwen2\.5:7b-instruct/i.test(n))||names.find(n=>/^qwen2\.5:7b/i.test(n))||names.find(n=>/^qwen/i.test(n))||names[0]);for(const name of names){const option=node('option','',name);option.value=name;select.append(option)}select.value=preferred;el('aiStatus').textContent='Local model ready: '+preferred}catch{select.replaceChildren();el('aiStatus').textContent='Could not reach Ollama at 127.0.0.1:11434. Start the combined launcher, then press ↻.'}}
+async function sendAi(){
+  if(aiBusy)return;const request=el('aiRequest').value.trim();if(!request)return;
+  const model=el('modelSelect').value;if(!model){el('aiStatus').textContent='Choose an installed Ollama model first.';return}
+  aiBusy=true;el('sendAi').disabled=true;addBubble('user',request);const bubble=addBubble('reply','Working…');
+  const before=snapshot();const empty=!before.media.length&&!Object.values(before.texts).some(section=>Object.values(section).some(value=>String(value).trim()));
+  const textOnly=empty&&!mentionsReferenceAsset(request);
+  const refLimits=empty&&!textOnly?referenceConstraints(request):{};
+  const initialMode=empty?(textOnly?'T2VA':initialModeFor(request)):null;
+  const expectedShots=empty?requestedShotCount(request):null;
+  const keepMode=!empty&&!/\b(?:switch|change|convert|turn)\s+(?:the\s+)?mode\b|\b(?:text[ -]?only|first.frame|last.frame|reference mode)\b/i.test(request);
+  const instruction=empty?`Build a new complete project for this request:\n${request}\n${textOnly?'This is text-only mode T2VA with no media. The text object has only imd, ss, mus. Start text.imd literally with [Shot 1] and mark each later shot literally [Shot N] At MM:SS.mmm, the camera cuts to. Do not replace these markers with prose descriptions of the shots.':'Enable only assets the user says they already have. Shots are not uploaded video references. Give each asset a valid narrow job from the allowed list and cite its tag in the REF text. Do not invent details of an unseen image or recording. Start the timeline with literal [Shot 1] and mark later shots [Shot N] At MM:SS.mmm, the camera cuts to.'}`:`Current project JSON:\n${JSON.stringify(modelPayload())}\n\nChange request: ${request}\nReturn the full updated JSON; preserve everything else exactly. Put the complete timeline in text.${before.mode==='REF'?'dd':'imd'} and preserve its literal [Shot N] markers.`;
+  let raw='';try{
+    const response=await fetch(OLLAMA+'/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model,stream:true,think:false,format:aiSchema({textOnly,keepMode,initial:empty,initialMode,...refLimits}),options:{temperature:0.2,num_predict:2500},messages:[{role:'system',content:aiRules()},...aiTurns.slice(-6),{role:'user',content:instruction}]})});
+    if(!response.ok)throw Error(`Ollama returned HTTP ${response.status}`);
+    if(!response.body)throw Error('No streamed response from Ollama.');
+    const reader=response.body.getReader(),decoder=new TextDecoder();let pending='',doneReason='';
+    const consume=line=>{if(!line.trim())return;try{const piece=JSON.parse(line);if(piece.message&&typeof piece.message.content==='string')raw+=piece.message.content;if(piece.done)doneReason=piece.done_reason||''}catch{}};
+    while(true){const {value,done}=await reader.read();if(done)break;pending+=decoder.decode(value,{stream:true});const lines=pending.split('\n');pending=lines.pop();lines.forEach(consume);bubble.textContent=`Writing… ${raw.length} characters`}
+    pending+=decoder.decode();consume(pending);
+    const next=cleanAi(extractJson(raw));if(!next)throw Error(doneReason==='length'?'The local model ran out of output space before finishing. Try a shorter description or select another model.':'The model did not return a complete H3 project JSON. Try a shorter description or select another model.');
+    if(textOnly){next.mode='T2VA';next.media=[]}
+    if(keepMode)next.mode=before.mode;
+    if(empty&&!textOnly&&!next.media.some(item=>item.on))throw Error('The model did not add an enabled reference. Select another model or try a shorter request.');
+    const bodyField=next.mode==='REF'?'dd':'imd';next.texts[next.mode][bodyField]=pruneTerminalShot(tidyAiTimeline(next.texts[next.mode][bodyField]),next.dur);
+    if(timelineProblem(next.texts[next.mode][bodyField],next.dur)||expectedShots&&parseShots(next.texts[next.mode][bodyField],next.dur).length!==expectedShots){
+      bubble.textContent='Repairing shot markers and cut times…';
+      next.texts[next.mode][bodyField]=await repairAiTimeline(model,next.texts[next.mode][bodyField],next.dur,request,expectedShots);
+      if(timelineProblem(next.texts[next.mode][bodyField],next.dur)||expectedShots&&parseShots(next.texts[next.mode][bodyField],next.dur).length!==expectedShots)throw Error('The model could not repair the shot timeline. Your request is still in the chat box.');
+    }
+    citeAiReferences(next);
+    const changed=changes(before,next);backup();project=next;renderAll();bubble.textContent=`✓ Applied. Changed: ${changed.length?changed.join(', '):'nothing'}\n⤺ Restore previous undoes this. Review the Checks card.`;
+    aiTurns.push({role:'user',content:request},{role:'assistant',content:'Applied the requested project update.'});aiTurns=aiTurns.slice(-8);el('aiRequest').value='';
+  }catch(error){bubble.textContent='✗ '+error.message}finally{aiBusy=false;el('sendAi').disabled=false}
+}
+el('saveProject').addEventListener('click',downloadProject);
+el('openProject').addEventListener('click',()=>el('projectFile').click());
+el('projectFile').addEventListener('change',event=>{openProject(event.target.files[0]);event.target.value=''});
+el('restoreProject').addEventListener('click',restore);
+el('newProject').addEventListener('click',()=>{aiTurns=[];newProject()});
+el('duration').addEventListener('change',event=>{project.dur=Math.round(clamp(event.target.value,5,15,10));renderAll()});
+el('mediaCard').addEventListener('click',event=>{const kind=event.target.dataset.add;if(kind)addMedia(kind)});
+el('sendAi').addEventListener('click',sendAi);
+el('refreshModels').addEventListener('click',loadModels);
+el('modelSelect').addEventListener('change',event=>{try{localStorage.setItem(MODEL_STORE,event.target.value)}catch{}});
+el('aiRequest').addEventListener('keydown',event=>{if(event.key==='Enter'&&(event.ctrlKey||event.metaKey)){event.preventDefault();sendAi()}});
+el('copyPrompt').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(el('promptOutput').textContent);el('copyStatus').textContent='✓ Copied'}catch{el('copyStatus').textContent='Select the assembled prompt and copy it manually.'}});
+el('dialogueCancel').addEventListener('click',()=>el('dialogueDialog').close());
+el('dialogueInsert').addEventListener('click',insertDialogue);
+loadSaved();renderAll();loadModels();
+</script>
+</body>
+</html>

@@ -1,0 +1,333 @@
+{
+  "date": "2026-09-22T09:35:18.955Z",
+  "variant": "v1",
+  "results": [
+    {
+      "model": "qwen2.5:7b-instruct",
+      "case": "simple-text",
+      "pass": true,
+      "issues": [],
+      "output": {
+        "assets": [],
+        "actions": [
+          "a woman walks across a battlefield"
+        ],
+        "dialogue": [],
+        "sound": [],
+        "music": [],
+        "cutTimes": []
+      },
+      "raw": "{\n  \"assets\": [],\n  \"actions\": [\n    \"a woman walks across a battlefield\"\n  ],\n  \"dialogue\": [],\n  \"sound\": [],\n  \"music\": [],\n  \"cutTimes\": []\n}"
+    },
+    {
+      "model": "qwen2.5:7b-instruct",
+      "case": "plain-text",
+      "pass": false,
+      "issues": [
+        "cut times [8] expected []"
+      ],
+      "output": {
+        "assets": [],
+        "actions": [
+          "A woman walks across a battlefield for 8 seconds."
+        ],
+        "dialogue": [],
+        "sound": [],
+        "music": [],
+        "cutTimes": [
+          8
+        ]
+      },
+      "raw": "{\n  \"assets\": [],\n  \"actions\": [\n    \"A woman walks across a battlefield for 8 seconds.\"\n  ],\n  \"dialogue\": [],\n  \"sound\": [],\n  \"music\": [],\n  \"cutTimes\": [8]\n}"
+    },
+    {
+      "model": "qwen2.5:7b-instruct",
+      "case": "two-shot",
+      "pass": false,
+      "issues": [
+        "missing action: woman stands on a dock",
+        "missing action: she walks toward a boat"
+      ],
+      "output": {
+        "assets": [],
+        "actions": [],
+        "dialogue": [],
+        "sound": [],
+        "music": [],
+        "cutTimes": [
+          4
+        ]
+      },
+      "raw": "{\n  \"assets\": [],\n  \"actions\": [],\n  \"dialogue\": [],\n  \"sound\": [],\n  \"music\": [],\n  \"cutTimes\": [4]\n}"
+    },
+    {
+      "model": "qwen2.5:7b-instruct",
+      "case": "first-frame",
+      "pass": false,
+      "issues": [
+        "wrong asset kind"
+      ],
+      "output": {
+        "assets": [
+          {
+            "kind": "video",
+            "quote": "Picture 1 is the first frame, showing a woman on a dock."
+          }
+        ],
+        "actions": [
+          "Make an 8-second video where she walks toward a boat."
+        ],
+        "dialogue": [],
+        "sound": [],
+        "music": [],
+        "cutTimes": []
+      },
+      "raw": "{\n  \"assets\": [\n    {\n      \"kind\": \"video\",\n      \"quote\": \"Picture 1 is the first frame, showing a woman on a dock.\"\n    }\n  ],\n  \"actions\": [\n    \"Make an 8-second video where she walks toward a boat.\"\n  ],\n  \"dialogue\": [],\n  \"sound\": [],\n  \"music\": [],\n  \"cutTimes\": []\n}"
+    },
+    {
+      "model": "qwen2.5:7b-instruct",
+      "case": "two-pictures",
+      "pass": true,
+      "issues": [],
+      "output": {
+        "assets": [
+          {
+            "kind": "picture",
+            "quote": "Picture 1 is the woman to preserve."
+          },
+          {
+            "kind": "picture",
+            "quote": "Picture 2 supplies a battlefield, her outfit, and a position guide who is replaced by the woman in picture 1."
+          }
+        ],
+        "actions": [
+          "The woman from picture 1 jumps around the battlefield cutting down enemies."
+        ],
+        "dialogue": [],
+        "sound": [],
+        "music": [],
+        "cutTimes": []
+      },
+      "raw": "{\n  \"assets\": [\n    {\n      \"kind\": \"picture\",\n      \"quote\": \"Picture 1 is the woman to preserve.\"\n    },\n    {\n      \"kind\": \"picture\",\n      \"quote\": \"Picture 2 supplies a battlefield, her outfit, and a position guide who is replaced by the woman in picture 1.\"\n    }\n  ],\n  \"actions\": [\n    \"The woman from picture 1 jumps around the battlefield cutting down enemies.\"\n  ],\n  \"dialogue\": [],\n  \"sound\": [],\n  \"music\": [],\n  \"cutTimes\": []\n}"
+    },
+    {
+      "model": "qwen2.5:7b-instruct",
+      "case": "dialogue",
+      "pass": false,
+      "issues": [
+        "non-source quote: She says 'Who goes there?'"
+      ],
+      "output": {
+        "assets": [],
+        "actions": [
+          "A woman walks into a room",
+          "She says 'Who goes there?'"
+        ],
+        "dialogue": [
+          "Who goes there?"
+        ],
+        "sound": [],
+        "music": [],
+        "cutTimes": []
+      },
+      "raw": "{\n  \"assets\": [],\n  \"actions\": [\n    \"A woman walks into a room\",\n    \"She says 'Who goes there?'\"\n  ],\n  \"dialogue\": [\n    \"Who goes there?\"\n  ],\n  \"sound\": [],\n  \"music\": [],\n  \"cutTimes\": []\n}"
+    },
+    {
+      "model": "qwen2.5:7b-instruct",
+      "case": "three-pictures",
+      "pass": true,
+      "issues": [],
+      "output": {
+        "assets": [
+          {
+            "kind": "picture",
+            "quote": "Picture 1 is the character."
+          },
+          {
+            "kind": "picture",
+            "quote": "Picture 2 is the red coat she should wear."
+          },
+          {
+            "kind": "picture",
+            "quote": "Picture 3 is a snowy field."
+          }
+        ],
+        "actions": [
+          "The character walks across the field wearing the red coat."
+        ],
+        "dialogue": [],
+        "sound": [],
+        "music": [],
+        "cutTimes": []
+      },
+      "raw": "{\n  \"assets\": [\n    {\"kind\": \"picture\", \"quote\": \"Picture 1 is the character.\"},\n    {\"kind\": \"picture\", \"quote\": \"Picture 2 is the red coat she should wear.\"},\n    {\"kind\": \"picture\", \"quote\": \"Picture 3 is a snowy field.\"}\n  ],\n  \"actions\": [\n    \"The character walks across the field wearing the red coat.\"\n  ],\n  \"dialogue\": [],\n  \"sound\": [],\n  \"music\": [],\n  \"cutTimes\": []\n}"
+    },
+    {
+      "model": "R4C3R/qwen2.5-7b-instruct-heretic:q8_0",
+      "case": "simple-text",
+      "pass": false,
+      "issues": [
+        "cut times [8] expected []"
+      ],
+      "output": {
+        "assets": [],
+        "actions": [
+          "a woman walks across a battlefield"
+        ],
+        "dialogue": [],
+        "sound": [],
+        "music": [],
+        "cutTimes": [
+          8
+        ]
+      },
+      "raw": "{\n  \"assets\": [],\n  \"actions\": [\n    \"a woman walks across a battlefield\"\n  ],\n  \"dialogue\": [],\n  \"sound\": [],\n  \"music\": [],\n  \"cutTimes\": [\n    8\n  ]\n}"
+    },
+    {
+      "model": "R4C3R/qwen2.5-7b-instruct-heretic:q8_0",
+      "case": "plain-text",
+      "pass": false,
+      "issues": [
+        "cut times [8] expected []"
+      ],
+      "output": {
+        "assets": [],
+        "actions": [
+          "A woman walks across a battlefield for 8 seconds."
+        ],
+        "dialogue": [],
+        "sound": [],
+        "music": [],
+        "cutTimes": [
+          8
+        ]
+      },
+      "raw": "{\n  \"assets\": [],\n  \"actions\": [\n    \"A woman walks across a battlefield for 8 seconds.\"\n  ],\n  \"dialogue\": [],\n  \"sound\": [],\n  \"music\": [],\n  \"cutTimes\": [\n    8\n  ]\n}"
+    },
+    {
+      "model": "R4C3R/qwen2.5-7b-instruct-heretic:q8_0",
+      "case": "two-shot",
+      "pass": true,
+      "issues": [],
+      "output": {
+        "assets": [],
+        "actions": [
+          "a woman stands on a dock",
+          "cut to",
+          "she walks toward a boat"
+        ],
+        "dialogue": [],
+        "sound": [],
+        "music": [],
+        "cutTimes": [
+          4
+        ]
+      },
+      "raw": "{\n  \"assets\": [],\n  \"actions\": [\n    \"a woman stands on a dock\",\n    \"cut to\",\n    \"she walks toward a boat\"\n  ],\n  \"dialogue\": [],\n  \"sound\": [],\n  \"music\": [],\n  \"cutTimes\": [\n    4\n  ]\n}"
+    },
+    {
+      "model": "R4C3R/qwen2.5-7b-instruct-heretic:q8_0",
+      "case": "first-frame",
+      "pass": false,
+      "issues": [
+        "asset count 0 expected 1",
+        "cut times [8] expected []"
+      ],
+      "output": {
+        "assets": [],
+        "actions": [
+          "Picture 1 is the first frame, showing a woman on a dock.",
+          "She walks toward a boat."
+        ],
+        "dialogue": [],
+        "sound": [],
+        "music": [],
+        "cutTimes": [
+          8
+        ]
+      },
+      "raw": "{\n  \"assets\": [],\n  \"actions\": [\n    \"Picture 1 is the first frame, showing a woman on a dock.\",\n    \"She walks toward a boat.\"\n  ],\n  \"dialogue\": [],\n  \"sound\": [],\n  \"music\": [],\n  \"cutTimes\": [\n    8\n  ]\n}"
+    },
+    {
+      "model": "R4C3R/qwen2.5-7b-instruct-heretic:q8_0",
+      "case": "two-pictures",
+      "pass": true,
+      "issues": [],
+      "output": {
+        "assets": [
+          {
+            "kind": "picture",
+            "quote": "Picture 1 is the woman to preserve."
+          },
+          {
+            "kind": "picture",
+            "quote": "Picture 2 supplies a battlefield, her outfit, and a position guide who is replaced by the woman in picture 1."
+          }
+        ],
+        "actions": [
+          "The woman from picture 1 jumps around the battlefield cutting down enemies."
+        ],
+        "dialogue": [],
+        "sound": [],
+        "music": [],
+        "cutTimes": []
+      },
+      "raw": "{\n  \"assets\": [\n    {\n      \"kind\": \"picture\",\n      \"quote\": \"Picture 1 is the woman to preserve.\"\n    },\n    {\n      \"kind\": \"picture\",\n      \"quote\": \"Picture 2 supplies a battlefield, her outfit, and a position guide who is replaced by the woman in picture 1.\"\n    }\n  ],\n  \"actions\": [\n    \"The woman from picture 1 jumps around the battlefield cutting down enemies.\"\n  ],\n  \"dialogue\": [],\n  \"sound\": [],\n  \"music\": [],\n  \"cutTimes\": []\n}"
+    },
+    {
+      "model": "R4C3R/qwen2.5-7b-instruct-heretic:q8_0",
+      "case": "dialogue",
+      "pass": false,
+      "issues": [
+        "non-source quote: She says 'Who goes there?'",
+        "cut times [8] expected []"
+      ],
+      "output": {
+        "assets": [],
+        "actions": [
+          "A woman walks into a room",
+          "She says 'Who goes there?'"
+        ],
+        "dialogue": [
+          "Who goes there?"
+        ],
+        "sound": [],
+        "music": [],
+        "cutTimes": [
+          8
+        ]
+      },
+      "raw": "{\n  \"assets\": [],\n  \"actions\": [\n    \"A woman walks into a room\",\n    \"She says 'Who goes there?'\"\n  ],\n  \"dialogue\": [\n    \"Who goes there?\"\n  ],\n  \"sound\": [],\n  \"music\": [],\n  \"cutTimes\": [\n    8\n  ]\n}"
+    },
+    {
+      "model": "R4C3R/qwen2.5-7b-instruct-heretic:q8_0",
+      "case": "three-pictures",
+      "pass": true,
+      "issues": [],
+      "output": {
+        "assets": [
+          {
+            "kind": "picture",
+            "quote": "the character"
+          },
+          {
+            "kind": "picture",
+            "quote": "the red coat she should wear"
+          },
+          {
+            "kind": "picture",
+            "quote": "a snowy field"
+          }
+        ],
+        "actions": [
+          "The character walks across the field wearing the red coat."
+        ],
+        "dialogue": [],
+        "sound": [],
+        "music": [],
+        "cutTimes": []
+      },
+      "raw": "{\n  \"assets\": [\n    {\"kind\": \"picture\", \"quote\": \"the character\"},\n    {\"kind\": \"picture\", \"quote\": \"the red coat she should wear\"},\n    {\"kind\": \"picture\", \"quote\": \"a snowy field\"}\n  ],\n  \"actions\": [\n    \"The character walks across the field wearing the red coat.\"\n  ],\n  \"dialogue\": [],\n  \"sound\": [],\n  \"music\": [],\n  \"cutTimes\": []\n}"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # Qwen-Image research brief
 
-Research baseline: 2026-08-15. Scope: Qwen-Image-2512, Edit-2511, Lightning.
+Research baseline: 2026-08-15. Scope: Qwen-Image-2512, Edit-2511, Lightning. Qwen-Image-2.1 is a separate September 2026 model with different prompting, workflow, and license rules; see [`qwen-image-2.1.md`](qwen-image-2.1.md).
 
 ## Official guidance
 

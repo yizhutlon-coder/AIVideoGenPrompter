@@ -1,0 +1,285 @@
+{
+  "date": "2026-09-22T09:34:34.047Z",
+  "results": [
+    {
+      "model": "qwen2.5:7b-instruct",
+      "case": "simple-text",
+      "strategy": "tool",
+      "pass": false,
+      "problems": [
+        "The model did not return the complete project JSON."
+      ],
+      "project": null,
+      "raw": "{\"mode\":\"T2VA\",\"dur\":8,\"media\":[{\"desc\":\"a woman walks across a battlefield\",\"dur\":8,\"kind\":\"vid\",\"on\":false}]}"
+    },
+    {
+      "model": "qwen2.5:7b-instruct",
+      "case": "plain-text",
+      "strategy": "tool",
+      "pass": false,
+      "problems": [
+        "Text-only mode cannot have reference media.",
+        "The model invented a reference asset.",
+        "The timeline needs [Shot 1].",
+        "expected 0 media, got 1",
+        "expected 1 shots",
+        "missing woman",
+        "missing walk",
+        "missing battlefield"
+      ],
+      "project": {
+        "mode": "T2VA",
+        "dur": 8,
+        "media": [
+          {
+            "kind": "vid",
+            "desc": "A woman walks across a battlefield",
+            "dur": 8,
+            "audioMode": "off",
+            "on": true,
+            "job": ""
+          }
+        ],
+        "text": {
+          "imd": "immediate",
+          "mus": "ambient",
+          "ss": "soft"
+        }
+      },
+      "raw": "{\"mode\":\"T2VA\",\"dur\":8,\"media\":[{\"desc\":\"A woman walks across a battlefield\",\"dur\":8,\"kind\":\"vid\",\"on\":true}],\"text\":{\"imd\":\"immediate\",\"mus\":\"ambient\",\"ss\":\"soft\"}}"
+    },
+    {
+      "model": "qwen2.5:7b-instruct",
+      "case": "two-shot",
+      "strategy": "tool",
+      "pass": false,
+      "problems": [
+        "Text-only mode cannot have reference media.",
+        "The request explicitly excludes reference media.",
+        "The model invented a reference asset.",
+        "The timeline needs [Shot 1].",
+        "expected 0 media, got 2",
+        "expected 2 shots",
+        "missing woman",
+        "missing dock",
+        "missing boat"
+      ],
+      "project": {
+        "mode": "T2VA",
+        "dur": 8,
+        "media": [
+          {
+            "kind": "vid",
+            "desc": "A woman stands on a dock.",
+            "dur": 4,
+            "audioMode": "off",
+            "on": true,
+            "job": ""
+          },
+          {
+            "kind": "vid",
+            "desc": "The woman walks toward a boat.",
+            "dur": 4,
+            "audioMode": "off",
+            "on": true,
+            "job": ""
+          }
+        ],
+        "text": {
+          "imd": "text for image description",
+          "mus": "off",
+          "ss": "text for sign language"
+        }
+      },
+      "raw": "{\"text\":{\"imd\":\"text for image description\",\"mus\":\"off\",\"ss\":\"text for sign language\"},\"mode\":\"T2VA\",\"dur\":8,\"media\":[{\"desc\":\"A woman stands on a dock.\",\"dur\":4,\"job\":\"shot1\",\"kind\":\"vid\",\"on\":true},{\"desc\":\"The woman walks toward a boat.\",\"dur\":4,\"job\":\"shot2\",\"kind\":\"vid\",\"on\":true}]}"
+    },
+    {
+      "model": "qwen2.5:7b-instruct",
+      "case": "first-frame",
+      "strategy": "tool",
+      "pass": false,
+      "problems": [
+        "The model did not return the complete project JSON."
+      ],
+      "project": null,
+      "raw": "{\"dur\":8,\"media\":[{\"desc\":\"Woman walking towards a boat on a dock\",\"dur\":8,\"kind\":\"vid\",\"on\":false}],\"mode\":\"T2VA\"}"
+    },
+    {
+      "model": "qwen2.5:7b-instruct",
+      "case": "two-pictures",
+      "strategy": "tool",
+      "pass": false,
+      "problems": [
+        "The model did not return the complete project JSON."
+      ],
+      "project": null,
+      "raw": "{\"mode\":\"T2VA\",\"text\":{\"dd\":\"Picture 1: Woman to preserve. Picture 2: Battlefield, outfit, and position guide.\",\"mus\":\"Epic battle music\",\"ret\":\"The woman from Picture 1 replaces a position guide in Picture 2, cutting down enemies.\",\"ss\":\"Action and movement\",\"subj\":\"Woman in Battle\",\"summ\":\"A woman battles enemies on a battlefield.\"},\"media\":[{\"desc\":\"A woman in battle attire, poised and ready to fight.\",\"dur\":5,\"kind\":\"pic\",\"on\":true},{\"desc\":\"A battlefield with a position guide, where the woman from Picture 1 will replace the guide.\",\"dur\":10,\"kind\":\"pic\",\"on\":true}]}"
+    },
+    {
+      "model": "R4C3R/qwen2.5-7b-instruct-heretic:q8_0",
+      "case": "simple-text",
+      "strategy": "tool",
+      "pass": false,
+      "problems": [
+        "Text-only mode cannot have reference media.",
+        "The request explicitly excludes reference media.",
+        "The model invented a reference asset.",
+        "The timeline needs [Shot 1].",
+        "Soundscape and music must contain a description or N/A.",
+        "expected 0 media, got 1",
+        "expected 1 shots",
+        "missing woman",
+        "missing walk",
+        "missing battlefield"
+      ],
+      "project": {
+        "mode": "T2VA",
+        "dur": 8,
+        "media": [
+          {
+            "kind": "vid",
+            "desc": "a woman walks across a battlefield",
+            "dur": 8,
+            "audioMode": "off",
+            "on": false,
+            "job": ""
+          }
+        ],
+        "text": {
+          "imd": "",
+          "mus": "",
+          "ss": ""
+        }
+      },
+      "raw": "{\"mode\":\"T2VA\",\"media\":[{\"desc\":\"a woman walks across a battlefield\",\"dur\":8,\"job\":\"\",\"kind\":\"vid\",\"on\":false}],\"text\":{\"imd\":\"\",\"mus\":\"\",\"ss\":\"\"}}"
+    },
+    {
+      "model": "R4C3R/qwen2.5-7b-instruct-heretic:q8_0",
+      "case": "plain-text",
+      "strategy": "tool",
+      "pass": false,
+      "problems": [
+        "Text-only mode cannot have reference media.",
+        "The model invented a reference asset.",
+        "The timeline needs [Shot 1].",
+        "expected 0 media, got 1",
+        "expected 1 shots",
+        "missing woman",
+        "missing walk",
+        "missing battlefield"
+      ],
+      "project": {
+        "mode": "T2VA",
+        "dur": 8,
+        "media": [
+          {
+            "kind": "vid",
+            "desc": "A woman walks across a battlefield",
+            "dur": 8,
+            "audioMode": "off",
+            "on": true,
+            "job": ""
+          }
+        ],
+        "text": {
+          "imd": "immediate",
+          "mus": "battle",
+          "ss": "soft"
+        }
+      },
+      "raw": "{\"mode\":\"T2VA\",\"media\":[{\"desc\":\"A woman walks across a battlefield\",\"dur\":8,\"job\":\"shot\",\"kind\":\"vid\",\"on\":true}],\"text\":{\"imd\":\"immediate\",\"mus\":\"battle\",\"ss\":\"soft\"}}"
+    },
+    {
+      "model": "R4C3R/qwen2.5-7b-instruct-heretic:q8_0",
+      "case": "two-shot",
+      "strategy": "tool",
+      "pass": false,
+      "problems": [
+        "Text-only mode cannot have reference media.",
+        "The request explicitly excludes reference media.",
+        "The model invented a reference asset.",
+        "The timeline needs [Shot 1].",
+        "expected 0 media, got 2",
+        "expected 2 shots",
+        "missing woman",
+        "missing dock",
+        "missing boat"
+      ],
+      "project": {
+        "mode": "T2VA",
+        "dur": 8,
+        "media": [
+          {
+            "kind": "vid",
+            "desc": "A woman stands on a dock.",
+            "dur": 4,
+            "audioMode": "off",
+            "on": true,
+            "job": ""
+          },
+          {
+            "kind": "vid",
+            "desc": "The same woman walks toward a boat.",
+            "dur": 4,
+            "audioMode": "off",
+            "on": true,
+            "job": ""
+          }
+        ],
+        "text": {
+          "imd": "immediate",
+          "mus": "off",
+          "ss": "soft"
+        }
+      },
+      "raw": "{\"mode\":\"T2VA\",\"media\":[{\"desc\":\"A woman stands on a dock.\",\"dur\":4,\"job\":\"shot1\",\"kind\":\"vid\",\"on\":true},{\"desc\":\"The same woman walks toward a boat.\",\"dur\":4,\"job\":\"shot2\",\"kind\":\"vid\",\"on\":true}],\"text\":{\"imd\":\"immediate\",\"mus\":\"off\",\"ss\":\"soft\"}}"
+    },
+    {
+      "model": "R4C3R/qwen2.5-7b-instruct-heretic:q8_0",
+      "case": "first-frame",
+      "strategy": "tool",
+      "pass": false,
+      "problems": [
+        "Text-only mode cannot have reference media.",
+        "The timeline needs [Shot 1].",
+        "Soundscape and music must contain a description or N/A.",
+        "expected mode I2VA, got T2VA",
+        "expected 1 shots",
+        "missing woman",
+        "missing walk",
+        "missing boat"
+      ],
+      "project": {
+        "mode": "T2VA",
+        "dur": 8,
+        "media": [
+          {
+            "kind": "vid",
+            "desc": "A woman walking from a dock towards a boat.",
+            "dur": 8,
+            "audioMode": "off",
+            "on": false,
+            "job": ""
+          }
+        ],
+        "text": {
+          "imd": "",
+          "mus": "",
+          "ss": ""
+        }
+      },
+      "raw": "{\"media\":[{\"desc\":\"A woman walking from a dock towards a boat.\",\"dur\":8,\"job\":\"animate\",\"kind\":\"vid\",\"on\":false}],\"text\":{\"imd\":\"\",\"mus\":\"\",\"ss\":\"\"},\"mode\":\"T2VA\"}"
+    },
+    {
+      "model": "R4C3R/qwen2.5-7b-instruct-heretic:q8_0",
+      "case": "two-pictures",
+      "strategy": "tool",
+      "pass": false,
+      "problems": [
+        "The model did not return the complete project JSON."
+      ],
+      "project": null,
+      "raw": "{\"mode\":\"T2VA\",\"media\":[{\"desc\":\"A woman standing on a battlefield, wearing armor and holding a sword. She is positioned in the center of the frame.\",\"dur\":5,\"kind\":\"pic\",\"on\":true},{\"desc\":\"The same woman, now jumping and swinging her sword, cutting down enemies on the battlefield. Her position guide is replaced by her in the second picture.\",\"dur\":7,\"kind\":\"pic\",\"on\":true}],\"text\":{\"dd\":\"She jumps and swings her sword, cutting down enemies.\",\"mus\":\"Heroic battle music plays in the background.\",\"ret\":\"She is wearing armor and holding a sword.\",\"ss\":\"The battlefield is the setting for the action.\",\"subj\":\"Woman on Battlefield\",\"summ\":\"The woman is a warrior on a battlefield, fighting enemies.\"}}"
+    }
+  ]
+}

@@ -1,0 +1,351 @@
+{
+  "date": "2026-09-22T09:09:18.488Z",
+  "results": [
+    {
+      "model": "qwen2.5:7b-instruct",
+      "case": "simple-text",
+      "strategy": "schema-general",
+      "pass": false,
+      "problems": [
+        "Text-only mode cannot have reference media.",
+        "The request explicitly excludes reference media.",
+        "The model invented a reference asset.",
+        "The timeline needs [Shot 1].",
+        "expected 0 media, got 1",
+        "expected 1 shots"
+      ],
+      "project": {
+        "mode": "T2VA",
+        "dur": 8,
+        "media": [
+          {
+            "kind": "pic",
+            "desc": "A woman walks across a battlefield.",
+            "dur": 0,
+            "on": true,
+            "job": ""
+          }
+        ],
+        "text": {
+          "imd": "A woman walks across a battlefield.",
+          "ss": "00:00.000",
+          "mus": "off"
+        }
+      },
+      "raw": "{\n  \"mode\": \"T2VA\",\n  \"dur\": 8,\n  \"media\": [\n    {\n      \"kind\": \"pic\",\n      \"desc\": \"A woman walks across a battlefield.\",\n      \"dur\": 8,\n      \"on\": true,\n      \"job\": \"walk\",\n      \"audioMode\": \"off\"\n    }\n  ],\n  \"text\": {\n    \"imd\": \"A woman walks across a battlefield.\",\n    \"ss\": \"00:00.000\",\n    \"mus\": \"off\"\n  }\n}"
+    },
+    {
+      "model": "qwen2.5:7b-instruct",
+      "case": "plain-text",
+      "strategy": "schema-general",
+      "pass": false,
+      "problems": [
+        "The model invented a reference asset.",
+        "The timeline needs [Shot 1].",
+        "expected mode T2VA, got FL2VA",
+        "expected 0 media, got 1",
+        "expected 1 shots",
+        "missing woman",
+        "missing walk",
+        "missing battlefield"
+      ],
+      "project": {
+        "mode": "FL2VA",
+        "dur": 8,
+        "media": [
+          {
+            "kind": "pic",
+            "desc": "A woman in battle armor walking across a battlefield with ruins and fallen structures in the background.",
+            "dur": 0,
+            "on": true,
+            "job": ""
+          }
+        ],
+        "text": {
+          "imd": "",
+          "ss": "00:00.000",
+          "mus": "off"
+        }
+      },
+      "raw": "{\n  \"mode\": \"FL2VA\",\n  \"dur\": 8,\n  \"media\": [\n    {\n      \"kind\": \"pic\",\n      \"desc\": \"A woman in battle armor walking across a battlefield with ruins and fallen structures in the background.\",\n      \"dur\": 8,\n      \"on\": true,\n      \"job\": \"shot\",\n      \"audioMode\": \"off\"\n    }\n  ],\n  \"text\": {\n    \"imd\": \"\",\n    \"ss\": \"00:00.000\",\n    \"mus\": \"off\"\n  }\n}"
+    },
+    {
+      "model": "qwen2.5:7b-instruct",
+      "case": "two-shot",
+      "strategy": "schema-general",
+      "pass": false,
+      "problems": [
+        "Text-only mode cannot have reference media.",
+        "The request explicitly excludes reference media.",
+        "The model invented a reference asset.",
+        "[Shot 2] needs a cut time.",
+        "expected 0 media, got 2"
+      ],
+      "project": {
+        "mode": "T2VA",
+        "dur": 8,
+        "media": [
+          {
+            "kind": "vid",
+            "desc": "A woman stands on a dock.",
+            "dur": 4,
+            "audioMode": "off",
+            "on": true,
+            "job": ""
+          },
+          {
+            "kind": "vid",
+            "desc": "The woman walks toward a boat.",
+            "dur": 4,
+            "audioMode": "off",
+            "on": true,
+            "job": ""
+          }
+        ],
+        "text": {
+          "imd": "[Shot 1] A woman stands on a dock.\n[Shot 2] She walks toward a boat.",
+          "ss": "00:00.000",
+          "mus": "off"
+        }
+      },
+      "raw": "{\n  \"mode\": \"T2VA\",\n  \"dur\": 8,\n  \"media\": [\n    {\n      \"kind\": \"vid\",\n      \"desc\": \"A woman stands on a dock.\",\n      \"dur\": 4,\n      \"on\": true,\n      \"job\": \"format\",\n      \"audioMode\": \"off\"\n    },\n    {\n      \"kind\": \"vid\",\n      \"desc\": \"The woman walks toward a boat.\",\n      \"dur\": 4,\n      \"on\": true,\n      \"job\": \"format\",\n      \"audioMode\": \"off\"\n    }\n  ],\n  \"text\": {\n    \"imd\": \"[Shot 1] A woman stands on a dock.\\n[Shot 2] She walks toward a boat.\",\n    \"ss\": \"00:00.000\",\n    \"mus\": \"off\"\n  }\n}"
+    },
+    {
+      "model": "qwen2.5:7b-instruct",
+      "case": "first-frame",
+      "strategy": "schema-general",
+      "pass": false,
+      "problems": [
+        "Text-only mode cannot have reference media.",
+        "The timeline needs [Shot 1].",
+        "expected mode I2VA, got T2VA",
+        "expected 1 media, got 5",
+        "expected 1 shots"
+      ],
+      "project": {
+        "mode": "T2VA",
+        "dur": 8,
+        "media": [
+          {
+            "kind": "pic",
+            "desc": "A woman on a dock",
+            "dur": 0,
+            "on": true,
+            "job": ""
+          },
+          {
+            "kind": "pic",
+            "desc": "The woman starts walking towards a boat on the dock",
+            "dur": 0,
+            "on": true,
+            "job": ""
+          },
+          {
+            "kind": "pic",
+            "desc": "The woman is halfway to the boat",
+            "dur": 0,
+            "on": true,
+            "job": ""
+          },
+          {
+            "kind": "pic",
+            "desc": "The woman reaches the boat",
+            "dur": 0,
+            "on": true,
+            "job": ""
+          },
+          {
+            "kind": "pic",
+            "desc": "Close-up of the woman's face as she reaches the boat",
+            "dur": 0,
+            "on": true,
+            "job": ""
+          }
+        ],
+        "text": {
+          "imd": "A woman walks from a dock towards a boat.",
+          "ss": "00:00.000",
+          "mus": "none"
+        }
+      },
+      "raw": "{\n  \"mode\": \"T2VA\",\n  \"dur\": 8,\n  \"media\": [\n    {\n      \"kind\": \"pic\",\n      \"desc\": \"A woman on a dock\",\n      \"dur\": 0,\n      \"on\": true,\n      \"job\": \"format\",\n      \"audioMode\": \"off\"\n    },\n    {\n      \"kind\": \"pic\",\n      \"desc\": \"The woman starts walking towards a boat on the dock\",\n      \"dur\": 2,\n      \"on\": true,\n      \"job\": \"format\",\n      \"audioMode\": \"off\"\n    },\n    {\n      \"kind\": \"pic\",\n      \"desc\": \"The woman is halfway to the boat\",\n      \"dur\": 2,\n      \"on\": true,\n      \"job\": \"format\",\n      \"audioMode\": \"off\"\n    },\n    {\n      \"kind\": \"pic\",\n      \"desc\": \"The woman reaches the boat\",\n      \"dur\": 2,\n      \"on\": true,\n      \"job\": \"format\",\n      \"audioMode\": \"off\"\n    },\n    {\n      \"kind\": \"pic\",\n      \"desc\": \"Close-up of the woman's face as she reaches the boat\",\n      \"dur\": 2,\n      \"on\": true,\n      \"job\": \"format\",\n      \"audioMode\": \"off\"\n    }\n  ],\n  \"text\": {\n    \"imd\": \"A woman walks from a dock towards a boat.\",\n    \"ss\": \"00:00.000\",\n    \"mus\": \"none\"\n  }\n}"
+    },
+    {
+      "model": "qwen2.5:7b-instruct",
+      "case": "two-pictures",
+      "strategy": "schema-general",
+      "pass": false,
+      "problems": [
+        "The model did not return the complete project JSON."
+      ],
+      "project": null,
+      "raw": "{\n  \"mode\": \"T2VA\",\n  \"dur\": 10,\n  \"media\": [\n    {\n      \"kind\": \"pic\",\n      \"desc\": \"Picture 1 - A woman in a battlefield outfit, positioned as a guide for the animation, with a determined look, ready to engage in combat.\",\n      \"dur\": 0,\n      \"on\": true,\n      \"job\": \"background\"\n    },\n    {\n      \"kind\": \"pic\",\n      \"desc\": \"Picture 2 - A detailed battlefield setting with enemies scattered around, providing the environment for the animation.\",\n      \"dur\": 0,\n      \"on\": true,\n      \"job\": \"background\"\n    }\n  ],\n  \"text\": {\n    \"subj\": \"woman in battlefield outfit\",\n    \"summ\": \"The woman from Picture 1, now animated, jumps around the battlefield in Picture 2, cutting down enemies as she moves.\",\n    \"ret\": \"The animated woman from Picture 1 engages in combat, jumping and slashing through the battlefield from Picture 2, defeating enemies in her path.\",\n    \"dd\": \"The woman from Picture 1, now animated, leaps and swings her weapon, taking down enemies in the battlefield setting from Picture 2.\",\n    \"ss\": \"The woman from Picture 1, now animated, moves dynamically through the battlefield from Picture 2, engaging in combat and defeating enemies.\",\n    \"mus\": \"None\"\n  }\n}"
+    },
+    {
+      "model": "R4C3R/qwen2.5-7b-instruct-heretic:q8_0",
+      "case": "simple-text",
+      "strategy": "schema-general",
+      "pass": false,
+      "problems": [
+        "Text-only mode cannot have reference media.",
+        "The request explicitly excludes reference media.",
+        "The model invented a reference asset.",
+        "The timeline needs [Shot 1].",
+        "expected 0 media, got 1",
+        "expected 1 shots"
+      ],
+      "project": {
+        "mode": "T2VA",
+        "dur": 8,
+        "media": [
+          {
+            "kind": "pic",
+            "desc": "A woman walking across a battlefield",
+            "dur": 0,
+            "on": true,
+            "job": ""
+          }
+        ],
+        "text": {
+          "imd": "A woman walks across a battlefield.",
+          "ss": "00:00.000",
+          "mus": "off"
+        }
+      },
+      "raw": "{\n  \"mode\": \"T2VA\",\n  \"dur\": 8,\n  \"media\": [\n    {\n      \"kind\": \"pic\",\n      \"desc\": \"A woman walking across a battlefield\",\n      \"dur\": 8,\n      \"on\": true,\n      \"job\": \"walk\",\n      \"audioMode\": \"off\"\n    }\n  ],\n  \"text\": {\n    \"imd\": \"A woman walks across a battlefield.\",\n    \"ss\": \"00:00.000\",\n    \"mus\": \"off\"\n  }\n}"
+    },
+    {
+      "model": "R4C3R/qwen2.5-7b-instruct-heretic:q8_0",
+      "case": "plain-text",
+      "strategy": "schema-general",
+      "pass": false,
+      "problems": [
+        "Text-only mode cannot have reference media.",
+        "The model invented a reference asset.",
+        "The timeline needs [Shot 1].",
+        "Soundscape and music must contain a description or N/A.",
+        "expected 0 media, got 1",
+        "expected 1 shots",
+        "missing woman",
+        "missing walk",
+        "missing battlefield"
+      ],
+      "project": {
+        "mode": "T2VA",
+        "dur": 8,
+        "media": [
+          {
+            "kind": "pic",
+            "desc": "A woman in battle gear walking across a battlefield with ruins and smoke in the background",
+            "dur": 0,
+            "on": true,
+            "job": ""
+          }
+        ],
+        "text": {
+          "imd": "",
+          "ss": "00:00.000",
+          "mus": ""
+        }
+      },
+      "raw": "{\n  \"mode\": \"T2VA\",\n  \"dur\": 8,\n  \"media\": [\n    {\n      \"kind\": \"pic\",\n      \"desc\": \"A woman in battle gear walking across a battlefield with ruins and smoke in the background\",\n      \"dur\": 8,\n      \"on\": true,\n      \"job\": \"main\"\n    }\n  ],\n  \"text\": {\n    \"imd\": \"\",\n    \"ss\": \"00:00.000\",\n    \"mus\": \"\"\n  }\n}"
+    },
+    {
+      "model": "R4C3R/qwen2.5-7b-instruct-heretic:q8_0",
+      "case": "two-shot",
+      "strategy": "schema-general",
+      "pass": false,
+      "problems": [
+        "Text-only mode cannot have reference media.",
+        "The request explicitly excludes reference media.",
+        "The model invented a reference asset.",
+        "The timeline needs [Shot 1].",
+        "expected 0 media, got 2",
+        "expected 2 shots",
+        "missing woman",
+        "missing dock",
+        "missing boat"
+      ],
+      "project": {
+        "mode": "T2VA",
+        "dur": 8,
+        "media": [
+          {
+            "kind": "pic",
+            "desc": "A woman stands on a dock",
+            "dur": 0,
+            "on": false,
+            "job": ""
+          },
+          {
+            "kind": "pic",
+            "desc": "The same woman walking toward a boat",
+            "dur": 0,
+            "on": false,
+            "job": ""
+          }
+        ],
+        "text": {
+          "imd": "",
+          "ss": "00:00.000",
+          "mus": "none"
+        }
+      },
+      "raw": "{\n  \"mode\": \"T2VA\",\n  \"dur\": 8,\n  \"media\": [\n    {\n      \"kind\": \"pic\",\n      \"desc\": \"A woman stands on a dock\",\n      \"dur\": 4,\n      \"on\": false,\n      \"job\": \"shot1\"\n    },\n    {\n      \"kind\": \"pic\",\n      \"desc\": \"The same woman walking toward a boat\",\n      \"dur\": 4,\n      \"on\": false,\n      \"job\": \"shot2\"\n    }\n  ],\n  \"text\": {\n    \"imd\": \"\",\n    \"ss\": \"00:00.000\",\n    \"mus\": \"none\"\n  }\n}"
+    },
+    {
+      "model": "R4C3R/qwen2.5-7b-instruct-heretic:q8_0",
+      "case": "first-frame",
+      "strategy": "schema-general",
+      "pass": false,
+      "problems": [
+        "Text-only mode cannot have reference media.",
+        "The timeline needs [Shot 1].",
+        "Soundscape and music must contain a description or N/A.",
+        "expected mode I2VA, got T2VA",
+        "expected 1 media, got 2",
+        "expected 1 shots",
+        "missing woman",
+        "missing walk",
+        "missing boat"
+      ],
+      "project": {
+        "mode": "T2VA",
+        "dur": 8,
+        "media": [
+          {
+            "kind": "pic",
+            "desc": "A woman on a dock",
+            "dur": 0,
+            "on": true,
+            "job": ""
+          },
+          {
+            "kind": "pic",
+            "desc": "The woman walking towards a boat",
+            "dur": 0,
+            "on": true,
+            "job": ""
+          }
+        ],
+        "text": {
+          "imd": "",
+          "ss": "Picture 1 is the first frame, showing a woman on a dock. Make an 8-second video where she walks toward a boat. No other references or sound.",
+          "mus": ""
+        }
+      },
+      "raw": "{\n  \"mode\": \"T2VA\",\n  \"dur\": 8,\n  \"media\": [\n    {\n      \"kind\": \"pic\",\n      \"desc\": \"A woman on a dock\",\n      \"dur\": 1,\n      \"on\": true,\n      \"job\": \"start\"\n    },\n    {\n      \"kind\": \"pic\",\n      \"desc\": \"The woman walking towards a boat\",\n      \"dur\": 7,\n      \"on\": true,\n      \"job\": \"end\"\n    }\n  ],\n  \"text\": {\n    \"imd\": \"\",\n    \"ss\": \"Picture 1 is the first frame, showing a woman on a dock. Make an 8-second video where she walks toward a boat. No other references or sound.\",\n    \"mus\": \"\"\n  }\n}"
+    },
+    {
+      "model": "R4C3R/qwen2.5-7b-instruct-heretic:q8_0",
+      "case": "two-pictures",
+      "strategy": "schema-general",
+      "pass": false,
+      "problems": [
+        "The model did not return the complete project JSON."
+      ],
+      "project": null,
+      "raw": "{\n  \"mode\": \"T2VA\",\n  \"dur\": 10,\n  \"media\": [\n    {\n      \"kind\": \"pic\",\n      \"desc\": \"A woman in a battlefield outfit, positioned as a guide for the woman in Picture 1.\",\n      \"dur\": 2,\n      \"on\": false,\n      \"job\": \"position\"\n    },\n    {\n      \"kind\": \"pic\",\n      \"desc\": \"A woman to be preserved, standing in a pose that will be animated into action.\",\n      \"dur\": 2,\n      \"on\": true,\n      \"job\": \"source\"\n    }\n  ],\n  \"text\": {\n    \"subj\": \"Woman in Battle\",\n    \"summ\": \"The woman from Picture 1 is animated to jump and cut down enemies on a battlefield set by Picture 2.\",\n    \"ret\": \"The animated woman in the battlefield outfit performs acrobatic movements and defeats enemies.\",\n    \"dd\": \"The woman's movements are fluid and dynamic, showcasing her agility and combat skills.\",\n    \"ss\": \"The battlefield is filled with enemies, and the woman's actions are decisive and powerful.\",\n    \"mus\": \"Action-packed music with a rhythmic beat to match the woman's movements.\"\n  }\n}"
+    }
+  ]
+}

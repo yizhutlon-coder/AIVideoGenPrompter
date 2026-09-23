@@ -3,3 +3,8 @@ Thumbs.db
 runtime/
 models/
 *.zip
+
+# Local prompt and project exports can contain private text.
+/prompt-studio-saved-data*.json
+/h3-project.json
+/promptstudio_*.json

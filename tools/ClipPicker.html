@@ -98,6 +98,10 @@
 const $ = id => document.getElementById(id);
 var dur = 0, start = 0, fname = 'input.mp4';
 var previewTimer = null;
+function safeShellName(s){
+  return /^[A-Za-z0-9][A-Za-z0-9._ -]*$/.test(s) && !/[. ]$/.test(s) &&
+    !/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(s);
+}
 
 const drop = $('drop'), vid = $('vid'), file = $('file');
 drop.addEventListener('click', () => file.click());
@@ -147,8 +151,9 @@ function update() {
     box.appendChild(b);
   }
   const out = fname.replace(/\.[^.]+$/, '') + `_${start}s-${end}s.mp4`;
-  $('cmd').textContent =
-    `ffmpeg -ss ${start} -i "${fname}" -t ${end - start} -c:v libx264 -crf 18 -preset fast -c:a aac -movflags +faststart "${out}"`;
+  $('cmd').textContent = safeShellName(fname)
+    ? `ffmpeg -ss ${start} -i "${fname}" -t ${end - start} -c:v libx264 -crf 18 -preset fast -c:a aac -movflags +faststart "${out}"`
+    : 'Rename the video with letters, numbers, spaces, dots, hyphens, or underscores before copying an ffmpeg command.';
   $('usedNote').innerHTML = len() === 15
     ? 'This window uses your entire 15s reference-video budget — H3 allows up to 3 clips but only 15s <span class="warn">total</span>.'
     : `H3 budget: this clip uses ${end - start}s of your 15s total across up to 3 reference clips.`;
@@ -167,6 +172,7 @@ function preview() {
 }
 
 function copyCmd() {
+  if (!safeShellName(fname)) { alert('Rename this video before copying an ffmpeg command.'); return; }
   navigator.clipboard.writeText($('cmd').textContent).then(() => {
     const b = document.querySelector('button.primary');
     const t = b.textContent; b.textContent = '✓ Copied';

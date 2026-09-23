@@ -1,0 +1,30 @@
+name: Verify app checkpoint
+
+on:
+  push:
+    branches:
+      - main
+      - 'codex/**'
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify release file hashes
+        run: node Update-Checksums.mjs --check
+      - name: Security regression checks
+        run: node research/_addenda/security-sweep-harness.mjs
+      - name: Prompt grounding checks
+        run: node research/_addenda/promptstudio-grounding-harness.mjs
+      - name: Guided prompt checks
+        run: node research/_addenda/walkthrough-eval-2026-09-22.mjs
+      - name: Guided preview startup checks
+        run: node guided-first-preview/verify-preview.mjs

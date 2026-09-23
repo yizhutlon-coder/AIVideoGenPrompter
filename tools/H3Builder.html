@@ -105,9 +105,10 @@
       <div class="card">
         <h3>Mode</h3>
         <div class="modes" id="modes"></div>
+        <button class="mini" id="restoreGuided" type="button" onclick="restoreBeforeGuided()" style="display:none;margin:7px 0">⤺ Restore previous draft</button>
         <label>Duration (seconds, 5–15 — 4s is API-only; 124 frames = 5.17s is the local floor)</label>
         <div class="row">
-          <input type="number" id="dur" min="5" max="15" value="8" oninput="refresh()">
+          <input type="number" id="dur" min="5" max="15" step="0.001" value="8" oninput="refresh()">
           <span class="hint" id="frameInfo" style="flex:2"></span>
         </div>
         <div class="hint" id="beatInfo" style="margin-top:5px"></div>
@@ -132,11 +133,11 @@
       <details class="card" style="display:block">
         <summary>📖 Format cheat sheet</summary>
         <div class="hint">
-          <b>[Shot 1]</b> opens with a style keyword and has NO timestamp. Later shots: <b>[Shot N] At MM:SS.mmm, the camera cuts to…</b> — cut only when the shot adds new information; distance/angle changes are camera motion.<br><br>
+          <b>[Shot 1]</b> has NO timestamp. Name style or opening composition when you have that information. Later shots: <b>[Shot N] At MM:SS.mmm, the camera cuts to…</b> — cut only when the shot adds new information; a small distance/angle change can be camera motion.<br><br>
           <b>Camera</b> = motion type + amplitude + speed as a natural sentence: “The camera pushes in with small amplitude at slow speed toward…”. Types: Zoom In/Out · Push In/Pull Out · Pan L/R · Truck L/R · Tilt U/D · Pedestal U/D · Arc · Tracking · Static · Shake · POV · Roll.<br><br>
           <b>Dialogue</b>: identity + delivery outside, exact words inside: The woman (S1) says: <b>&lt;d&gt;[English] I get off at the next station.&lt;/d&gt;</b> Speaker IDs stay stable. On-screen text goes in "double quotes" verbatim.<br><br>
-          <b>Beat budget</b> (official): 5s → 3-4 beats · 10s → 5-7 · 15s → 6-9. One primary action per beat. Never use arrows → slashes / or + as syntax.<br><br>
-          <b>Reference mode</b>: six sections in order; roles NARROW; every attached asset must be cited or it bleeds into the output; retention markers: fully_preserved · partially_preserved · attribute_transfer · weak_reference (visuals) / fully_copy · partially_copy · reference (audio — a steer, not a music slot).
+          <b>Optional planning guide</b>: a <a href="https://github.com/MiniMax-AI/MiniMax-H3/blob/main/skills/minimalist-product-ad-generator/SKILL.cn.md" target="_blank" rel="noopener noreferrer">MiniMax product-ad workflow</a> suggests 5s → 3-4 beats · 10s → 5-7 · 15s → 6-9. These are not general H3 limits. Simple requests can use fewer beats. Avoid arrows → slashes / or + as scene syntax.<br><br>
+          <b>Reference mode</b>: six sections in order. Use &lt;Subject N&gt; for reusable people, scenes, clothing, or props, citing the source image inside its definition. A standalone &lt;Picture N&gt; denotes a frame or storyboard anchor. Cite connected assets in narrow roles. For audio, <b>fully_copy</b> requests the complete source track as the complete final track; <b>partially_copy</b> copies a portion; <b>reference</b> steers timbre/content without signal copying. <a href="https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/main/docs/VIDEO_PROMPT_WRITING_GUIDE_ref_en.md" target="_blank" rel="noopener noreferrer">MiniMax reference guide</a>.
         </div>
       </details>
     </div>
@@ -187,6 +188,7 @@ var MODES = [
 var mode = 'T2VA';
 var media = [];   // {kind:'pic'|'vid'|'aud', desc, dur, audioMode ('off'|'paired'|'alone'), on:true}
 var fields = {};  // per-mode field text, keyed mode+field
+var guidedPrevious = null;
 var activeTA = null;   // last focused textarea id
 
 /* ================= frames & beats ================= */
@@ -301,17 +303,17 @@ function renderEditor(){
   var h = '<h3>' + MODES.find(function(m){ return m.id === mode; }).label + ' — ' + MODES.find(function(m){ return m.id === mode; }).hint + '</h3>';
   if (mode === 'REF') {
     h += chipsHTML();
-    h += taHTML('subj', 'subject_definitions — one line per referenced item, NARROW roles', 4, '<Subject 1> is the singer from <Picture 1>; preserve identity, hairstyle, and clothing.');
+    h += taHTML('subj', 'subject_definitions — reusable content with narrow roles and source tags', 4, '<Subject 1> is the character from <Picture 1>; preserve the user-specified identity.');
     h += taHTML('summ', 'summary — starts with bracketed task type(s) joined by +', 2, '[reference generation + audio reference] <Subject 1> sings while ...');
-    h += taHTML('ret', 'retention_analysis — one line per label with a marker', 3, '<Subject 1> (appears in [Shot 1]): fully_preserved - identity, hair, clothing unchanged.');
+    h += taHTML('ret', 'retention_analysis — one line per defined content label with a marker', 3, '<Subject 1> (appears in [Shot 1]): fully_preserved - the user-specified identity from <Picture 1>.');
     h += toolbarHTML();
-    h += taHTML('dd', 'detailed_description — style sentence(s), then [Shot N] timeline (350-500 words for generation)', 10, 'The target video uses realistic concert photography with cool stage light.\n[Shot 1] <Subject 1> (S1) stands center stage ...');
+    h += taHTML('dd', 'detailed_description — describe only supplied style and facts, then the [Shot N] timeline', 10, '[Shot 1] <Subject 1> performs the action described by the user ...');
     h += taHTML('ss', 'overall_soundscape', 2, 'Low audience room tone continues beneath the voice.');
     h += taHTML('mus', 'non_diegetic_music — or N/A', 1, 'N/A');
   } else {
     if (mode !== 'T2VA') h += '<div class="hint" id="alignLine" style="font-family:var(--mono);background:var(--panel2);border:1px solid var(--border);border-radius:4px;padding:8px;margin-bottom:4px"></div>';
     h += toolbarHTML();
-    h += taHTML('imd', 'integrated_multimodal_description — [Shot 1] style keyword + composition, then the timeline', 9, '[Shot 1] Live-action, cinematic, a medium-wide shot frames ...');
+    h += taHTML('imd', 'integrated_multimodal_description — [Shot 1] and any requested later cuts', 9, '[Shot 1] Describe the user-specified subject and action ...');
     h += taHTML('ss', 'overall_soundscape — 1-4 sentences, ambience/physical sound only', 2, 'Rain taps the window over low room tone.');
     h += taHTML('mus', 'non_diegetic_music — instrumentation/tempo/dynamics, or N/A', 1, 'N/A');
   }
@@ -444,9 +446,9 @@ function check(){
       if (stamps[i].t <= stamps[i-1].t) E('Cut times must strictly increase ([Shot ' + stamps[i].n + ']).');
     var shotCount = (body.match(/\[Shot \d+\]/g) || []).length;
     var hi = +beatBudget(dur).split('-')[1];
-    if (shotCount > 4) W(shotCount + ' shots — official doctrine prefers fewer, fuller shots (render per shot and assemble).');
+    if (shotCount > 4) W(shotCount + ' shots may be crowded for one short clip — check that each cut adds information and fits the duration.');
     var beats = (body.match(/\b(then|as|while|before|after)\b/gi) || []).length + shotCount;
-    if (beats > hi + 3) W('Content looks dense for ' + dur + 's — beat budget is ' + beatBudget(dur) + ' primary actions.');
+    if (beats > hi + 3) W('Content looks dense for ' + dur + 's — the optional product-ad planning guide suggests ' + beatBudget(dur) + ' primary actions.');
     if (/(→|->|\w\+\w)/.test(full)) E('Arrows/plus signs present — H3 may render them as on-screen text.');
     if (/\[CUT TO/i.test(full)) E('[CUT TO] is not H3 syntax.');
     if (/<d>(?!\[)/.test(full)) E('Dialogue <d> missing its [Language] tag.');
@@ -480,8 +482,8 @@ function check(){
       if (F('ret').indexOf(sub) === -1) W(sub + ' has no retention_analysis entry.');
     });
     var w = F('dd').trim() ? F('dd').trim().split(/\s+/).length : 0;
-    if (w && w < 300) W('detailed_description is ' + w + ' words — official generation target is 350-500.');
-    if (w > 550) W('detailed_description is ' + w + ' words — official target is 350-500.');
+    if (w && w < 300) W('detailed_description is ' + w + ' words. MiniMax normally recommends 350-500 for fully specified reference generation; add only facts you actually want, never padding.');
+    if (w > 550) W('detailed_description is ' + w + ' words — above MiniMax\'s usual 350-500 range for reference generation.');
   } else {
     if (!F('ss').trim()) W('overall_soundscape is empty — use N/A only for explicit total silence.');
   }
@@ -510,9 +512,28 @@ function refresh(){
   }).join('');
   var d = +$('dur').value || 8;
   $('frameInfo').textContent = '= ' + frameCount(d) + ' frames (' + (frameCount(d)/24).toFixed(3) + 's actual, 17k+5 grid @24fps)';
-  $('beatInfo').textContent = 'Beat budget for ' + d + 's: ' + beatBudget(d) + ' primary actions, one per beat.';
+  $('beatInfo').textContent = 'Optional product-ad planning guide for ' + d + 's: ' + beatBudget(d) + ' primary actions.';
   renderEditor();
   refreshLight();
+}
+function importGuidedProject(project){
+  if (!project || project.format !== 'prompt-studio-walkthrough-v1' || typeof project.prompt !== 'string' || project.prompt.length > 50000 || !Array.isArray(project.refs) || project.refs.length > 18) return false;
+  var match = project.prompt.match(/^subject_definitions:\n([\s\S]*?)\n\nsummary:\n([\s\S]*?)\n\nretention_analysis:\n([\s\S]*?)\n\ndetailed_description:\n([\s\S]*?)\n\noverall_soundscape:\n([\s\S]*?)\n\nnon_diegetic_music:\n([\s\S]*)$/);
+  if (!match || project.refs.some(function(r){ return !r || !['picture','video','audio'].includes(r.kind) || typeof r.description !== 'string' || r.description.length > 5000; })) return false;
+  guidedPrevious = { mode:mode, media:JSON.parse(JSON.stringify(media)), fields:Object.assign({},fields), dur:$('dur').value };
+  $('restoreGuided').style.display = '';
+  mode = 'REF';
+  if (Number.isFinite(Number(project.duration)) && Number(project.duration) >= 5 && Number(project.duration) <= 15) $('dur').value = String(project.duration);
+  media = project.refs.map(function(r){ return {kind:{picture:'pic',video:'vid',audio:'aud'}[r.kind],desc:r.description,dur:r.kind==='picture'?0:5,audioMode:r.kind==='video'?'off':undefined,on:true}; });
+  fields['REF:subj']=match[1]; fields['REF:summ']=match[2]; fields['REF:ret']=match[3];
+  fields['REF:dd']=match[4]; fields['REF:ss']=match[5]==='N/A'?'':match[5]; fields['REF:mus']=match[6]==='N/A'?'':match[6];
+  refresh();
+  return true;
+}
+function restoreBeforeGuided(){
+  if (!guidedPrevious) return;
+  mode=guidedPrevious.mode; media=guidedPrevious.media; fields=guidedPrevious.fields; $('dur').value=guidedPrevious.dur;
+  guidedPrevious=null; $('restoreGuided').style.display='none'; refresh();
 }
 refresh();
 </script>

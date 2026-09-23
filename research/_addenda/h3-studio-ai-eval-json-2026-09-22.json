@@ -1,0 +1,324 @@
+{
+  "date": "2026-09-22T09:08:48.201Z",
+  "results": [
+    {
+      "model": "qwen2.5:7b-instruct",
+      "case": "simple-text",
+      "strategy": "json",
+      "pass": false,
+      "problems": [
+        "Text-only mode cannot have reference media.",
+        "The request explicitly excludes reference media.",
+        "The model invented a reference asset.",
+        "The timeline needs [Shot 1].",
+        "expected 0 media, got 1",
+        "expected 1 shots"
+      ],
+      "project": {
+        "mode": "T2VA",
+        "dur": 8,
+        "media": [
+          {
+            "kind": "vid",
+            "desc": "A woman walking across a battlefield",
+            "dur": 8,
+            "audioMode": "off",
+            "on": true,
+            "job": "motion / performance source"
+          }
+        ],
+        "text": {
+          "imd": "A woman walks across a battlefield.",
+          "ss": "N/A",
+          "mus": "N/A"
+        }
+      },
+      "raw": "{\n  \"mode\": \"T2VA\",\n  \"dur\": 8,\n  \"media\": [\n    {\n      \"kind\": \"vid\",\n      \"desc\": \"A woman walking across a battlefield\",\n      \"dur\": 8,\n      \"audioMode\": \"off\",\n      \"on\": true,\n      \"job\": \"motion / performance source\"\n    }\n  ],\n  \"text\": {\n    \"imd\": \"A woman walks across a battlefield.\",\n    \"ss\": \"N/A\",\n    \"mus\": \"N/A\"\n  }\n}"
+    },
+    {
+      "model": "qwen2.5:7b-instruct",
+      "case": "plain-text",
+      "strategy": "json",
+      "pass": false,
+      "problems": [
+        "The model invented a reference asset.",
+        "The timeline needs [Shot 1].",
+        "expected mode T2VA, got I2VA",
+        "expected 0 media, got 1",
+        "expected 1 shots"
+      ],
+      "project": {
+        "mode": "I2VA",
+        "dur": 8,
+        "media": [
+          {
+            "kind": "vid",
+            "desc": "A woman walks across a battlefield",
+            "dur": 8,
+            "audioMode": "off",
+            "on": true,
+            "job": "motion / performance source"
+          }
+        ],
+        "text": {
+          "imd": "A woman walks across a battlefield, her steps firm and resolute. The camera captures her journey, moving with her as she traverses the rugged terrain.",
+          "ss": "N/A",
+          "mus": "N/A"
+        }
+      },
+      "raw": "{\n  \"mode\": \"I2VA\",\n  \"dur\": 8,\n  \"media\": [\n    {\n      \"kind\": \"vid\",\n      \"desc\": \"A woman walks across a battlefield\",\n      \"dur\": 8,\n      \"audioMode\": \"off\",\n      \"on\": true,\n      \"job\": \"motion / performance source\"\n    }\n  ],\n  \"text\": {\n    \"imd\": \"A woman walks across a battlefield, her steps firm and resolute. The camera captures her journey, moving with her as she traverses the rugged terrain.\",\n    \"ss\": \"N/A\",\n    \"mus\": \"N/A\"\n  }\n}"
+    },
+    {
+      "model": "qwen2.5:7b-instruct",
+      "case": "two-shot",
+      "strategy": "json",
+      "pass": false,
+      "problems": [
+        "Text-only mode cannot have reference media.",
+        "The request explicitly excludes reference media.",
+        "The model invented a reference asset.",
+        "The timeline needs [Shot 1].",
+        "expected 0 media, got 2",
+        "expected 2 shots"
+      ],
+      "project": {
+        "mode": "T2VA",
+        "dur": 8,
+        "media": [
+          {
+            "kind": "pic",
+            "desc": "A woman standing on a dock",
+            "dur": 0,
+            "on": true,
+            "job": "identity — subject look"
+          },
+          {
+            "kind": "pic",
+            "desc": "The same woman walking toward a boat",
+            "dur": 0,
+            "on": true,
+            "job": "identity — subject look"
+          }
+        ],
+        "text": {
+          "imd": "A woman stands on a dock. At 2:00.000, the camera cuts to the same woman walking toward a boat.",
+          "ss": "N/A",
+          "mus": "N/A"
+        }
+      },
+      "raw": "{\n  \"mode\": \"T2VA\",\n  \"dur\": 8,\n  \"media\": [\n    {\n      \"kind\": \"pic\",\n      \"desc\": \"A woman standing on a dock\",\n      \"dur\": 4,\n      \"audioMode\": \"off\",\n      \"on\": true,\n      \"job\": \"identity — subject look\"\n    },\n    {\n      \"kind\": \"pic\",\n      \"desc\": \"The same woman walking toward a boat\",\n      \"dur\": 4,\n      \"audioMode\": \"off\",\n      \"on\": true,\n      \"job\": \"identity — subject look\"\n    }\n  ],\n  \"text\": {\n    \"imd\": \"A woman stands on a dock. At 2:00.000, the camera cuts to the same woman walking toward a boat.\",\n    \"ss\": \"N/A\",\n    \"mus\": \"N/A\"\n  }\n}"
+    },
+    {
+      "model": "qwen2.5:7b-instruct",
+      "case": "first-frame",
+      "strategy": "json",
+      "pass": false,
+      "problems": [
+        "The timeline needs [Shot 1].",
+        "expected 1 shots"
+      ],
+      "project": {
+        "mode": "I2VA",
+        "dur": 8,
+        "media": [
+          {
+            "kind": "pic",
+            "desc": "The first frame, showing a woman on a dock.",
+            "dur": 0,
+            "on": true,
+            "job": "identity — subject look"
+          }
+        ],
+        "text": {
+          "imd": "At 0:00.000, the camera opens on a woman standing on a dock, looking out at the water. She is dressed in casual attire, with a light jacket and jeans. Her hair is tied back, and she has a serene expression on her face. The camera pushes in toward her, focusing on her face and the distant view of the water. At 0:04.000, the camera continues to follow her as she begins to walk toward a small boat docked at the edge of the dock. She moves with a natural, unhurried pace, her steps deliberate and measured. At 0:08.000, she reaches the boat and pauses, looking down at the water before turning to face the camera.",
+          "ss": "N/A",
+          "mus": "N/A"
+        }
+      },
+      "raw": "{\n  \"mode\": \"I2VA\",\n  \"dur\": 8,\n  \"media\": [\n    {\n      \"kind\": \"pic\",\n      \"desc\": \"The first frame, showing a woman on a dock.\",\n      \"dur\": 0,\n      \"audioMode\": \"off\",\n      \"on\": true,\n      \"job\": \"identity — subject look\"\n    }\n  ],\n  \"text\": {\n    \"imd\": \"At 0:00.000, the camera opens on a woman standing on a dock, looking out at the water. She is dressed in casual attire, with a light jacket and jeans. Her hair is tied back, and she has a serene expression on her face. The camera pushes in toward her, focusing on her face and the distant view of the water. At 0:04.000, the camera continues to follow her as she begins to walk toward a small boat docked at the edge of the dock. She moves with a natural, unhurried pace, her steps deliberate and measured. At 0:08.000, she reaches the boat and pauses, looking down at the water before turning to face the camera.\",\n    \"ss\": \"N/A\",\n    \"mus\": \"N/A\"\n  }\n}"
+    },
+    {
+      "model": "qwen2.5:7b-instruct",
+      "case": "two-pictures",
+      "strategy": "json",
+      "pass": false,
+      "problems": [
+        "[Shot 1] cannot have a timestamp.",
+        "[Shot 2] needs a cut time.",
+        "Shot numbers must be sequential.",
+        "expected mode REF, got I2VA",
+        "expected 1 shots"
+      ],
+      "project": {
+        "mode": "I2VA",
+        "dur": 10,
+        "media": [
+          {
+            "kind": "pic",
+            "desc": "The woman to preserve.",
+            "dur": 0,
+            "on": true,
+            "job": "identity — subject look"
+          },
+          {
+            "kind": "pic",
+            "desc": "Supplies a battlefield, her outfit, and a position guide who is replaced by the woman in picture 1.",
+            "dur": 0,
+            "on": true,
+            "job": ""
+          }
+        ],
+        "text": {
+          "imd": "The first shot establishes the woman to preserve, her identity and appearance clearly defined. [Shot 1] At 0:00.000, the camera captures the woman in a battlefield setting, her outfit and position guide visible. [Shot 2] At 0:00.000, the camera cuts to the battlefield, showing the woman in her new position, the position guide now replaced by her. [Shot 2] The woman then jumps around the battlefield, cutting down enemies, her movements dynamic and fluid. [Shot 2] The battlefield setting is rich with detail, enhancing the scene's realism and intensity.",
+          "ss": "N/A",
+          "mus": "N/A"
+        }
+      },
+      "raw": "{\n  \"mode\": \"I2VA\",\n  \"dur\": 10,\n  \"media\": [\n    {\n      \"kind\": \"pic\",\n      \"desc\": \"The woman to preserve.\",\n      \"dur\": 0,\n      \"audioMode\": \"off\",\n      \"on\": true,\n      \"job\": \"identity — subject look\"\n    },\n    {\n      \"kind\": \"pic\",\n      \"desc\": \"Supplies a battlefield, her outfit, and a position guide who is replaced by the woman in picture 1.\",\n      \"dur\": 0,\n      \"audioMode\": \"off\",\n      \"on\": true,\n      \"job\": \"scale / placement — continuity — previous generation\"\n    }\n  ],\n  \"text\": {\n    \"imd\": \"The first shot establishes the woman to preserve, her identity and appearance clearly defined. [Shot 1] At 0:00.000, the camera captures the woman in a battlefield setting, her outfit and position guide visible. [Shot 2] At 0:00.000, the camera cuts to the battlefield, showing the woman in her new position, the position guide now replaced by her. [Shot 2] The woman then jumps around the battlefield, cutting down enemies, her movements dynamic and fluid. [Shot 2] The battlefield setting is rich with detail, enhancing the scene's realism and intensity.\",\n    \"ss\": \"N/A\",\n    \"mus\": \"N/A\"\n  }\n}"
+    },
+    {
+      "model": "R4C3R/qwen2.5-7b-instruct-heretic:q8_0",
+      "case": "simple-text",
+      "strategy": "json",
+      "pass": false,
+      "problems": [
+        "Text-only mode cannot have reference media.",
+        "The request explicitly excludes reference media.",
+        "The model invented a reference asset.",
+        "The timeline needs [Shot 1].",
+        "expected 0 media, got 1",
+        "expected 1 shots"
+      ],
+      "project": {
+        "mode": "T2VA",
+        "dur": 8,
+        "media": [
+          {
+            "kind": "vid",
+            "desc": "woman walking across a battlefield",
+            "dur": 8,
+            "audioMode": "off",
+            "on": true,
+            "job": "motion / performance source"
+          }
+        ],
+        "text": {
+          "imd": "A woman walks across a battlefield.",
+          "ss": "N/A",
+          "mus": "N/A"
+        }
+      },
+      "raw": "{\"mode\":\"T2VA\", \"dur\":8, \"media\":[{\"kind\":\"vid\",\"desc\":\"woman walking across a battlefield\",\"dur\":8,\"audioMode\":\"off\",\"on\":true,\"job\":\"motion / performance source\"}], \"text\":{\"imd\":\"A woman walks across a battlefield.\", \"ss\":\"N/A\", \"mus\":\"N/A\"}}"
+    },
+    {
+      "model": "R4C3R/qwen2.5-7b-instruct-heretic:q8_0",
+      "case": "plain-text",
+      "strategy": "json",
+      "pass": false,
+      "problems": [
+        "The model invented a reference asset.",
+        "[Shot 1] cannot have a timestamp.",
+        "expected mode T2VA, got I2VA",
+        "expected 0 media, got 1"
+      ],
+      "project": {
+        "mode": "I2VA",
+        "dur": 8,
+        "media": [
+          {
+            "kind": "vid",
+            "desc": "woman walking across a battlefield",
+            "dur": 8,
+            "audioMode": "off",
+            "on": true,
+            "job": "motion / performance source"
+          }
+        ],
+        "text": {
+          "imd": "[Shot 1] At 00:00.000, the camera cuts to a woman walking across a battlefield. The woman moves with a steady pace, her steps echoing on the ground. The battlefield is filled with debris and fallen soldiers, creating a sense of desolation and loss. The camera follows her, capturing the vastness of the battlefield and the woman's solitary journey.",
+          "ss": "N/A",
+          "mus": "N/A"
+        }
+      },
+      "raw": "{\"mode\":\"I2VA\",\"dur\":8,\"media\":[{\"kind\":\"vid\",\"desc\":\"woman walking across a battlefield\",\"dur\":8,\"audioMode\":\"off\",\"on\":true,\"job\":\"motion / performance source\"}],\"text\":{\"imd\":\"[Shot 1] At 00:00.000, the camera cuts to a woman walking across a battlefield. The woman moves with a steady pace, her steps echoing on the ground. The battlefield is filled with debris and fallen soldiers, creating a sense of desolation and loss. The camera follows her, capturing the vastness of the battlefield and the woman's solitary journey.\", \"ss\":\"N/A\",\"mus\":\"N/A\"}}"
+    },
+    {
+      "model": "R4C3R/qwen2.5-7b-instruct-heretic:q8_0",
+      "case": "two-shot",
+      "strategy": "json",
+      "pass": false,
+      "problems": [
+        "The model did not return the complete project JSON."
+      ],
+      "project": null,
+      "raw": "{\"mode\":\"T2VA\", \"dur\":8, \"media\":[{\"kind\":\"pic\",\"desc\":\"a woman stands on a dock\",\"dur\":4,\"audioMode\":\"off\",\"on\":true,\"job\":\"identity — subject look\"}, {\"kind\":\"pic\",\"desc\":\"the same woman walking toward a boat\",\"dur\":4,\"audioMode\":\"off\",\"on\":true,\"job\":\"motion / performance source\"}], \"text\":{\"imd\":\"[Shot 1] At 00:00.000, a woman stands on a dock. [Shot 2] At 00:04.000, the camera cuts to the same woman walking toward a boat.\"}}"
+    },
+    {
+      "model": "R4C3R/qwen2.5-7b-instruct-heretic:q8_0",
+      "case": "first-frame",
+      "strategy": "json",
+      "pass": false,
+      "problems": [
+        "The timeline needs [Shot 1].",
+        "expected 1 shots"
+      ],
+      "project": {
+        "mode": "I2VA",
+        "dur": 8,
+        "media": [
+          {
+            "kind": "pic",
+            "desc": "The first frame, showing a woman on a dock.",
+            "dur": 0,
+            "on": true,
+            "job": ""
+          }
+        ],
+        "text": {
+          "imd": "The video opens with a woman standing on a dock, her silhouette against the water. The camera pushes in toward her as she begins to walk toward a boat.",
+          "ss": "N/A",
+          "mus": "N/A"
+        }
+      },
+      "raw": "{\n  \"mode\": \"I2VA\",\n  \"dur\": 8,\n  \"media\": [\n    {\n      \"kind\": \"pic\",\n      \"desc\": \"The first frame, showing a woman on a dock.\",\n      \"dur\": 0,\n      \"audioMode\": \"off\",\n      \"on\": true,\n      \"job\": \"frame anchor (first)\"\n    }\n  ],\n  \"text\": {\n    \"imd\": \"The video opens with a woman standing on a dock, her silhouette against the water. The camera pushes in toward her as she begins to walk toward a boat.\",\n    \"ss\": \"N/A\",\n    \"mus\": \"N/A\"\n  }\n}"
+    },
+    {
+      "model": "R4C3R/qwen2.5-7b-instruct-heretic:q8_0",
+      "case": "two-pictures",
+      "strategy": "json",
+      "pass": false,
+      "problems": [
+        "The timeline needs [Shot 1].",
+        "expected mode REF, got I2VA",
+        "expected 1 shots",
+        "missing enem"
+      ],
+      "project": {
+        "mode": "I2VA",
+        "dur": 10,
+        "media": [
+          {
+            "kind": "pic",
+            "desc": "The woman to preserve.",
+            "dur": 0,
+            "on": true,
+            "job": "identity — subject look"
+          },
+          {
+            "kind": "pic",
+            "desc": "Supplies a battlefield, her outfit, and a position guide who is replaced by the woman in picture 1.",
+            "dur": 0,
+            "on": true,
+            "job": "continuity — previous generation"
+          }
+        ],
+        "text": {
+          "imd": "The first shot opens with a woman in a battlefield setting, her outfit clearly visible. The camera then cuts to a second image where the woman is positioned in a battlefield, ready to engage with her surroundings. The camera pushes in toward her, emphasizing her presence and the environment around her.",
+          "ss": "N/A",
+          "mus": "N/A"
+        }
+      },
+      "raw": "{\n  \"mode\": \"I2VA\",\n  \"dur\": 10,\n  \"media\": [\n    {\n      \"kind\": \"pic\",\n      \"desc\": \"The woman to preserve.\",\n      \"dur\": 0,\n      \"on\": true,\n      \"job\": \"identity — subject look\"\n    },\n    {\n      \"kind\": \"pic\",\n      \"desc\": \"Supplies a battlefield, her outfit, and a position guide who is replaced by the woman in picture 1.\",\n      \"dur\": 0,\n      \"on\": true,\n      \"job\": \"continuity — previous generation\"\n    }\n  ],\n  \"text\": {\n    \"imd\": \"The first shot opens with a woman in a battlefield setting, her outfit clearly visible. The camera then cuts to a second image where the woman is positioned in a battlefield, ready to engage with her surroundings. The camera pushes in toward her, emphasizing her presence and the environment around her.\",\n    \"ss\": \"N/A\",\n    \"mus\": \"N/A\"\n  }\n}"
+    }
+  ]
+}
